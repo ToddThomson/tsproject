@@ -1,0 +1,6 @@
+﻿bin
+obj
+src
+tests
+*.csproj
+*.csproj.user
