@@ -1,12 +1,12 @@
 ﻿import { Logger } from "./Logger";
 import ts = require( 'typescript' );
 
-interface Bundle {
+export interface Bundle {
     name: string;
     modules: string[];
 }
 
-interface ParsedBundlesResult {
+export interface ParsedBundlesResult {
     bundles: Bundle[];
     errors: ts.Diagnostic[];
 }

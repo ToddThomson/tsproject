@@ -12,6 +12,7 @@ npm install tsproject
 ```
 
 # Usage
+Pass a string representing the relative directory path to the Typescript tsconfig.json project file.
 
 Sample gulpfile:
 
@@ -19,7 +20,7 @@ Sample gulpfile:
 var tsproject = require( 'tsproject' );
 var gulp = require( 'gulp' );
 gulp.task( 'build', function() {
-    return tsproject( './src/project_a' )
+    return tsproject.src( './src/project' )
         .pipe(gulp.dest('./built'));
 });
 ```

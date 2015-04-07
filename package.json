@@ -1,12 +1,12 @@
 {
   "name": "tsproject",
-  "version": "0.2.0",
+  "version": "0.2.2",
   "description": "Typescript project compiler",
   "homepage": "https://github.com/toddthomson/tsproject",
   "bugs": "https://github.com/toddthomson/tsproject/issues",
   "main": "./src/tsproject.js",
   "dependencies": {
-    "typescript": "^1.4.1",
+    "typescript": "^1.5.0-alpha",
     "readable-stream": "^1.0.33",
     "vinyl": "^0.4.6"
   },

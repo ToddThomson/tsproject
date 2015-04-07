@@ -5,7 +5,7 @@ import { CompilerResult } from "./CompilerResult";
 import { CompileStream } from "./CompileStream";
 import { Logger } from "./Logger";
 
-function tsproject( configPath ) {
+function src( configPath ) {
 
     Logger.setLevel( 0 );
 
@@ -21,6 +21,10 @@ function tsproject( configPath ) {
     }
 
     return compileStream;
+}
+
+var tsproject = {
+    src: src
 }
 
 export = tsproject;

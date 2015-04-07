@@ -1,11 +1,12 @@
 ﻿/// <reference path="references.d.ts" />
+/// <reference path="parser.ts" />
 
 import { CompilerResult } from "./CompilerResult";
 import { CompilerHost }  from "./CompilerHost";
 import { CompileStream }  from "./CompileStream";
 import { Logger } from "./Logger";
 import { TsVinylFile } from "./TsVinylFile";
-import { Parser } from "./Parser";
+import { Parser, Bundle } from "./Parser";
 
 import ts = require( 'typescript' );
 import path = require( 'path' );
@@ -16,6 +17,7 @@ export class Compiler {
     private configDirPath: string;
     public errors: ts.Diagnostic[] = [];
     private rootFileNames: string[];
+    private bundles: Bundle[];
 
     private compilerHost: CompilerHost;
     private compilerOptions: ts.CompilerOptions = { charset: "utf-8" };
@@ -38,6 +40,8 @@ export class Compiler {
         // Extended tsconfig.json support for bundles
         var bundleParser = new Parser();
         var bundleResult = bundleParser.parseConfigFile( configObject, this.configDirPath );
+
+        this.bundles = bundleResult.bundles;
 
         // Standard tsconfig.json support
         var configParseResult = ts.parseConfigFile( configObject, this.configDirPath );
