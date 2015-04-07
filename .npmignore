@@ -1,4 +1,6 @@
-﻿bin
+﻿dest
+definitions
+bin
 obj
 src
 tests

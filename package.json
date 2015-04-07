@@ -1,12 +1,14 @@
 {
   "name": "tsproject",
-  "version": "0.1.3",
+  "version": "0.2.0",
   "description": "Typescript project compiler",
   "homepage": "https://github.com/toddthomson/tsproject",
   "bugs": "https://github.com/toddthomson/tsproject/issues",
-  "main": "index.js",
+  "main": "./src/tsproject.js",
   "dependencies": {
-    "typescript": "^1.4.1"
+    "typescript": "^1.4.1",
+    "readable-stream": "^1.0.33",
+    "vinyl": "^0.4.6"
   },
   "devDependencies": {},
   "scripts": {
@@ -14,8 +16,12 @@
   },
   "keywords": [
     "typescript",
+    "tsconfig.json",
     "project",
-    "compiler"
+    "transpiler",
+    "compiler",
+    "optimize",
+    "bundle"
   ],
   "author": "Todd Thomson",
   "license": "MIT",
