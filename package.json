@@ -1,7 +1,7 @@
 {
   "name": "tsproject",
-  "version": "0.2.2",
-  "description": "Typescript project compiler",
+  "version": "0.3.2",
+  "description": "Typescript project compiler and ts bundler.",
   "homepage": "https://github.com/toddthomson/tsproject",
   "bugs": "https://github.com/toddthomson/tsproject/issues",
   "main": "./src/tsproject.js",
@@ -23,7 +23,7 @@
     "optimize",
     "bundle"
   ],
-  "author": "Todd Thomson",
+  "author": "Todd Thomson <todd.thomson@me.com>",
   "license": "MIT",
   "repository": {
     "type": "git",

@@ -2,9 +2,10 @@
 
 import { TsVinylFile } from "./TsVinylFile";
 import { Logger } from "./Logger";
-import ts = require( 'typescript' );
-import fs = require( 'fs' );
-import path = require( 'path' );
+import ts = require( "typescript" );
+import fs = require( "fs" );
+import path = require( "path" );
+import os = require( "os" );
 
 export class CompilerHost implements ts.CompilerHost {
 
@@ -52,12 +53,16 @@ export class CompilerHost implements ts.CompilerHost {
         return ts.getDefaultLibFilePath( this.compilerOptions );
     }
 
-    useCaseSensitiveFileNames() {
-        return false;
+    useCaseSensitiveFileNames(): boolean {
+        // var platform: string = os.platform();
+        // win32\win64 are case insensitive platforms, MacOS (darwin) by default is also case insensitive
+        return false; // ( platform !== "win32" && platform !== "win64" && platform !== "darwin" );
     }
 
-    getCanonicalFileName( fileName ) {
-        return fileName;
+    getCanonicalFileName( fileName: string ): string {
+        // if underlying system can distinguish between two files whose names differs only in cases then file name already in canonical form.
+        // otherwise use toLowerCase as a canonical form.
+        return fileName.toLowerCase();
     }
 
     getCurrentDirectory() {

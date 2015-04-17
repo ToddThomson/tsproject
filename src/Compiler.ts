@@ -1,12 +1,14 @@
 ﻿/// <reference path="references.d.ts" />
-/// <reference path="parser.ts" />
+/// <reference path="bundleparser.ts" />
 
 import { CompilerResult } from "./CompilerResult";
 import { CompilerHost }  from "./CompilerHost";
 import { CompileStream }  from "./CompileStream";
 import { Logger } from "./Logger";
 import { TsVinylFile } from "./TsVinylFile";
-import { Parser, Bundle } from "./Parser";
+import { BundleParser, Bundle } from "./BundleParser";
+import { DependencyBuilder } from "./DependencyBuilder";
+import  * as utilities from "./Utilities";
 
 import ts = require( 'typescript' );
 import path = require( 'path' );
@@ -20,47 +22,22 @@ export class Compiler {
     private bundles: Bundle[];
 
     private compilerHost: CompilerHost;
+    private program: ts.Program;
     private compilerOptions: ts.CompilerOptions = { charset: "utf-8" };
 
-    constructor( configDirPath: string ) {
-        this.configDirPath = configDirPath;
-        this.configFileName = path.join( configDirPath, "tsconfig.json" );
+    constructor( compilerHost: CompilerHost, program: ts.Program ) {
+        this.compilerHost = compilerHost
+        this.program = program;
     }
 
-    public compileToStream( compileStream: CompileStream,
+    public compileFilesToStream( compileStream: CompileStream,
                             onComplete?: ( result: CompilerResult, program: ts.Program ) => void,
                             onError?: ( message: string ) => void ) {
-        var configObject = ts.readConfigFile( this.configFileName );
-        Logger.log( configObject );
-
-        if ( !configObject ) {
-            return;
-        }
-
-        // Extended tsconfig.json support for bundles
-        var bundleParser = new Parser();
-        var bundleResult = bundleParser.parseConfigFile( configObject, this.configDirPath );
-
-        this.bundles = bundleResult.bundles;
-
-        // Standard tsconfig.json support
-        var configParseResult = ts.parseConfigFile( configObject, this.configDirPath );
-
-        if ( configParseResult.errors.length > 0 ) {
-            return;
-        }
-
-        this.rootFileNames = configParseResult.fileNames;
-        this.compilerOptions = configParseResult.options;
-
-        // Create host and program
-        this.compilerHost = new CompilerHost( this.compilerOptions );
-        var program = ts.createProgram( this.rootFileNames, this.compilerOptions, this.compilerHost );
 
         // Compile the source files..
-        var emitResult = program.emit();
+        var emitResult = this.program.emit();
 
-        var allDiagnostics = ts.getPreEmitDiagnostics( program ).concat( emitResult.diagnostics );
+        var allDiagnostics = ts.getPreEmitDiagnostics( this.program ).concat( emitResult.diagnostics );
 
         var fileOutput = this.compilerHost.output;
 
@@ -78,9 +55,5 @@ export class Compiler {
         // var result = new CompilerResult( fileOutput, allDiagnostics );
 
         // onComplete( result, program );
-    }
-
-    public watch() {
-        // Placeholder - not yet implemented
     }
 } 

@@ -1,26 +1,26 @@
 ﻿/// <reference path="references.d.ts" />
 
+import { Project } from "./Project";
 import { Compiler } from "./Compiler";
 import { CompilerResult } from "./CompilerResult";
 import { CompileStream } from "./CompileStream";
+import { Bundler } from "./Bundler";
 import { Logger } from "./Logger";
 
-function src( configPath ) {
+function src( configDirPath: string ) {
+
+    if ( configDirPath === undefined && typeof configDirPath !== 'string' ) {
+        throw new Error( "Provide a valid directory path to the project tsconfig.json" );
+    }
 
     Logger.setLevel( 0 );
 
-    var compileStream = new CompileStream();
-    var compiler = new Compiler( configPath );
+    var outputStream = new CompileStream();
 
-    compiler.compileToStream( compileStream ); //, this.onComplete(), this.onError() );
+    var project = new Project( configDirPath );
+    project.build( outputStream );
 
-    function onComplete( result: CompilerResult ) {
-    }
-
-    function onError( message: string ): void {
-    }
-
-    return compileStream;
+    return outputStream;
 }
 
 var tsproject = {
