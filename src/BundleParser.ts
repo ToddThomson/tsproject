@@ -3,7 +3,6 @@ import * as utils from "./Utilities";
 import ts = require( "typescript" );
 import path = require( "path" );
 
-
 export interface Bundle {
     name: string;
     source: string;

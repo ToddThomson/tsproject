@@ -3,7 +3,7 @@ A node module for compiling typescript projects and bundles. The tsconfig.json p
 
 # Bundles
 tsproject supports bundles within the tsconfig.json project file.  Each bundle contains a name, a source file and optional bundle options.
-The typescript source file and its dependencies are packaged as a single file and output with the bundle name.
+The typescript source file and its dependencies are packaged as a single typescript file and output with the bundle name. The typescript bundle is compiled with javascript and declaration files generated.
 
 ```
 {

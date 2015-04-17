@@ -18,6 +18,14 @@ export function hasProperty<T>( map: ts.Map<T>, key: string ): boolean {
     return hasOwnProperty.call( map, key );
 }
 
+export function clone<T>( object: T ): T {
+    let result: any = {};
+    for ( let id in object ) {
+        result[id] = ( <any>object )[id];
+    }
+    return <T>result;
+}
+
 export function createDiagnostic( message ): ts.Diagnostic {
     if ( arguments.length > 1 ) {
         message = formatStringFromArgs( message, arguments, 1 );

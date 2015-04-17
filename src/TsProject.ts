@@ -13,7 +13,7 @@ function src( configDirPath: string ) {
         throw new Error( "Provide a valid directory path to the project tsconfig.json" );
     }
 
-    Logger.setLevel( 0 );
+    Logger.setLevel( 1 );
 
     var outputStream = new CompileStream();
 

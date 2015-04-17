@@ -68,6 +68,23 @@ export class Bundler {
         });
 
         outputStream.push( tsVinylFile );
+
+        // Compile the bundle to generate javascript and declaration file
+        let result = this.compileBundle( bundle.name + ".ts", this.bundleText, { module: ts.ModuleKind.AMD, declaration: true });
+
+        var bundleJsVinylFile = new TsVinylFile( {
+            path: bundle.name + ".js",
+            contents: new Buffer( result[ bundle.name + ".js" ])
+        });
+
+        outputStream.push( bundleJsVinylFile );
+
+        var bundleDtsVinylFile = new TsVinylFile( {
+            path: bundle.name + ".d.ts",
+            contents: new Buffer( result[bundle.name + ".d.ts"] )
+        });
+
+        outputStream.push( bundleDtsVinylFile );
     }
 
     private isCodeModule( importSymbol: ts.Symbol ): boolean {
@@ -109,5 +126,64 @@ export class Bundler {
 
         this.bundleText += editText + "\n";
         this.bundleImportedFiles[file.fileName] = file.fileName;
+    }
+
+    // Replace with Transpile function from typescript 1.5 when available
+    private compileBundle( fileName: string, input: string, compilerOptions?: ts.CompilerOptions, diagnostics?: ts.Diagnostic[] ): ts.Map<string> {
+        let options = compilerOptions ? utils.clone( compilerOptions ) : ts.getDefaultCompilerOptions();
+
+        //options.separateCompilation = true;
+
+        options.declaration = true;
+        options.target = ts.ScriptTarget.ES5;
+        options.module = ts.ModuleKind.AMD;
+        options.diagnostics = true;
+
+        // Filename can be non-ts file.
+        //options.allowNonTsExtensions = true;
+
+        // Parse
+        var inputFileName = fileName || "module.ts";
+        var sourceFile = ts.createSourceFile( inputFileName, input, options.target, true );
+
+        // Store syntactic diagnostics
+        //if ( diagnostics && sourceFile.parseDiagnostics ) {
+        //    diagnostics.push( ...sourceFile.parseDiagnostics );
+        //}
+
+        // Output
+        let outputText: ts.Map<string> = {};
+
+        // Create a compilerHost object to allow the compiler to read and write files
+        var bundlerCompilerHost: ts.CompilerHost = {
+            getSourceFile: ( fileName, target ) => {
+                Logger.log( "getSourceFile(): ", fileName );
+                return fileName === inputFileName ? sourceFile : undefined
+            },
+            writeFile: ( name, text, writeByteOrderMark ) => {
+                Logger.log( "writeFile() with: ", name );
+                outputText[name] = text;
+            },
+            getDefaultLibFileName: () => "lib.d.ts",
+            useCaseSensitiveFileNames: () => false,
+            getCanonicalFileName: fileName => fileName,
+            getCurrentDirectory: () => process.cwd(),
+            getNewLine: () => "\n"
+        };
+
+        var bundlerProgram = ts.createProgram( [inputFileName], options, bundlerCompilerHost );
+
+        if ( diagnostics ) {
+            diagnostics.push( ...bundlerProgram.getGlobalDiagnostics() );
+        }
+
+        // Emit
+        var emitResult = bundlerProgram.emit();
+
+        var allDiagnostics = ts.getPreEmitDiagnostics( bundlerProgram ).concat( emitResult.diagnostics );
+
+        Logger.log( allDiagnostics );
+
+        return outputText;
     }
 } 
