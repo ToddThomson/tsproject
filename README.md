@@ -6,9 +6,9 @@ TsProject produces a compiled output stream of vinyl files for further processin
 # Why TsProject?
 TsProject provides 2 new features:
 
-1. <b>A single Typescript project build context</b>. TsProject uses the new tsconfig.json Typescript project file introduced in Typescript version 1.5 to configure source files, bundles and compile options.
+1. **A single Typescript project build context**. TsProject uses the new tsconfig.json Typescript project file introduced in Typescript version 1.5 to configure source files, bundles and compile options.
 
-2. <b>Single file bundles for packaging of Typescript, javascript and Typescript definition files</b>. TsProject bundles file dependencies of external Typescript modules at compilation time rather than relying on build tools (AMD Optimizer, r.js for example ) further down in the build pipeline.
+2. **Single file bundles for packaging of Typescript, javascript and Typescript definition files**. TsProject bundles file dependencies of external Typescript modules at compilation time rather than relying on build tools (AMD Optimizer, r.js for example ) further down in the build pipeline.
 
 # Bundles
 TsProject supports bundles within the tsconfig.json project file.  Each bundle contains a name, a source file and optional bundle options.
