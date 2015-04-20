@@ -1,3 +1,4 @@
+[![npm version](https://badge.fury.io/js/tsproject.svg)](http://badge.fury.io/js/tsproject)
 # TsProject
 TsProject is a Typescript compiler and external module bundler which utilizes the Typescript project configuration file, tsconfig.json, to provide a compilation context for source files, bundles and compile options.
 
