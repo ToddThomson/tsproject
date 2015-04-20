@@ -2,6 +2,7 @@
 /// <reference path="bundleparser.ts" />
 
 import { CompilerResult } from "./CompilerResult";
+import { CompilerStatistics } from "./CompilerStatistics";
 import { CompilerHost }  from "./CompilerHost";
 import { CompileStream }  from "./CompileStream";
 import { Logger } from "./Logger";
@@ -30,14 +31,30 @@ export class Compiler {
         this.program = program;
     }
 
-    public compileFilesToStream( compileStream: CompileStream,
-                            onComplete?: ( result: CompilerResult, program: ts.Program ) => void,
-                            onError?: ( message: string ) => void ) {
+    public compileFilesToStream(
+        compileStream: CompileStream,
+        onError?: ( message: string ) => void ): CompilerResult {
+
+        // Check for preEmit diagnostics
+        var preEmitDiagnostics = ts.getPreEmitDiagnostics( this.program );
+
+        // Return if noEmitOnError flag is set, and we have errors
+        if ( this.compilerOptions.noEmitOnError && preEmitDiagnostics.length > 0 ) {
+            return new CompilerResult( ts.ExitStatus.DiagnosticsPresent_OutputsSkipped, new CompilerStatistics( this.program ), preEmitDiagnostics );
+        }
 
         // Compile the source files..
+        let emitTime = 0;
+        let startTime = new Date().getTime();
+
         var emitResult = this.program.emit();
 
-        var allDiagnostics = ts.getPreEmitDiagnostics( this.program ).concat( emitResult.diagnostics );
+        emitTime += new Date().getTime() - startTime;
+
+        // If the emitter didn't emit anything, then pass that value along.
+        if ( emitResult.emitSkipped ) {
+            return new CompilerResult( ts.ExitStatus.DiagnosticsPresent_OutputsSkipped, new CompilerStatistics( this.program, 0 ), emitResult.diagnostics );
+        }
 
         var fileOutput = this.compilerHost.output;
 
@@ -50,10 +67,15 @@ export class Compiler {
             });
 
             compileStream.push( tsVinylFile );
-        } 
+        }
 
-        // var result = new CompilerResult( fileOutput, allDiagnostics );
+        let allDiagnostics = preEmitDiagnostics.concat( emitResult.diagnostics );
+        
+        // The emitter emitted something, inform the caller if that happened in the presence of diagnostics.
+        if ( allDiagnostics.length > 0 ) {
+            return new CompilerResult( ts.ExitStatus.DiagnosticsPresent_OutputsGenerated, new CompilerStatistics( this.program, emitTime ), allDiagnostics );
+        }
 
-        // onComplete( result, program );
+        return new CompilerResult( ts.ExitStatus.Success, new CompilerStatistics( this.program, emitTime ) );
     }
 } 

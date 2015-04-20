@@ -4,16 +4,17 @@ import { Project } from "./Project";
 import { Compiler } from "./Compiler";
 import { CompilerResult } from "./CompilerResult";
 import { CompileStream } from "./CompileStream";
-import { Bundler } from "./Bundler";
+import { BundleCompiler } from "./BundleCompiler";
 import { Logger } from "./Logger";
 
-function src( configDirPath: string ) {
+function src( configDirPath: string, options?: any ) {
 
     if ( configDirPath === undefined && typeof configDirPath !== 'string' ) {
         throw new Error( "Provide a valid directory path to the project tsconfig.json" );
     }
-
-    Logger.setLevel( 1 );
+    options = options || {};
+    options.logLevel = options.logLevel || 0;
+    Logger.setLevel( options.logLevel );
 
     var outputStream = new CompileStream();
 

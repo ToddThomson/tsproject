@@ -1,8 +1,9 @@
 ﻿import { Compiler } from "./Compiler";
 import { CompilerResult } from "./CompilerResult";
+import { CompilerReporter } from "./CompilerReporter";
 import { CompilerHost }  from "./CompilerHost";
 import { CompileStream }  from "./CompileStream";
-import { Bundler } from "./Bundler";
+import { BundleCompiler } from "./BundleCompiler";
 import { Logger } from "./Logger";
 import { TsVinylFile } from "./TsVinylFile";
 import { BundleParser, Bundle } from "./BundleParser";
@@ -17,6 +18,8 @@ export class Project {
     private configJson;
 
     private errors: ts.Diagnostic[] = [];
+
+    private compileTime: number = 0;
 
     constructor( configDirPath: string ) {
         this.configDirPath = configDirPath;
@@ -74,15 +77,43 @@ export class Project {
         let program = ts.createProgram( rootFileNames, compilerOptions, compilerHost );
 
         // Files..
+        console.log( "Compiling Project Files..." );
         var compiler = new Compiler( compilerHost, program );
-        compiler.compileFilesToStream( outputStream );
+        var compileResult = compiler.compileFilesToStream( outputStream );
+        Logger.log( compileResult );
+        let compilerReporter = new CompilerReporter( compileResult );
+
+        if ( !compileResult.succeeded() ) {
+            compilerReporter.reportDiagnostics();
+
+            if ( compilerOptions.noEmitOnError ) {
+                return;
+            }
+        }
+
+        if ( compilerOptions.diagnostics ) {
+            compilerReporter.reportStatistics();
+        }
 
         // Bundles..
-        var bundler = new Bundler( compilerHost, program );
-
+        var bundleCompiler = new BundleCompiler( compilerHost, program );
+        console.log( "Compiling Project Bundles..." );
         for ( var i = 0, len = bundles.length; i < len; i++ ) {
-            bundler.bundle( outputStream, bundles[i] );
+            console.log( "Bundle: ", bundles[i].name );
+            compileResult = bundleCompiler.compileBundleToStream( outputStream, bundles[i] );
+            compilerReporter = new CompilerReporter( compileResult );
+
+            if ( !compileResult.succeeded() ) {
+                compilerReporter.reportDiagnostics();
+
+                if ( compilerOptions.noEmitOnError ) {
+                    return;
+                }
+            }
+
+            if ( compilerOptions.diagnostics ) {
+                compilerReporter.reportStatistics();
+            }
         }
     }
-
 }  

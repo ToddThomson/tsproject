@@ -45,7 +45,7 @@ export class BundleParser {
                         Logger.log( ".. bundle source: ", source );
                     }
                     else {
-                        errors.push();
+                        errors.push( utils.createDiagnostic( { key: "Bundle('{0}') requires module source.", id } ) );
                     }
 
                     if ( utils.hasProperty( jsonBundles[id], "options" ) ) {

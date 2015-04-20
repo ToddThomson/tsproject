@@ -1,4 +1,5 @@
 ﻿import { CompilerResult } from "./CompilerResult";
+import { CompilerStatistics } from "./CompilerStatistics";
 import { CompilerHost }  from "./CompilerHost";
 import { CompileStream }  from "./CompileStream";
 import { Logger } from "./Logger";
@@ -10,12 +11,13 @@ import * as utils from "./Utilities";
 import ts = require( 'typescript' );
 import path = require( 'path' );
 
-export class Bundler {
+export class BundleCompiler {
 
     private compilerHost: CompilerHost;
     private program: ts.Program;
     private compilerOptions: ts.CompilerOptions = { charset: "utf-8" };
 
+    private outputText: ts.Map <string> = { };
     private bundleText: string = "";
     private bundleImportedFiles: ts.Map<string> = {};
 
@@ -24,7 +26,7 @@ export class Bundler {
         this.program = program;
     }
 
-    public bundle( outputStream: CompileStream, bundle: Bundle ) {
+    public compileBundleToStream( outputStream: CompileStream, bundle: Bundle ): CompilerResult {
         var dependencyBuilder = new DependencyBuilder( this.compilerHost, this.program );
 
         let bundleSourceFileName = this.compilerHost.getCanonicalFileName( utils.normalizeSlashes( bundle.source ) );
@@ -70,21 +72,23 @@ export class Bundler {
         outputStream.push( tsVinylFile );
 
         // Compile the bundle to generate javascript and declaration file
-        let result = this.compileBundle( bundle.name + ".ts", this.bundleText, { module: ts.ModuleKind.AMD, declaration: true });
+        let result = this.compileBundle( bundle.name + ".ts", this.bundleText, this.program.getCompilerOptions() );
 
         var bundleJsVinylFile = new TsVinylFile( {
             path: bundle.name + ".js",
-            contents: new Buffer( result[ bundle.name + ".js" ])
+            contents: new Buffer( this.outputText[ bundle.name + ".js" ])
         });
 
         outputStream.push( bundleJsVinylFile );
 
         var bundleDtsVinylFile = new TsVinylFile( {
             path: bundle.name + ".d.ts",
-            contents: new Buffer( result[bundle.name + ".d.ts"] )
+            contents: new Buffer( this.outputText[bundle.name + ".d.ts"] )
         });
 
         outputStream.push( bundleDtsVinylFile );
+
+        return result;
     }
 
     private isCodeModule( importSymbol: ts.Symbol ): boolean {
@@ -129,30 +133,15 @@ export class Bundler {
     }
 
     // Replace with Transpile function from typescript 1.5 when available
-    private compileBundle( fileName: string, input: string, compilerOptions?: ts.CompilerOptions, diagnostics?: ts.Diagnostic[] ): ts.Map<string> {
+    private compileBundle( fileName: string, input: string, compilerOptions?: ts.CompilerOptions ): CompilerResult {
         let options = compilerOptions ? utils.clone( compilerOptions ) : ts.getDefaultCompilerOptions();
 
-        //options.separateCompilation = true;
-
-        options.declaration = true;
-        options.target = ts.ScriptTarget.ES5;
-        options.module = ts.ModuleKind.AMD;
-        options.diagnostics = true;
-
-        // Filename can be non-ts file.
-        //options.allowNonTsExtensions = true;
-
         // Parse
-        var inputFileName = fileName || "module.ts";
+        var inputFileName = fileName;
         var sourceFile = ts.createSourceFile( inputFileName, input, options.target, true );
 
-        // Store syntactic diagnostics
-        //if ( diagnostics && sourceFile.parseDiagnostics ) {
-        //    diagnostics.push( ...sourceFile.parseDiagnostics );
-        //}
-
-        // Output
-        let outputText: ts.Map<string> = {};
+        // Clear bundle output text
+        this.outputText = {};
 
         // Create a compilerHost object to allow the compiler to read and write files
         var bundlerCompilerHost: ts.CompilerHost = {
@@ -162,9 +151,9 @@ export class Bundler {
             },
             writeFile: ( name, text, writeByteOrderMark ) => {
                 Logger.log( "writeFile() with: ", name );
-                outputText[name] = text;
+                this.outputText[name] = text;
             },
-            getDefaultLibFileName: () => "lib.d.ts",
+            getDefaultLibFileName: () => ts.getDefaultLibFilePath( this.compilerOptions ),
             useCaseSensitiveFileNames: () => false,
             getCanonicalFileName: fileName => fileName,
             getCurrentDirectory: () => process.cwd(),
@@ -173,17 +162,33 @@ export class Bundler {
 
         var bundlerProgram = ts.createProgram( [inputFileName], options, bundlerCompilerHost );
 
-        if ( diagnostics ) {
-            diagnostics.push( ...bundlerProgram.getGlobalDiagnostics() );
+        // Check for preEmit diagnostics
+        var preEmitDiagnostics = ts.getPreEmitDiagnostics( bundlerProgram );
+
+        // Return if noEmitOnError flag is set, and we have errors
+        if ( this.compilerOptions.noEmitOnError && preEmitDiagnostics.length > 0 ) {
+            return new CompilerResult( ts.ExitStatus.DiagnosticsPresent_OutputsSkipped, new CompilerStatistics( bundlerProgram ), preEmitDiagnostics );
         }
 
-        // Emit
+        let emitTime = 0;
+        let startTime = new Date().getTime();
+
         var emitResult = bundlerProgram.emit();
 
-        var allDiagnostics = ts.getPreEmitDiagnostics( bundlerProgram ).concat( emitResult.diagnostics );
+        emitTime += new Date().getTime() - startTime;
 
-        Logger.log( allDiagnostics );
+        // If the emitter didn't emit anything, then pass that value along.
+        if ( emitResult.emitSkipped ) {
+            return new CompilerResult( ts.ExitStatus.DiagnosticsPresent_OutputsSkipped, new CompilerStatistics( bundlerProgram, 0 ), emitResult.diagnostics );
+        }
 
-        return outputText;
+        let allDiagnostics = preEmitDiagnostics.concat( emitResult.diagnostics );
+
+        // The emitter emitted something, inform the caller if that happened in the presence of diagnostics.
+        if ( allDiagnostics.length > 0 ) {
+            return new CompilerResult( ts.ExitStatus.DiagnosticsPresent_OutputsGenerated, new CompilerStatistics( bundlerProgram, emitTime ), allDiagnostics );
+        }
+
+        return new CompilerResult( ts.ExitStatus.Success, new CompilerStatistics( bundlerProgram, emitTime ) );
     }
 } 
