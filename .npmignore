@@ -2,7 +2,7 @@
 definitions
 bin
 obj
-src
+src\**\*.ts
 tests
 *.csproj
 *.csproj.user

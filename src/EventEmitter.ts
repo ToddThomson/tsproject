@@ -1,6 +1,6 @@
 ﻿interface IEventEmitter<T> {
-    on( handler: { ( data?: T ): void });
-    off( handler: { ( data?: T ): void });
+    on( handler: { ( data?: T ): void }): any;
+    off( handler: { ( data?: T ): void }): any;
 }
 
 class EventEmitter<T> implements IEventEmitter<T> {

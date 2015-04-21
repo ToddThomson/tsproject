@@ -26,7 +26,7 @@ export function clone<T>( object: T ): T {
     return <T>result;
 }
 
-export function createDiagnostic( message ): ts.Diagnostic {
+export function createDiagnostic( message: any ): ts.Diagnostic {
     if ( arguments.length > 1 ) {
         message = formatStringFromArgs( message, arguments, 1 );
     }
@@ -41,9 +41,9 @@ export function createDiagnostic( message ): ts.Diagnostic {
     };
 } 
 
-function formatStringFromArgs( text, args, baseIndex ) {
+function formatStringFromArgs( text: string, args: any, baseIndex: number ) {
     baseIndex = baseIndex || 0;
-    return text.replace( /{(\d+)}/g, function ( match, index ) {
+    return text.replace( /{(\d+)}/g, function ( match: any, index: any ) {
         return args[+index + baseIndex];
     });
 }

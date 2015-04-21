@@ -11,7 +11,7 @@ export class DependencyBuilder {
     private options: ts.CompilerOptions;
     private moduleImportsByName: ts.Map<ts.Symbol[]> = {};
 
-    constructor( host, program ) {
+    constructor( host: ts.CompilerHost, program: ts.Program ) {
         this.host = host;
         this.program = program;
         this.options = this.program.getCompilerOptions();
@@ -148,6 +148,7 @@ export class DependencyBuilder {
         }
 
         if ( node.kind === ts.SyntaxKind.ImportEqualsDeclaration ) {
+            Logger.log( "ImportEqualsDeclaration" );
             let reference = ( <ts.ImportEqualsDeclaration>node ).moduleReference;
 
             if ( reference.kind === ts.SyntaxKind.ExternalModuleReference ) {

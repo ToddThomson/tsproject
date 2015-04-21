@@ -15,7 +15,7 @@ export class Project {
 
     private configDirPath: string;
     private configFileName: string;
-    private configJson;
+    private configJson: any;
 
     private errors: ts.Diagnostic[] = [];
 

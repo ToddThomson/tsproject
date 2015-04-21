@@ -4,11 +4,11 @@ import ts = require ( 'typescript' );
 
 export class CompilerError {
 
-    private fileName;
-    private line;
-    private column;
-    private name;
-    private message;
+    private fileName: string;
+    private line: number;
+    private column: number;
+    private name: string;
+    private message: any;
 
     constructor( info: ts.Diagnostic ) {
 
