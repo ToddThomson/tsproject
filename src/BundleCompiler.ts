@@ -9,6 +9,7 @@ import { DependencyBuilder } from "./DependencyBuilder";
 import * as utils from "./Utilities";
 
 import ts = require( 'typescript' );
+import fs = require( "fs" );
 import path = require( 'path' );
 
 export class BundleCompiler {
@@ -145,9 +146,17 @@ export class BundleCompiler {
 
         // Create a compilerHost object to allow the compiler to read and write files
         var bundlerCompilerHost: ts.CompilerHost = {
-            getSourceFile: ( fileName, target ) => {
-                Logger.log( "getSourceFile(): ", fileName );
-                return fileName === inputFileName ? sourceFile : undefined
+            getSourceFile: ( fileName, languageVersion ) => {
+                Logger.log( "getSourceFile(): ", path.normalize( fileName ) );
+                if ( path.normalize( fileName ) === path.normalize( ts.getDefaultLibFilePath( this.compilerOptions ) )  ){
+                    let libSourceText = fs.readFileSync( fileName ).toString( "utf8" );
+                    var libSourceFile = ts.createSourceFile( fileName, libSourceText, languageVersion );
+
+                    return libSourceFile;
+                }
+                else {
+                    return fileName === inputFileName ? sourceFile : undefined
+                }
             },
             writeFile: ( name, text, writeByteOrderMark ) => {
                 Logger.log( "writeFile() with: ", name );

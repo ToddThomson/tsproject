@@ -15,7 +15,9 @@ export class CompilerStatistics {
     private compiledLines( program: ts.Program ): number {
         var count = 0;
         utils.forEach( program.getSourceFiles(), file => {
-            count += this.getLineStarts( file ).length;
+            if ( !utils.isDeclarationFile( file ) ) {
+                count += this.getLineStarts( file ).length;
+            }
         });
 
         return count;
