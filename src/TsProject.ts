@@ -7,14 +7,14 @@ import { CompileStream } from "./CompileStream";
 import { BundleCompiler } from "./BundleCompiler";
 import { Logger } from "./Logger";
 
-function src( configDirPath: string, options?: any ) {
+function src( configDirPath: string, settings?: any ) {
 
     if ( configDirPath === undefined && typeof configDirPath !== 'string' ) {
         throw new Error( "Provide a valid directory path to the project tsconfig.json" );
     }
-    options = options || {};
-    options.logLevel = options.logLevel || 0;
-    Logger.setLevel( options.logLevel );
+    settings = settings || {};
+    settings.logLevel = settings.logLevel || 0;
+    Logger.setLevel( settings.logLevel );
 
     var outputStream = new CompileStream();
 

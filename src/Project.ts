@@ -9,6 +9,7 @@ import { TsVinylFile } from "./TsVinylFile";
 import { BundleParser, Bundle } from "./BundleParser";
 
 import ts = require( 'typescript' );
+import fs = require( "fs" );
 import path = require( 'path' );
 
 export class Project {
@@ -22,8 +23,17 @@ export class Project {
     private compileTime: number = 0;
 
     constructor( configDirPath: string ) {
-        this.configDirPath = configDirPath;
-        this.configFileName = path.join( configDirPath, "tsconfig.json" );
+        let isConfigDirectory = fs.lstatSync( configDirPath ).isDirectory();
+
+        if ( isConfigDirectory ) {
+            this.configDirPath = configDirPath;
+            this.configFileName = path.join( configDirPath, "tsconfig.json" );
+        }
+        else {
+            this.configDirPath = path.dirname( configDirPath );
+            this.configFileName = path.join( configDirPath );
+        }
+
         this.configJson = ts.readConfigFile( this.configFileName );
 
         if ( !this.configJson ) {
