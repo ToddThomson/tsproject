@@ -4,6 +4,15 @@ TsProject is a Typescript compiler and external module bundler which utilizes th
 
 TsProject produces a compiled output stream of vinyl files for further processing in the gulp build pipeline.
 
+# Important Notice
+TsProject requires features from the forthcoming release of Typescript 1.5.
+You will need to obtain the LKG bin directory from:
+> https://github.com/Microsoft/TypeScript/tree/release-1.5
+
+and copy it to:
+
+> your_project_path\node_modules\typescript\bin\
+
 # Why TsProject?
 TsProject provides 2 new features:
 
