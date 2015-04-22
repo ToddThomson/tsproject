@@ -1,0 +1,12 @@
+{
+    "name": "TsProjectSample",
+    "version": "1.0.0",
+    "description": "NodejsTsProject",
+    "devDependencies": {
+        "gulp": "^3.8.10",
+        "typescript": ">=1.5.0-alpha <2.0.0",
+        "tsproject": "^0.5.4"
+    },
+    "author": "Todd Thomson <todd.thomson@me.com>",
+    "license": "MIT"
+}

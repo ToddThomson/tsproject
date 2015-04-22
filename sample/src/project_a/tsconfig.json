@@ -1,0 +1,29 @@
+﻿{
+    "compilerOptions": {
+        "module": "amd",
+        "target": "es5",
+        "noResolve": false,
+        "declaration": true,
+        "diagnostics": true
+    },
+
+    "files": [
+        "index.ts",
+        "app.ts",
+        "greeter.ts",
+        "foo.ts",
+        "bar.ts"
+    ],
+
+    "bundles": {
+        "main": {
+            "source": "app.ts",
+            "options": { 
+                "some-bundler-option": "value"  
+            }
+        },
+        "lib": {
+            "source": "index.ts"
+        }
+    }
+}
