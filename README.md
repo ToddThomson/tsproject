@@ -13,6 +13,7 @@ and copy it to:
 
 > your_project_path\node_modules\typescript\bin\
 
+
 # Why TsProject?
 TsProject provides 2 new features:
 
@@ -60,16 +61,32 @@ The Typescript source file and its dependencies are packaged as a single Typescr
 npm install tsproject
 ```
 
-# Usage
-Pass a string representing the relative directory path to the Typescript tsconfig.json project file.
+# API
 
-Sample gulpfile:
+    tsproject.src( projectConfigPath: string, settings: any )
+
+    where:
+
+    projectConfigPath is a relative directory path to a default Typescript project file named "tsconfig.json".
+    or,
+    projectConfigPath is a relative path to a named Typescript project file.   
+
+# Usage - Gulp Build Pipeline
+TsProject on github [https://github.com/ToddThomson/tsproject/tree/master/sample] contains a sample to help you get started.
+Here is the sample gulpfile.js from the sample:
 
 ```
 var tsproject = require( 'tsproject' );
 var gulp = require( 'gulp' );
 gulp.task( 'build', function() {
-    return tsproject.src( './src/project' )
+
+    // path to directory of tsconfig.json provided..
+    tsproject.src( './src/project' )
         .pipe(gulp.dest('./build'));
+    
+    // path to named configuration file provided..
+    return tsproject.src( './src/project_a/myconfig.json', { logLevel: 1 } )
+        .pipe( gulp.dest( './mybuild' ) );
+
 });
 ```
