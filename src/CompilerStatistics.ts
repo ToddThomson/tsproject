@@ -24,7 +24,6 @@ export class CompilerStatistics {
     }
 
     private getLineStarts( sourceFile: ts.SourceFile ): number[] {
-        // return sourceFile.lineMap || ( sourceFile.lineMap = ts.computeLineStarts( sourceFile.text ) );
-        return ts.computeLineStarts( sourceFile.text );
+        return sourceFile.getLineStarts();
     }
 } 

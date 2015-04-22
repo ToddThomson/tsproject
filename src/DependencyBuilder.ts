@@ -146,16 +146,12 @@ export class DependencyBuilder {
         if ( node.kind === ts.SyntaxKind.ImportDeclaration ) {
             return ( <ts.ImportDeclaration>node ).moduleSpecifier;
         }
-
         if ( node.kind === ts.SyntaxKind.ImportEqualsDeclaration ) {
-            Logger.log( "ImportEqualsDeclaration" );
             let reference = ( <ts.ImportEqualsDeclaration>node ).moduleReference;
-
             if ( reference.kind === ts.SyntaxKind.ExternalModuleReference ) {
                 return ( <ts.ExternalModuleReference>reference ).expression;
             }
         }
-
         if ( node.kind === ts.SyntaxKind.ExportDeclaration ) {
             return ( <ts.ExportDeclaration>node ).moduleSpecifier;
         }
