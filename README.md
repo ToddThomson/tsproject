@@ -65,14 +65,12 @@ npm install tsproject
 
     tsproject.src( projectConfigPath: string, settings: any )
 
-    where:
-
-    projectConfigPath is a relative directory path to a default Typescript project file named "tsconfig.json".
-    or,
-    projectConfigPath is a relative path to a named Typescript project file.   
+Where:
+projectConfigPath is a relative directory path to the default Typescript project file named "tsconfig.json".
+or, projectConfigPath is a relative path to a named Typescript project file.   
 
 # Usage - Gulp Build Pipeline
-TsProject on github [https://github.com/ToddThomson/tsproject/tree/master/sample] contains a sample to help you get started.
+TsProject on github contains a [sample](https://github.com/ToddThomson/tsproject/tree/master/sample) to help you get started.
 Here is the sample gulpfile.js from the sample:
 
 ```

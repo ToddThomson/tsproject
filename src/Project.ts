@@ -1,6 +1,7 @@
 ﻿import { Compiler } from "./Compiler";
 import { CompilerResult } from "./CompilerResult";
 import { CompilerReporter } from "./CompilerReporter";
+import { DiagnosticsReporter } from "./DiagnosticsReporter";
 import { CompilerHost }  from "./CompilerHost";
 import { CompileStream }  from "./CompileStream";
 import { BundleCompiler } from "./BundleCompiler";
@@ -11,78 +12,98 @@ import { BundleParser, Bundle } from "./BundleParser";
 import ts = require( 'typescript' );
 import fs = require( "fs" );
 import path = require( 'path' );
+import * as utils from "./Utilities";
+
+interface ProjectConfig {
+    success: boolean;
+    compilerOptions?: ts.CompilerOptions;
+    files?: string[];
+    bundles?: Bundle[];
+    errors?: ts.Diagnostic[];
+}
 
 export class Project {
+    private configPath: string;
 
-    private configDirPath: string;
-    private configFileName: string;
-    private configJson: any;
+    constructor( configPath: string ) {
+        this.configPath = configPath;
+    }
 
-    private errors: ts.Diagnostic[] = [];
-
-    private compileTime: number = 0;
-
-    constructor( configDirPath: string ) {
-        let isConfigDirectory = fs.lstatSync( configDirPath ).isDirectory();
+    public getConfig(): ProjectConfig {
+        Logger.log( "---> Entering getConfig()" );
+        let configDirPath: string;
+        let configFileName: string;
+        let configJson: any;
+        let isConfigDirectory = fs.lstatSync( this.configPath ).isDirectory();
 
         if ( isConfigDirectory ) {
-            this.configDirPath = configDirPath;
-            this.configFileName = path.join( configDirPath, "tsconfig.json" );
+            configDirPath = this.configPath;
+            configFileName = path.join( this.configPath, "tsconfig.json" );
         }
         else {
-            this.configDirPath = path.dirname( configDirPath );
-            this.configFileName = path.join( configDirPath );
+            configDirPath = path.dirname( this.configPath );
+            configFileName = this.configPath;
         }
 
-        this.configJson = ts.readConfigFile( this.configFileName );
+        Logger.log( "configFileName: ", configFileName );
 
-        if ( !this.configJson ) {
-            throw new Error( "Provide a valid directory path to the project tsconfig.json" );
+        configJson = ts.readConfigFile( configFileName );
+
+        if ( !configJson ) {
+            Logger.log( "Error reading configJson" );
+            let error = utils.createDiagnostic( "Provide a valid path to the project configuration directory or file" );
+            return { success: false, errors: [error] };
         }
-    }
 
-    public getBundles(): Bundle[] {
-        Logger.log( "Entering getBundles()" );
-        // Extended tsconfig.json support for bundles
+        // parse standard project configuration objects: compilerOptions, files.
+        var configParseResult = ts.parseConfigFile( configJson, configDirPath );
+
+        if ( configParseResult.errors.length > 0 ) {
+            Logger.log( "standard parseConfigFile errors" );
+            return { success: false, errors: configParseResult.errors };
+        }
+
+        Logger.log( configParseResult );
+
+        // parse standard project configuration objects: compilerOptions, files.
         var bundleParser = new BundleParser();
-        var bundleResult = bundleParser.parseConfigFile( this.configJson, this.configDirPath );
+        var bundleParseResult = bundleParser.parseConfigFile( configJson, configDirPath );
 
-        Logger.log( ".. bundles: ", bundleResult.bundles );
-        return bundleResult.bundles;
-    }
-
-    public getFiles(): string[] {
-
-        var configParseResult = ts.parseConfigFile( this.configJson, this.configDirPath );
-
-        if ( configParseResult.errors.length > 0 ) {
-            return;
+        if ( bundleParseResult.errors.length > 0 ) {
+            Logger.log( "bundle parseConfigFile errors" );
+            return { success: false, errors: bundleParseResult.errors };
         }
 
-        Logger.log( "getFiles(): ", configParseResult.fileNames );
-
-        return configParseResult.fileNames;
-    }
-
-    public getOptions(): ts.CompilerOptions {
-
-        var configParseResult = ts.parseConfigFile( this.configJson, this.configDirPath );
-
-        if ( configParseResult.errors.length > 0 ) {
-            return;
+        return {
+            success: true,
+            compilerOptions: configParseResult.options,
+            files: configParseResult.fileNames,
+            bundles: bundleParseResult.bundles
         }
-
-        return configParseResult.options;
     }
 
-    public build( outputStream: CompileStream ) {
+    public build( outputStream: CompileStream ): boolean {
         Logger.log( "Entering build()" );
-        // Get project config...
-        let compilerOptions = this.getOptions();
-        let rootFileNames = this.getFiles();
-        let bundles = this.getBundles();
 
-        // Create host and program
+        // Get project configuration items for the project build context.
+        let config = this.getConfig();
+
+        if ( !config.success ) {
+            Logger.log( "getConfig() failed" );
+            let diagReporter = new DiagnosticsReporter( config.errors );
+            diagReporter.reportDiagnostics();
+
+            return false;
+        }
+
+        let compilerOptions = config.compilerOptions;
+        let rootFileNames = config.files;
+        let bundles = config.bundles;
+
+        Logger.log( "Project getConfig() was successful" );
+        Logger.log( compilerOptions, rootFileNames, bundles );
+
+        // Create host and program.
         let compilerHost = new CompilerHost( compilerOptions );
         let program = ts.createProgram( rootFileNames, compilerOptions, compilerHost );
 
@@ -97,7 +118,7 @@ export class Project {
             compilerReporter.reportDiagnostics();
 
             if ( compilerOptions.noEmitOnError ) {
-                return;
+                return false;
             }
         }
 
@@ -107,6 +128,7 @@ export class Project {
 
         // Bundles..
         var bundleCompiler = new BundleCompiler( compilerHost, program );
+
         console.log( "Compiling Project Bundles..." );
         for ( var i = 0, len = bundles.length; i < len; i++ ) {
             console.log( "Bundle: ", bundles[i].name );
@@ -117,7 +139,7 @@ export class Project {
                 compilerReporter.reportDiagnostics();
 
                 if ( compilerOptions.noEmitOnError ) {
-                    return;
+                    return false;
                 }
             }
 
@@ -125,5 +147,7 @@ export class Project {
                 compilerReporter.reportStatistics();
             }
         }
+
+        return true;
     }
 }  
