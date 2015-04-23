@@ -1,5 +1,7 @@
 ﻿import { CompilerResult } from "./CompilerResult";
 import { DiagnosticsReporter } from "./DiagnosticsReporter";
+import { Logger } from "./Logger";
+
 import ts = require( "typescript" );
 import chalk = require( "chalk" );
 import * as utils from "./utilities";
@@ -21,7 +23,7 @@ export class CompilerReporter extends DiagnosticsReporter{
     }
 
     private reportStatisticalValue( name: string, value: string ) {
-        console.log( this.padRight( name + ":", 12 ) + this.padLeft( value.toString(), 10 ) );
+        Logger.log( this.padRight( name + ":", 12 ) + this.padLeft( value.toString(), 10 ) );
     }
 
     private reportCountStatistic( name: string, count: number ) {

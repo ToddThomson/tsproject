@@ -1,11 +1,11 @@
 ﻿/// <reference path="references.d.ts" />
 
 import { Project } from "./Project";
-import { Compiler } from "./Compiler";
-import { CompilerResult } from "./CompilerResult";
 import { CompileStream } from "./CompileStream";
-import { BundleCompiler } from "./BundleCompiler";
 import { Logger } from "./Logger";
+
+import ts = require( 'typescript' );
+import chalk = require( "chalk" );
 
 function src( configDirPath: string, settings?: any ) {
 
@@ -15,17 +15,33 @@ function src( configDirPath: string, settings?: any ) {
     settings = settings || {};
     settings.logLevel = settings.logLevel || 0;
     Logger.setLevel( settings.logLevel );
+    Logger.setName( "TsProject" );
 
     var outputStream = new CompileStream();
 
     var project = new Project( configDirPath );
-    project.build( outputStream );
+    var buildStatus = project.build( outputStream );
+
+    switch ( buildStatus ) {
+        case ts.ExitStatus.Success:
+            Logger.log( chalk.green( "Project build completed successfully." ) );
+            break;
+        case ts.ExitStatus.DiagnosticsPresent_OutputsSkipped:
+            Logger.log( chalk.red( "Build completed with errors." ) );
+            break;
+        case ts.ExitStatus.DiagnosticsPresent_OutputsGenerated:
+            Logger.log( chalk.red( "Build completed with errors. " + chalk.italic( "Outputs generated." ) ) );
+            break;
+    }
 
     return outputStream;
 }
 
 var tsproject = {
     src: src
+    // FUTURE: to meet full vinyl adapter requirements
+    // dest: dest,
+    // watch: watch
 }
 
 export = tsproject;

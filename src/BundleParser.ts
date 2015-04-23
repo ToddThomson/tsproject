@@ -31,18 +31,17 @@ export class BundleParser {
             var jsonBundles = json["bundles"];
 
             if ( jsonBundles ) {
-                Logger.log( jsonBundles );
+                Logger.info( jsonBundles );
 
                 for ( var id in jsonBundles ) {
-                    Logger.log( "Bundle Id: ", id );
-                    Logger.log( "Bundle: ", jsonBundles[id] );
+                    Logger.info( "Bundle Id: ", id, jsonBundles[id]);
                     var bundleName: string = id;
                     var source: string;
                     var options: any = {};
 
                     if ( utils.hasProperty( jsonBundles[id], "source" ) ) {
                         source = path.join( basePath, jsonBundles[id].source );
-                        Logger.log( ".. bundle source: ", source );
+                        Logger.info( "bundle source: ", source );
                     }
                     else {
                         errors.push( utils.createDiagnostic( { key: "Bundle('{0}') requires module source.", id } ) );
@@ -50,8 +49,6 @@ export class BundleParser {
 
                     if ( utils.hasProperty( jsonBundles[id], "options" ) ) {
                         options = jsonBundles[id].options
-
-                        Logger.log( "Options: ", options );
                     }
 
                     bundles.push( { name: bundleName, source: source, options: options });

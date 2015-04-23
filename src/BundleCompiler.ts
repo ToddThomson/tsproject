@@ -100,7 +100,7 @@ export class BundleCompiler {
     }
 
     private editImportStatements( file: ts.SourceFile ): string {
-        Logger.log( "---> editImportStatement()" );
+        Logger.info( "---> editImportStatement()" );
         let editText = file.text;
         ts.forEachChild( file, node => {
             if ( node.kind === ts.SyntaxKind.ImportDeclaration || node.kind === ts.SyntaxKind.ImportEqualsDeclaration || node.kind === ts.SyntaxKind.ExportDeclaration ) {
@@ -147,7 +147,7 @@ export class BundleCompiler {
         // Create a compilerHost object to allow the compiler to read and write files
         var bundlerCompilerHost: ts.CompilerHost = {
             getSourceFile: ( fileName, languageVersion ) => {
-                Logger.log( "getSourceFile(): ", path.normalize( fileName ) );
+                Logger.info( "getSourceFile(): ", path.normalize( fileName ) );
                 if ( path.normalize( fileName ) === path.normalize( ts.getDefaultLibFilePath( this.compilerOptions ) )  ){
                     let libSourceText = fs.readFileSync( fileName ).toString( "utf8" );
                     var libSourceFile = ts.createSourceFile( fileName, libSourceText, languageVersion );
@@ -159,7 +159,7 @@ export class BundleCompiler {
                 }
             },
             writeFile: ( name, text, writeByteOrderMark ) => {
-                Logger.log( "writeFile() with: ", name );
+                Logger.info( "writeFile() with: ", name );
                 this.outputText[name] = text;
             },
             getDefaultLibFileName: () => ts.getDefaultLibFilePath( this.compilerOptions ),

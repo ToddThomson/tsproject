@@ -25,7 +25,7 @@ export class DependencyBuilder {
 
     public getSourceFileDependencies( sourceFile: ts.SourceFile ): ts.Map<ts.Symbol[]> {
         var self = this;
-        Logger.log( "---> Entering getSourceFileDependencies()" );
+        Logger.info( "---> Entering getSourceFileDependencies()" );
         let dependencies: ts.Map<ts.Symbol[]> = {};
 
         function walkModuleImports( sourceFile: ts.SourceFile ) {
@@ -53,7 +53,7 @@ export class DependencyBuilder {
     }
 
     public getImportsOfModule( file: ts.SourceFile ): ts.Symbol[] {
-        Logger.log( "---> Entering getImportsOfModule() for file: ", file.fileName );
+        Logger.info( "---> Entering getImportsOfModule() for file: ", file.fileName );
 
         let importSymbols: ts.Symbol[] = [];
 
@@ -68,12 +68,12 @@ export class DependencyBuilder {
                         importSymbols.push( moduleSymbol );
                     }
                     else {
-                        Logger.log( "Module symbol NOT FOUND" );
+                        Logger.warn( "Module symbol NOT FOUND" );
                     }
                 }
             }
             else if ( node.kind === ts.SyntaxKind.ModuleDeclaration && ( <ts.ModuleDeclaration>node ).name.kind === ts.SyntaxKind.StringLiteral && ( node.flags & ts.NodeFlags.Ambient || utilities.isDeclarationFile( file ) ) ) {
-                Logger.log( "Ambient Module Declaration found" );
+                Logger.warn( "Ambient Module Declaration found" );
                 // TypeScript 1.0 spec (April 2014): 12.1.6
                 // An AmbientExternalModuleDeclaration declares an external module. 
                 // This type of declaration is permitted only in the global module.
@@ -104,7 +104,7 @@ export class DependencyBuilder {
     }
 
     private buildDependencyGraph() {
-        Logger.log( "Entering buildDependecyGraph()" );
+        Logger.info( "---> Entering buildDependecyGraph()" );
         this.program.getSourceFiles().forEach( sourceFile => {
             let canonicalFileName = this.host.getCanonicalFileName( sourceFile.fileName );
 
@@ -122,7 +122,7 @@ export class DependencyBuilder {
     }
 
     private processSourceFileDependencies( sourceFile: ts.SourceFile ) {
-        Logger.log( "---> Entering processSourceFileDependencies() for file: ", sourceFile.fileName );
+        Logger.info( "---> Entering processSourceFileDependencies() for file: ", sourceFile.fileName );
         let canonicalSourceFileName = this.host.getCanonicalFileName( sourceFile.fileName );
 
         // If we've haven't visited this module yet, get it's dependencies

@@ -1,4 +1,6 @@
-﻿import ts = require( "typescript" );
+﻿import { Logger } from "./Logger";
+
+import ts = require( "typescript" );
 import chalk = require( "chalk" );
 import * as utils from "./utilities";
 
@@ -29,6 +31,6 @@ export class DiagnosticsReporter {
         var category = chalk.red( ts.DiagnosticCategory[diagnostic.category].toLowerCase() );
         output += `${ category } TS${ chalk.red( diagnostic.code + '' ) }: ${ chalk.grey( ts.flattenDiagnosticMessageText( diagnostic.messageText, "\n" ) ) }`;
 
-        console.log( output );
+        Logger.log( output );
     }
 } 

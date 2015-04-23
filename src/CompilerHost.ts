@@ -20,7 +20,6 @@ export class CompilerHost implements ts.CompilerHost {
     }
 
     getSourceFile( fileName: string, languageVersion: ts.ScriptTarget, onError?: ( message: string ) => void ): ts.SourceFile {
-        Logger.log( "getSourceFile: ", fileName );
         let text: string;
 
         try {
@@ -44,8 +43,6 @@ export class CompilerHost implements ts.CompilerHost {
     }
 
     writeFile = ( fileName: string, data: string, writeByteOrderMark: boolean, onError?: ( message: string ) => void ) => {
-        Logger.log( "Entering writeFile with: ", fileName );
-
         this.output[fileName] = data;
     }
 
