@@ -83,6 +83,8 @@ export class Project {
     }
 
     public build( outputStream: CompileStream ): ts.ExitStatus {
+        let allDiagnostics: ts.Diagnostic[] = [];
+        
         // Get project configuration items for the project build context.
         let config = this.getConfig();
         Logger.log( "Building Project with: " + chalk.magenta(`${this.configFileName}`) );
@@ -114,6 +116,8 @@ export class Project {
             if ( compilerOptions.noEmitOnError ) {
                 return ts.ExitStatus.DiagnosticsPresent_OutputsSkipped;
             }
+
+            allDiagnostics = allDiagnostics.concat( compileResult.getErrors() );
         }
 
         if ( compilerOptions.listFiles ) {
@@ -140,11 +144,17 @@ export class Project {
                 if ( compilerOptions.noEmitOnError ) {
                     return ts.ExitStatus.DiagnosticsPresent_OutputsSkipped;
                 }
+
+                allDiagnostics = allDiagnostics.concat( compileResult.getErrors() );
             }
 
             if ( compilerOptions.diagnostics ) {
                 compilerReporter.reportStatistics();
             }
+        }
+
+        if ( allDiagnostics.length > 0 ) {
+            return ts.ExitStatus.DiagnosticsPresent_OutputsGenerated;
         }
 
         return ts.ExitStatus.Success;
