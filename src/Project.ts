@@ -39,6 +39,7 @@ export class Project {
         let configFileName: string;
         let configJson: any;
 
+        Logger.info( "Project config file path:", this.configPath );
         let isConfigDirectory = fs.lstatSync( this.configPath ).isDirectory();
 
         if ( isConfigDirectory ) {
@@ -55,7 +56,7 @@ export class Project {
         configJson = ts.readConfigFile( configFileName );
 
         if ( !configJson ) {
-            let error = utils.createDiagnostic( "Provide a valid path to the project configuration directory or file" );
+            let error = utils.createDiagnostic( { code: 6061, category: ts.DiagnosticCategory.Error, key: "Provide a valid path to the project configuration directory or file" } );
             return { success: false, errors: [error] };
         }
 
@@ -126,7 +127,8 @@ export class Project {
             });
         }
 
-        if ( compilerOptions.diagnostics ) {
+        // Don't report statistics if there are no output emits
+        if ( ( compileResult.getStatus() !== ts.ExitStatus.DiagnosticsPresent_OutputsSkipped ) && compilerOptions.diagnostics ) {
             compilerReporter.reportStatistics();
         }
 
@@ -134,7 +136,7 @@ export class Project {
         var bundleCompiler = new BundleCompiler( compilerHost, program );
 
         for ( var i = 0, len = bundles.length; i < len; i++ ) {
-            Logger.log( "Compiling Project Bundle: ", bundles[i].name );
+            Logger.log( "Compiling Project Bundle: ", chalk.cyan( bundles[i].name ) );
             compileResult = bundleCompiler.compileBundleToStream( outputStream, bundles[i] );
             compilerReporter = new CompilerReporter( compileResult );
 
@@ -148,7 +150,8 @@ export class Project {
                 allDiagnostics = allDiagnostics.concat( compileResult.getErrors() );
             }
 
-            if ( compilerOptions.diagnostics ) {
+            // Don't report statistics if there are no output emits
+            if ( ( compileResult.getStatus() !== ts.ExitStatus.DiagnosticsPresent_OutputsSkipped ) && compilerOptions.diagnostics ) {
                 compilerReporter.reportStatistics();
             }
         }

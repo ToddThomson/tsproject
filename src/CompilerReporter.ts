@@ -23,7 +23,7 @@ export class CompilerReporter extends DiagnosticsReporter{
     }
 
     private reportStatisticalValue( name: string, value: string ) {
-        Logger.log( this.padRight( name + ":", 12 ) + this.padLeft( value.toString(), 10 ) );
+        Logger.log( this.padRight( name + ":", 12 ) + chalk.magenta( this.padLeft( value.toString(), 10 ) ) );
     }
 
     private reportCountStatistic( name: string, count: number ) {

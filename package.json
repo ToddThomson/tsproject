@@ -1,7 +1,7 @@
 {
   "name": "tsproject",
-  "version": "0.7.3",
-  "description": "Streaming vinyl adapter and bundle optimizer for compiling Typescript projects using tsconfig.json.",
+  "version": "0.7.5",
+  "description": "Streaming gulp vinyl adapter and bundle optimizer for compiling Typescript projects using tsconfig.json.",
   "homepage": "https://github.com/toddthomson/tsproject",
   "bugs": "https://github.com/toddthomson/tsproject/issues",
   "main": "./src/tsproject.js",

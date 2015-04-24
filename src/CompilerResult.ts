@@ -21,6 +21,10 @@ export class CompilerResult {
         return this.statistics;
     }
 
+    public getStatus(): ts.ExitStatus {
+        return this.status;
+    }
+
     public succeeded(): boolean {
         return ( this.status === ts.ExitStatus.Success );
     }

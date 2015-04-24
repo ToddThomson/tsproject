@@ -20,7 +20,7 @@ export class Logger {
     }
 
     public static log( ...args: any[] ) {
-        console.log( `[${this.logName}]`, ...args );
+        console.log( chalk.gray( `[${this.logName}]` ), ...args );
     }
 
     public static info( ...args: any[] ) {
@@ -28,7 +28,7 @@ export class Logger {
             return;
         }
 
-        console.log( `[${this.logName}]` + chalk.blue( " INFO: " ), ...args );
+        console.log( chalk.gray( `[${this.logName}]` + chalk.blue( " INFO: " ) ), ...args );
     }
 
     public static warn( ...args: any[] ) {

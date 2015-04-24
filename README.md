@@ -4,16 +4,6 @@ TsProject is a Typescript compiler and external module bundler which utilizes th
 
 TsProject produces a compiled output stream of vinyl files for further processing in the gulp build pipeline.
 
-# Important Notice
-TsProject requires features from the forthcoming release of Typescript 1.5.
-You will need to obtain the LKG bin directory from:
-> https://github.com/Microsoft/TypeScript/tree/release-1.5
-
-and copy it to:
-
-> your_project_path\node_modules\typescript\bin\
-
-
 # Why TsProject?
 TsProject provides 2 new features:
 
@@ -22,8 +12,10 @@ TsProject provides 2 new features:
 2. **Single file bundles for packaging of Typescript, javascript and Typescript definition files**. TsProject bundles file dependencies of external Typescript modules at compilation time rather than relying on build tools (AMD Optimizer, r.js for example ) further down in the build pipeline.
 
 # Bundles
-TsProject supports bundles within the tsconfig.json project file.  Each bundle contains a name, a source file and optional bundle options.
+TsProject supports a "bundles" property within the tsconfig.json project file. The "bundles" property may contain a list of named bundles. Each bundle must provide a source file and may optionally specify bundle configuration settings.  
 The Typescript source file and its dependencies are packaged as a single Typescript file and output with the bundle name. The Typescript bundle is compiled to a single js javascript file and a single d.ts declaration file.
+
+The following is a sample tsconfig.json showing the "bundles" property:
 
 ```
 {
@@ -43,13 +35,13 @@ The Typescript source file and its dependencies are packaged as a single Typescr
     
     "bundles": {
         "app": {
-            "source": "page.ts",
-            "options": { 
-                "some-bundle-option": "value"  
-            }
-        },
-        "main": {
             "source": "index.ts"
+        },
+        "components": {
+            "source": "page.ts",
+            "config": { 
+                "basePath": "./bundles"  
+            }
         }
     }
 }
@@ -66,8 +58,9 @@ npm install tsproject
     tsproject.src( projectConfigPath: string, settings: any )
 
 Where:
-projectConfigPath is a relative directory path to the default Typescript project file named "tsconfig.json".
-or, projectConfigPath is a relative path to a named Typescript project file.   
+
+**projectConfigPath** is a relative directory path to the default Typescript project file named "tsconfig.json".
+**projectConfigPath** is a relative path to a named Typescript project file.   
 
 # Usage - Gulp Build Pipeline
 TsProject on github contains a [sample](https://github.com/ToddThomson/tsproject/tree/master/sample) to help you get started.

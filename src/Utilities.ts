@@ -26,18 +26,20 @@ export function clone<T>( object: T ): T {
     return <T>result;
 }
 
-export function createDiagnostic( message: any ): ts.Diagnostic {
+export function createDiagnostic( message: ts.DiagnosticMessage, ...args: any[] ): ts.Diagnostic {
+    let text = message.key;
+
     if ( arguments.length > 1 ) {
-        message = formatStringFromArgs( message, arguments, 1 );
+        text = formatStringFromArgs( text, arguments, 1 );
     }
 
     return {
         file: undefined,
         start: undefined,
         length: undefined,
-        messageText: message,
-        category: undefined,
-        code: undefined
+        messageText: text,
+        category: message.category,
+        code: message.code
     };
 } 
 

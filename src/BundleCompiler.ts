@@ -28,12 +28,27 @@ export class BundleCompiler {
     }
 
     public compileBundleToStream( outputStream: CompileStream, bundle: Bundle ): CompilerResult {
-        var dependencyBuilder = new DependencyBuilder( this.compilerHost, this.program );
+        let dependencyBuilder = new DependencyBuilder( this.compilerHost, this.program );
 
         let bundleSourceFileName = this.compilerHost.getCanonicalFileName( utils.normalizeSlashes( bundle.source ) );
-        var bundleSourceFile = this.program.getSourceFile( bundleSourceFileName );
+        Logger.info( "BundleSourceFileName:", bundleSourceFileName );
+        let bundleSourceFileBaseDir = path.dirname( bundleSourceFileName );
 
-        var sourceDependencies = dependencyBuilder.getSourceFileDependencies( bundleSourceFile );
+        if ( bundle.config.basePath ) {
+            Logger.info( bundleSourceFileBaseDir, bundle.config.basePath );
+            bundleSourceFileBaseDir = path.normalize( path.resolve( bundleSourceFileBaseDir, bundle.config.basePath ) );
+        }
+
+        Logger.info( bundleSourceFileBaseDir );
+
+        let bundleSourceFile = this.program.getSourceFile( bundleSourceFileName );
+
+        if ( !bundleSourceFile ) {
+            let diagnostic = utils.createDiagnostic( { code: 6060, category: ts.DiagnosticCategory.Error, key: "Bundle Source File '{0}' not found." }, bundleSourceFileName );
+            return new CompilerResult( ts.ExitStatus.DiagnosticsPresent_OutputsSkipped, new CompilerStatistics( this.program, 0 ), [diagnostic] );
+        }
+
+        let sourceDependencies = dependencyBuilder.getSourceFileDependencies( bundleSourceFile );
 
         this.bundleText = "";
         this.bundleImportedFiles = { };
@@ -53,7 +68,7 @@ export class BundleCompiler {
             });
 
             // Add the source module as specified by key
-            var dependentSourceFile = this.program.getSourceFile( key );
+            let dependentSourceFile = this.program.getSourceFile( key );
             let outputFileName = dependentSourceFile.fileName;
 
             if ( !utils.hasProperty( this.bundleImportedFiles, outputFileName ) ) {
@@ -66,7 +81,7 @@ export class BundleCompiler {
         this.addSourceFile( bundleSourceFile );
 
         var tsVinylFile = new TsVinylFile( {
-            path: bundle.name + ".ts",
+            path: path.join( bundleSourceFileBaseDir, bundle.name + ".ts" ),
             contents: new Buffer( this.bundleText )
         });
 
@@ -76,14 +91,14 @@ export class BundleCompiler {
         let result = this.compileBundle( bundle.name + ".ts", this.bundleText, this.program.getCompilerOptions() );
 
         var bundleJsVinylFile = new TsVinylFile( {
-            path: bundle.name + ".js",
+            path: path.join( bundleSourceFileBaseDir, bundle.name + ".js" ),
             contents: new Buffer( this.outputText[ bundle.name + ".js" ])
         });
 
         outputStream.push( bundleJsVinylFile );
 
         var bundleDtsVinylFile = new TsVinylFile( {
-            path: bundle.name + ".d.ts",
+            path: path.join( bundleSourceFileBaseDir, bundle.name + ".d.ts" ),
             contents: new Buffer( this.outputText[bundle.name + ".d.ts"] )
         });
 

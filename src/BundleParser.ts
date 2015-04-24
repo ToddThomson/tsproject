@@ -3,10 +3,14 @@ import * as utils from "./Utilities";
 import ts = require( "typescript" );
 import path = require( "path" );
 
+export interface BundleConfig {
+    basePath: string;
+}
+
 export interface Bundle {
     name: string;
     source: string;
-    options: any;
+    config: BundleConfig;
 }
 
 export interface ParsedBundlesResult {
@@ -37,21 +41,21 @@ export class BundleParser {
                     Logger.info( "Bundle Id: ", id, jsonBundles[id]);
                     var bundleName: string = id;
                     var source: string;
-                    var options: any = {};
+                    var config: any = {};
 
                     if ( utils.hasProperty( jsonBundles[id], "source" ) ) {
                         source = path.join( basePath, jsonBundles[id].source );
                         Logger.info( "bundle source: ", source );
                     }
                     else {
-                        errors.push( utils.createDiagnostic( { key: "Bundle('{0}') requires module source.", id } ) );
+                        errors.push( utils.createDiagnostic( { code: 6062, category: ts.DiagnosticCategory.Error, key: "Bundle '{0}' requires module source." }, id ) );
                     }
 
-                    if ( utils.hasProperty( jsonBundles[id], "options" ) ) {
-                        options = jsonBundles[id].options
+                    if ( utils.hasProperty( jsonBundles[id], "config" ) ) {
+                        config = jsonBundles[id].config
                     }
 
-                    bundles.push( { name: bundleName, source: source, options: options });
+                    bundles.push( { name: bundleName, source: source, config: config });
                 }
             }
 
