@@ -88,23 +88,38 @@ export class BundleCompiler {
         outputStream.push( tsVinylFile );
 
         // Compile the bundle to generate javascript and declaration file
-        let result = this.compileBundle( bundle.name + ".ts", this.bundleText, this.program.getCompilerOptions() );
+        let compileResult = this.compileBundle( bundle.name + ".ts", this.bundleText, this.program.getCompilerOptions() );
+        let compileStatus = compileResult.getStatus();
 
-        var bundleJsVinylFile = new TsVinylFile( {
-            path: path.join( bundleSourceFileBaseDir, bundle.name + ".js" ),
-            contents: new Buffer( this.outputText[ bundle.name + ".js" ])
-        });
+        // Only stream bundle if there is some compiled output
+        if ( compileStatus !== ts.ExitStatus.DiagnosticsPresent_OutputsSkipped ) {
+            
+            // js should have been generated, but just in case!
+            if ( utils.hasProperty( this.outputText, bundle.name + ".js" ) ) {
+                var bundleJsVinylFile = new TsVinylFile( {
+                    path: path.join( bundleSourceFileBaseDir, bundle.name + ".js" ),
+                    contents: new Buffer( this.outputText[bundle.name + ".js"] )
+                });
 
-        outputStream.push( bundleJsVinylFile );
+                outputStream.push( bundleJsVinylFile );
+            }
+        }
 
-        var bundleDtsVinylFile = new TsVinylFile( {
-            path: path.join( bundleSourceFileBaseDir, bundle.name + ".d.ts" ),
-            contents: new Buffer( this.outputText[bundle.name + ".d.ts"] )
-        });
+        // Only stream bundle definition if the compile was successful
+        if ( compileStatus === ts.ExitStatus.Success ) {
+            
+            // d.ts should have been generated, but just in case
+            if ( utils.hasProperty( this.outputText, bundle.name + ".d.ts" ) ) {
+                var bundleDtsVinylFile = new TsVinylFile( {
+                    path: path.join( bundleSourceFileBaseDir, bundle.name + ".d.ts" ),
+                    contents: new Buffer( this.outputText[bundle.name + ".d.ts"] )
+                });
 
-        outputStream.push( bundleDtsVinylFile );
+                outputStream.push( bundleDtsVinylFile );
+            }
+        }
 
-        return result;
+        return compileResult;
     }
 
     private isCodeModule( importSymbol: ts.Symbol ): boolean {
