@@ -1,0 +1,30 @@
+﻿{
+    "compilerOptions": {
+        "module": "amd",
+        "target": "es5",
+        "noResolve": false,
+        "declaration": true,
+        "diagnostics": true,
+        "listFiles": true
+    },
+
+    "files": [
+        "main.ts",
+        "projects.ts",
+        "greeter.ts",
+        "foo.ts",
+        "bar.ts"
+    ],
+
+    "bundles": {
+        "app": {
+            "source": "main.ts"
+        },
+        "projectspkg": {
+            "source": "projects.ts",
+            "config": { 
+                "basePath": "./packages"  
+            }
+        }
+    }
+}
