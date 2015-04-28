@@ -52,7 +52,7 @@ export class BundleCompiler {
 
         this.bundleText = "";
         this.bundleImportedFiles = { };
-
+        
         for ( var key in sourceDependencies ) {
             // Add module dependencies first..
             sourceDependencies[key].forEach( importSymbol => {

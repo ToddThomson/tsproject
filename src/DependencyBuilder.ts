@@ -26,23 +26,25 @@ export class DependencyBuilder {
     public getSourceFileDependencies( sourceFile: ts.SourceFile ): ts.Map<ts.Symbol[]> {
         var self = this;
         Logger.info( "---> Entering getSourceFileDependencies()" );
-        let dependencies: ts.Map<ts.Symbol[]> = {};
+        var dependencies: ts.Map<ts.Symbol[]> = {};
+        var importWalked: ts.Map<boolean> = {};
 
         function walkModuleImports( sourceFile: ts.SourceFile ) {
+            Logger.info( "---> Entering walkModuleImports() with: ", sourceFile.fileName );
             self.getImportsOfModule( sourceFile ).forEach( importSymbol => {
                 let symbolSourceFile = self.getSourceFileFromSymbol( importSymbol );
                 let canonicalFileName = self.host.getCanonicalFileName( symbolSourceFile.fileName );
 
-                if ( !utilities.hasProperty( dependencies, canonicalFileName ) ) {
-                    // make the resursive call to walk module imports so that we build deps
-                    // bottom up.
+                // Don't walk imports that we've already processed
+                if ( !utilities.hasProperty( importWalked, canonicalFileName ) ) {
+                    importWalked[canonicalFileName] = true;
+
+                    // Build dependencies bottom up, left to right
                     walkModuleImports( symbolSourceFile );
-                    
-                    // If there are circular dependencies, then dependencies may have already been added in the
-                    // recursive walk of module imports
-                    if ( !utilities.hasProperty( dependencies, canonicalFileName ) ) {
-                        dependencies[canonicalFileName] = self.getImportsOfModule( symbolSourceFile );
-                    }
+                }
+                
+                if ( !utilities.hasProperty( dependencies, canonicalFileName ) ) {
+                    dependencies[canonicalFileName] = self.getImportsOfModule( symbolSourceFile );
                 }
             });
         }
