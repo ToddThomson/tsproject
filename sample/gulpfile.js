@@ -30,14 +30,19 @@ var requireJsOptimizerConfig = {
 };
 
 gulp.task( 'ts', function() {
-    return tsproject.src( './src/app', { logLevel: 0 } )
+    return projectStream = tsproject.src( './src/app', { logLevel: 0 } )
         .pipe( gulp.dest( './dist' ) );
+
+    //return projectStream;
 } );
 
-gulp.task( 'js', function() {
-    return rjs( requireJsOptimizerConfig )
+gulp.task( 'js', ['ts'], function( callback ) {
+    
+    rjs( requireJsOptimizerConfig )
         //.pipe(uglify({ preserveComments: 'some' }))
         .pipe( gulp.dest( './dist/' ) );
+
+    callback();
 } );
 
 // Concatenates CSS files, rewrites relative paths to Bootstrap fonts, copies Bootstrap fonts
@@ -68,6 +73,6 @@ gulp.task( 'clean', function() {
 } );
 
 gulp.task( 'default', ['html', 'js', 'css'], function( callback ) {
-    callback();
     console.log( '\nPlaced optimized files in ' + chalk.magenta( 'dist/\n' ) );
+    callback();
 } );
