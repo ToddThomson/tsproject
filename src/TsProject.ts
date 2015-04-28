@@ -22,6 +22,9 @@ function src( configDirPath: string, settings?: any ) {
     var project = new Project( configDirPath );
     var buildStatus = project.build( outputStream );
 
+    // EOF the compilation output stream after build.
+    outputStream.push( null );
+
     switch ( buildStatus ) {
         case ts.ExitStatus.Success:
             Logger.log( chalk.green( "Project build completed successfully." ) );
