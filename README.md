@@ -12,7 +12,7 @@ TsProject provides 2 new features:
 2. **Single file bundles for packaging of Typescript, javascript and Typescript definition files**. TsProject bundles file dependencies of external Typescript modules at compilation time rather than relying on build tools (AMD Optimizer, r.js for example ) further down in the build pipeline.
 
 # Bundles
-TsProject supports a "bundles" property within the tsconfig.json project file. The "bundles" property may contain a list of named bundles. Each bundle must provide a source file and may optionally specify bundle configuration settings.  
+TsProject supports a "bundles" property within the tsconfig.json project file. The "bundles" property may contain a list of named bundles. Each bundle must provide an array of source files and may optionally specify bundle configuration settings. 
 The Typescript source file and its dependencies are packaged as a single Typescript file and output with the bundle name. The Typescript bundle is compiled to a single js javascript file and a single d.ts declaration file.
 
 The following is a sample tsconfig.json showing the "bundles" property:
@@ -35,12 +35,15 @@ The following is a sample tsconfig.json showing the "bundles" property:
     
     "bundles": {
         "app": {
-            "source": "index.ts"
+            "files": [ "index.ts" ]
         },
         "components": {
-            "source": "page.ts",
+            "files": [
+                "page.ts",
+                "plugin.ts"
+            ],
             "config": { 
-                "basePath": "./bundles"  
+                "outDir": "./bundles"  
             }
         }
     }

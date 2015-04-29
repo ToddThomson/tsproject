@@ -13,17 +13,21 @@
         "projects.ts",
         "greeter.ts",
         "foo.ts",
-        "bar.ts"
+        "bar.ts",
+        "plugin.ts"
     ],
 
     "bundles": {
         "app": {
-            "source": "main.ts"
+            "files": [ "main.ts" ]
         },
         "projectspkg": {
-            "source": "projects.ts",
-            "config": { 
-                "basePath": "./packages"  
+            "files": [
+                "projects.ts",
+                "plugin.ts"
+            ],
+            "config": {
+                "outDir": "./packages"
             }
         }
     }

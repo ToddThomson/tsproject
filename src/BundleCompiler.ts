@@ -30,75 +30,94 @@ export class BundleCompiler {
     public compileBundleToStream( outputStream: CompileStream, bundle: Bundle ): CompilerResult {
         let dependencyBuilder = new DependencyBuilder( this.compilerHost, this.program );
 
-        let bundleSourceFileName = this.compilerHost.getCanonicalFileName( utils.normalizeSlashes( bundle.source ) );
-        Logger.info( "BundleSourceFileName:", bundleSourceFileName );
-        let bundleSourceFileBaseDir = path.dirname( bundleSourceFileName );
+        // Construct bundle output file name
+        let bundleBaseDir = path.dirname( bundle.name );
 
-        if ( bundle.config.basePath ) {
-            Logger.info( bundleSourceFileBaseDir, bundle.config.basePath );
-            bundleSourceFileBaseDir = path.normalize( path.resolve( bundleSourceFileBaseDir, bundle.config.basePath ) );
+        if ( bundle.config.outDir ) {
+            bundleBaseDir = path.normalize( path.resolve( bundleBaseDir, bundle.config.outDir) );
+            Logger.info( "Adjusting bundleBaseDir to: ", bundleBaseDir );
         }
 
-        Logger.info( bundleSourceFileBaseDir );
+        let bundleFilePath = path.join( bundleBaseDir, path.basename( bundle.name ) );
+        Logger.info( "Bundle full path name: ", bundleFilePath );
 
-        let bundleSourceFile = this.program.getSourceFile( bundleSourceFileName );
-
-        if ( !bundleSourceFile ) {
-            let diagnostic = utils.createDiagnostic( { code: 6060, category: ts.DiagnosticCategory.Error, key: "Bundle Source File '{0}' not found." }, bundleSourceFileName );
-            return new CompilerResult( ts.ExitStatus.DiagnosticsPresent_OutputsSkipped, new CompilerStatistics( this.program, 0 ), [diagnostic] );
-        }
-
-        let sourceDependencies = dependencyBuilder.getSourceFileDependencies( bundleSourceFile );
-
+        // We now have an array of files to bundle together..
         this.bundleText = "";
-        this.bundleImportedFiles = { };
-        
-        for ( var key in sourceDependencies ) {
-            // Add module dependencies first..
-            sourceDependencies[key].forEach( importSymbol => {
-                if ( this.isCodeModule( importSymbol ) ) {
-                    let declaration = importSymbol.getDeclarations()[0];
-                    let importedSource = declaration.getSourceFile();
-                    let importedSourceFileName = importedSource.fileName;
+        this.bundleImportedFiles = {};
 
-                    if ( !utils.hasProperty( this.bundleImportedFiles, importedSourceFileName ) ) {
-                        this.addSourceFile( importedSource );
-                    }
-                }
-            });
+        let allDependencies: ts.Map<ts.Symbol[]> = {};
 
-            // Add the source module as specified by key
-            let dependentSourceFile = this.program.getSourceFile( key );
-            let outputFileName = dependentSourceFile.fileName;
+        for ( var filesKey in bundle.files ) {
+            let fileName = bundle.files[filesKey];
+            Logger.info( "Processing bundle file:", fileName );
 
-            if ( !utils.hasProperty( this.bundleImportedFiles, outputFileName ) ) {
-                this.addSourceFile( dependentSourceFile );
+            let bundleSourceFileName = this.compilerHost.getCanonicalFileName( utils.normalizeSlashes( fileName ) );
+            Logger.info( "BundleSourceFileName:", bundleSourceFileName );
+
+            let bundleSourceFile = this.program.getSourceFile( bundleSourceFileName );
+
+            if ( !bundleSourceFile ) {
+                let diagnostic = utils.createDiagnostic( { code: 6060, category: ts.DiagnosticCategory.Error, key: "Bundle Source File '{0}' not found." }, bundleSourceFileName );
+                return new CompilerResult( ts.ExitStatus.DiagnosticsPresent_OutputsSkipped, new CompilerStatistics( this.program, 0 ), [diagnostic] );
             }
+
+            let sourceDependencies = dependencyBuilder.getSourceFileDependencies( bundleSourceFile );
+
+            // merge current bundle file dependencies into all dependencies
+            for ( var key in sourceDependencies ) {
+                if ( !utils.hasProperty( allDependencies, key ) ) {
+                    allDependencies[key] = sourceDependencies[key];
+                }
+            }
+
+            for ( var key in sourceDependencies ) {
+                // Add module dependencies first..
+                sourceDependencies[key].forEach( importSymbol => {
+                    if ( this.isCodeModule( importSymbol ) ) {
+                        let declaration = importSymbol.getDeclarations()[0];
+                        let importedSource = declaration.getSourceFile();
+                        let importedSourceFileName = importedSource.fileName;
+
+                        if ( !utils.hasProperty( this.bundleImportedFiles, importedSourceFileName ) ) {
+                            this.addSourceFile( importedSource );
+                        }
+                    }
+                });
+
+                // Add the source module as specified by key
+                let dependentSourceFile = this.program.getSourceFile( key );
+                let outputFileName = dependentSourceFile.fileName;
+
+                if ( !utils.hasProperty( this.bundleImportedFiles, outputFileName ) ) {
+                    this.addSourceFile( dependentSourceFile );
+                }
+            }
+
+            // Finally, add bundle source file
+            this.addSourceFile( bundleSourceFile );
         }
 
-        // Finally, add bundle source file
-        let outputFileName = bundleSourceFile.fileName;
-        this.addSourceFile( bundleSourceFile );
-
+        Logger.info( "Streaming vinyl fs: ", bundleFilePath + ".ts" );
         var tsVinylFile = new TsVinylFile( {
-            path: path.join( bundleSourceFileBaseDir, bundle.name + ".ts" ),
+            path: bundleFilePath + ".ts",
             contents: new Buffer( this.bundleText )
         });
 
         outputStream.push( tsVinylFile );
 
         // Compile the bundle to generate javascript and declaration file
-        let compileResult = this.compileBundle( bundle.name + ".ts", this.bundleText, this.program.getCompilerOptions() );
+        let compileResult = this.compileBundle( path.basename(bundle.name ) + ".ts", this.bundleText, this.program.getCompilerOptions() );
         let compileStatus = compileResult.getStatus();
 
         // Only stream bundle if there is some compiled output
         if ( compileStatus !== ts.ExitStatus.DiagnosticsPresent_OutputsSkipped ) {
             
             // js should have been generated, but just in case!
-            if ( utils.hasProperty( this.outputText, bundle.name + ".js" ) ) {
+            if ( utils.hasProperty( this.outputText, path.basename( bundle.name ) + ".js" ) ) {
+                Logger.info( "Streaming vinyl fs: ", bundleFilePath + ".js" );
                 var bundleJsVinylFile = new TsVinylFile( {
-                    path: path.join( bundleSourceFileBaseDir, bundle.name + ".js" ),
-                    contents: new Buffer( this.outputText[bundle.name + ".js"] )
+                    path: path.join( bundleFilePath + ".js" ),
+                    contents: new Buffer( this.outputText[path.basename( bundle.name ) + ".js"] )
                 });
 
                 outputStream.push( bundleJsVinylFile );
@@ -109,10 +128,11 @@ export class BundleCompiler {
         if ( compileStatus === ts.ExitStatus.Success ) {
             
             // d.ts should have been generated, but just in case
-            if ( utils.hasProperty( this.outputText, bundle.name + ".d.ts" ) ) {
+            if ( utils.hasProperty( this.outputText, path.basename( bundle.name ) + ".d.ts" ) ) {
+                Logger.info( "Streaming vinyl fs: ", bundleFilePath + "d.ts" );
                 var bundleDtsVinylFile = new TsVinylFile( {
-                    path: path.join( bundleSourceFileBaseDir, bundle.name + ".d.ts" ),
-                    contents: new Buffer( this.outputText[bundle.name + ".d.ts"] )
+                    path: path.join( bundleFilePath + ".d.ts" ),
+                    contents: new Buffer( this.outputText[ path.basename( bundle.name ) + ".d.ts"] )
                 });
 
                 outputStream.push( bundleDtsVinylFile );

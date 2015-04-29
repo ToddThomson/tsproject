@@ -4,12 +4,12 @@ import ts = require( "typescript" );
 import path = require( "path" );
 
 export interface BundleConfig {
-    basePath: string;
+    outDir: string;
 }
 
 export interface Bundle {
     name: string;
-    source: string;
+    files: string[];
     config: BundleConfig;
 }
 
@@ -22,7 +22,7 @@ export class BundleParser {
     constructor() {
     }
 
-    parseConfigFile( json: any, basePath?: string ): ParsedBundlesResult {
+    parseConfigFile( json: any, basePath: string ): ParsedBundlesResult {
         var errors: ts.Diagnostic[] = [];
 
         return {
@@ -38,24 +38,37 @@ export class BundleParser {
                 Logger.info( jsonBundles );
 
                 for ( var id in jsonBundles ) {
-                    Logger.info( "Bundle Id: ", id, jsonBundles[id]);
-                    var bundleName: string = id;
-                    var source: string;
+                    Logger.info( "Bundle Id: ", id, jsonBundles[id] );
+                    var jsonBundle: any = jsonBundles[id];
+                    var bundleName: string;
+                    var files: string[] = [];
                     var config: any = {};
 
-                    if ( utils.hasProperty( jsonBundles[id], "source" ) ) {
-                        source = path.join( basePath, jsonBundles[id].source );
-                        Logger.info( "bundle source: ", source );
+                    // Name
+                    bundleName = path.join( basePath, id );
+
+                    // Files..
+
+                    if ( utils.hasProperty( jsonBundle, "files" ) ) {
+                        if ( json["files"] instanceof Array ) {
+                            files = utils.map( <string[]>jsonBundle["files"], s => path.join( basePath, s ) );
+                            Logger.info( "bundle files: ", files );
+                        }
+                        else {
+                            errors.push( utils.createDiagnostic( { code: 6063, category: ts.DiagnosticCategory.Error, key: "Bundle '{0}' files is not an array." }, id ) );
+                        }
                     }
                     else {
-                        errors.push( utils.createDiagnostic( { code: 6062, category: ts.DiagnosticCategory.Error, key: "Bundle '{0}' requires module source." }, id ) );
+                        errors.push( utils.createDiagnostic( { code: 6062, category: ts.DiagnosticCategory.Error, key: "Bundle '{0}' requires an array of files." }, id ) );
                     }
 
-                    if ( utils.hasProperty( jsonBundles[id], "config" ) ) {
-                        config = jsonBundles[id].config
+                    // Config..
+
+                    if ( utils.hasProperty( jsonBundle, "config" ) ) {
+                        config = jsonBundle.config
                     }
 
-                    bundles.push( { name: bundleName, source: source, config: config });
+                    bundles.push( { name: bundleName, files: files, config: config });
                 }
             }
 

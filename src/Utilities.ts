@@ -26,6 +26,18 @@ export function clone<T>( object: T ): T {
     return <T>result;
 }
 
+export function map<T, U>( array: T[], f: ( x: T ) => U ): U[] {
+    let result: U[];
+    if ( array ) {
+        result = [];
+        for ( let v of array ) {
+            result.push( f( v ) );
+        }
+    }
+
+    return result;
+}
+
 export function createDiagnostic( message: ts.DiagnosticMessage, ...args: any[] ): ts.Diagnostic {
     let text = message.key;
 
