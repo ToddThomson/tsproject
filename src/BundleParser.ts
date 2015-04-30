@@ -1,5 +1,7 @@
 ﻿import { Logger } from "./Logger";
 import * as utils from "./Utilities";
+import * as tsCore from "./TsCore";
+
 import ts = require( "typescript" );
 import path = require( "path" );
 
@@ -55,11 +57,11 @@ export class BundleParser {
                             Logger.info( "bundle files: ", files );
                         }
                         else {
-                            errors.push( utils.createDiagnostic( { code: 6063, category: ts.DiagnosticCategory.Error, key: "Bundle '{0}' files is not an array." }, id ) );
+                            errors.push( tsCore.createDiagnostic( { code: 6063, category: ts.DiagnosticCategory.Error, key: "Bundle '{0}' files is not an array." }, id ) );
                         }
                     }
                     else {
-                        errors.push( utils.createDiagnostic( { code: 6062, category: ts.DiagnosticCategory.Error, key: "Bundle '{0}' requires an array of files." }, id ) );
+                        errors.push( tsCore.createDiagnostic( { code: 6062, category: ts.DiagnosticCategory.Error, key: "Bundle '{0}' requires an array of files." }, id ) );
                     }
 
                     // Config..

@@ -13,6 +13,7 @@ import ts = require( 'typescript' );
 import fs = require( "fs" );
 import path = require( 'path' );
 import chalk = require( "chalk" );
+import * as tsCore from "./TsCore";
 import * as utils from "./Utilities";
 
 interface ProjectConfig {
@@ -56,7 +57,7 @@ export class Project {
         configJson = ts.readConfigFile( configFileName );
 
         if ( !configJson ) {
-            let error = utils.createDiagnostic( { code: 6061, category: ts.DiagnosticCategory.Error, key: "Provide a valid path to the project configuration directory or file" } );
+            let error = tsCore.createDiagnostic( { code: 6061, category: ts.DiagnosticCategory.Error, key: "Provide a valid path to the project configuration directory or file" } );
             return { success: false, errors: [error] };
         }
 

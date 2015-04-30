@@ -7,6 +7,7 @@ import { TsVinylFile } from "./TsVinylFile";
 import { BundleParser, Bundle } from "./BundleParser";
 import { DependencyBuilder } from "./DependencyBuilder";
 import * as utils from "./Utilities";
+import * as tsCore from "./TsCore";
 
 import ts = require( 'typescript' );
 import fs = require( "fs" );
@@ -16,7 +17,7 @@ export class BundleCompiler {
 
     private compilerHost: CompilerHost;
     private program: ts.Program;
-    private compilerOptions: ts.CompilerOptions = { charset: "utf-8" };
+    private compilerOptions: ts.CompilerOptions;
 
     private outputText: ts.Map <string> = {};
     private bundleText: string = "";
@@ -26,6 +27,7 @@ export class BundleCompiler {
     constructor( compilerHost: CompilerHost, program: ts.Program ) {
         this.compilerHost = compilerHost
         this.program = program;
+        this.compilerOptions = this.program.getCompilerOptions();
     }
 
     public compileBundleToStream( outputStream: CompileStream, bundle: Bundle ): CompilerResult {
@@ -53,13 +55,13 @@ export class BundleCompiler {
             let fileName = bundle.files[filesKey];
             Logger.info( "Processing bundle file:", fileName );
 
-            let bundleSourceFileName = this.compilerHost.getCanonicalFileName( utils.normalizeSlashes( fileName ) );
+            let bundleSourceFileName = this.compilerHost.getCanonicalFileName( tsCore.normalizeSlashes( fileName ) );
             Logger.info( "BundleSourceFileName:", bundleSourceFileName );
 
             let bundleSourceFile = this.program.getSourceFile( bundleSourceFileName );
 
             if ( !bundleSourceFile ) {
-                let diagnostic = utils.createDiagnostic( { code: 6060, category: ts.DiagnosticCategory.Error, key: "Bundle Source File '{0}' not found." }, bundleSourceFileName );
+                let diagnostic = tsCore.createDiagnostic( { code: 6060, category: ts.DiagnosticCategory.Error, key: "Bundle Source File '{0}' not found." }, bundleSourceFileName );
                 return new CompilerResult( ts.ExitStatus.DiagnosticsPresent_OutputsSkipped, new CompilerStatistics( this.program, 0 ), [diagnostic] );
             }
 
@@ -108,7 +110,7 @@ export class BundleCompiler {
         outputStream.push( tsVinylFile );
 
         // Compile the bundle to generate javascript and declaration file
-        let compileResult = this.compileBundle( path.basename(bundle.name ) + ".ts", this.bundleText, this.program.getCompilerOptions() );
+        let compileResult = this.compileBundle( path.basename(bundle.name ) + ".ts", this.bundleText );
         let compileStatus = compileResult.getStatus();
 
         // Only stream bundle if there is some compiled output
@@ -149,7 +151,7 @@ export class BundleCompiler {
 
         ts.forEachChild( file, node => {
             if ( node.kind === ts.SyntaxKind.ImportDeclaration || node.kind === ts.SyntaxKind.ImportEqualsDeclaration || node.kind === ts.SyntaxKind.ExportDeclaration ) {
-                let moduleNameExpr = this.getExternalModuleName( node );
+                let moduleNameExpr = tsCore.getExternalModuleName( node );
 
                 if ( moduleNameExpr && moduleNameExpr.kind === ts.SyntaxKind.StringLiteral ) {
                     let moduleSymbol = this.program.getTypeChecker().getSymbolAtLocation( moduleNameExpr );
@@ -197,18 +199,17 @@ export class BundleCompiler {
         else {
             // Add d.ts files to the build source files context
             if ( !utils.hasProperty( this.bundleSourceFiles, file.fileName ) ) {
-                Logger.warn( "Adding definition file to bundle source context: ", file.fileName );
+                Logger.info( "Adding definition file to bundle source context: ", file.fileName );
                 this.bundleSourceFiles[file.fileName] = file.text;
             }
         }
     }
 
     // Replace with Transpile function from typescript 1.5 when available
-    private compileBundle( bundleFileName: string, bundleText: string, compilerOptions?: ts.CompilerOptions ): CompilerResult {
-        let options = compilerOptions ? utils.clone( compilerOptions ) : ts.getDefaultCompilerOptions();
+    private compileBundle( bundleFileName: string, bundleText: string ): CompilerResult {
 
         // Create bundle source file
-        var bundleSourceFile = ts.createSourceFile( bundleFileName, bundleText, options.target );
+        var bundleSourceFile = ts.createSourceFile( bundleFileName, bundleText, this.compilerOptions.target );
         this.bundleSourceFiles[bundleFileName] = bundleText;
 
         // Clear bundle output text
@@ -256,7 +257,7 @@ export class BundleCompiler {
 
         Logger.info( "bundle files: ", bundleFiles );
 
-        var bundlerProgram = ts.createProgram( bundleFiles, options, bundlerCompilerHost );
+        var bundlerProgram = ts.createProgram( bundleFiles, this.compilerOptions, bundlerCompilerHost );
 
         // Check for preEmit diagnostics
         var preEmitDiagnostics = ts.getPreEmitDiagnostics( bundlerProgram );
@@ -300,18 +301,5 @@ export class BundleCompiler {
             !( declaration.flags & ts.NodeFlags.DeclarationFile ) );
     }
 
-    private getExternalModuleName( node: ts.Node ): ts.Expression {
-        if ( node.kind === ts.SyntaxKind.ImportDeclaration ) {
-            return ( <ts.ImportDeclaration>node ).moduleSpecifier;
-        }
-        if ( node.kind === ts.SyntaxKind.ImportEqualsDeclaration ) {
-            let reference = ( <ts.ImportEqualsDeclaration>node ).moduleReference;
-            if ( reference.kind === ts.SyntaxKind.ExternalModuleReference ) {
-                return ( <ts.ExternalModuleReference>reference ).expression;
-            }
-        }
-        if ( node.kind === ts.SyntaxKind.ExportDeclaration ) {
-            return ( <ts.ExportDeclaration>node ).moduleSpecifier;
-        }
-    }
+    
 } 

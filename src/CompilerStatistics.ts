@@ -1,5 +1,6 @@
 ﻿import ts = require( 'typescript' );
-import * as utils from "./utilities";
+import * as utils from "./Utilities";
+import * as tsCore from "./TsCore";
 
 export class CompilerStatistics {
     public numberOfFiles: number;
@@ -15,7 +16,7 @@ export class CompilerStatistics {
     private compiledLines( program: ts.Program ): number {
         var count = 0;
         utils.forEach( program.getSourceFiles(), file => {
-            if ( !utils.isDeclarationFile( file ) ) {
+            if ( !tsCore.isDeclarationFile( file ) ) {
                 count += this.getLineStarts( file ).length;
             }
         });
