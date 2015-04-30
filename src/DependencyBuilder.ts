@@ -16,7 +16,7 @@ export class DependencyBuilder {
         this.program = program;
         this.options = this.program.getCompilerOptions();
 
-        this.buildDependencyGraph();
+        //this.buildDependencyGraph();
     }
 
     public dumpDependencyGraph() {
@@ -62,6 +62,7 @@ export class DependencyBuilder {
         ts.forEachChild( file, node => {
             if ( node.kind === ts.SyntaxKind.ImportDeclaration || node.kind === ts.SyntaxKind.ImportEqualsDeclaration || node.kind === ts.SyntaxKind.ExportDeclaration ) {
                 let moduleNameExpr = this.getExternalModuleName( node );
+                Logger.info( "Import kind: ", moduleNameExpr.kind );
 
                 if ( moduleNameExpr && moduleNameExpr.kind === ts.SyntaxKind.StringLiteral ) {
                     let moduleSymbol = this.program.getTypeChecker().getSymbolAtLocation( moduleNameExpr );
@@ -75,30 +76,23 @@ export class DependencyBuilder {
                 }
             }
             else if ( node.kind === ts.SyntaxKind.ModuleDeclaration && ( <ts.ModuleDeclaration>node ).name.kind === ts.SyntaxKind.StringLiteral && ( node.flags & ts.NodeFlags.Ambient || utilities.isDeclarationFile( file ) ) ) {
-                Logger.warn( "Ambient Module Declaration found" );
-                // TypeScript 1.0 spec (April 2014): 12.1.6
                 // An AmbientExternalModuleDeclaration declares an external module. 
-                // This type of declaration is permitted only in the global module.
-                // The StringLiteral must specify a top - level external module name.
-                // Relative external module names are not permitted
-                //ts.forEachChild(( <ts.ModuleDeclaration>node ).body, node => {
-                //    if ( this.isExternalModuleImportEqualsDeclaration( node ) &&
-                //        this.getExternalModuleImportEqualsDeclarationExpression( node ).kind === ts.SyntaxKind.StringLiteral ) {
+                Logger.info( "Processing ambient module declaration..." );
+                ts.forEachChild(( <ts.ModuleDeclaration>node ).body, node => {
+                    Logger.info( "Investigating node..." );
+                    if ( this.isExternalModuleImportEqualsDeclaration( node ) &&
+                        this.getExternalModuleImportEqualsDeclarationExpression( node ).kind === ts.SyntaxKind.StringLiteral ) {
+                        let nameLiteral = <ts.LiteralExpression>this.getExternalModuleImportEqualsDeclarationExpression( node );
+                        let moduleName = nameLiteral.text;
+                        Logger.info( "Module name: ", moduleName );
 
-                //        let nameLiteral = <ts.LiteralExpression>this.getExternalModuleImportEqualsDeclarationExpression( node );
-                //        let moduleName = nameLiteral.text;
-                //        if ( moduleName ) {
-                //            // TypeScript 1.0 spec (April 2014): 12.1.6
-                //            // An ExternalImportDeclaration in anAmbientExternalModuleDeclaration may reference other external modules 
-                //            // only through top - level external module names. Relative external module names are not permitted.
-                //            let searchName = path.normalize( path.join( basePath, moduleName ) );
-                //            let tsFile = findModuleSourceFile( searchName + ".ts", nameLiteral );
-                //            if ( !tsFile ) {
-                //                findModuleSourceFile( searchName + ".d.ts", nameLiteral );
-                //            }
-                //        }
-                //    }
-                //});
+                        if ( moduleName ) {
+                        }
+                    }
+                    else {
+                        Logger.info( "No child module name" );
+                    }
+                });
             }
         });
 

@@ -97,7 +97,7 @@ export class BundleCompiler {
             this.addSourceFile( bundleSourceFile );
         }
 
-        Logger.info( "Streaming vinyl fs: ", bundleFilePath + ".ts" );
+        Logger.info( "Streaming vinyl ts: ", bundleFilePath + ".ts" );
         var tsVinylFile = new TsVinylFile( {
             path: bundleFilePath + ".ts",
             contents: new Buffer( this.bundleText )
@@ -114,7 +114,7 @@ export class BundleCompiler {
             
             // js should have been generated, but just in case!
             if ( utils.hasProperty( this.outputText, path.basename( bundle.name ) + ".js" ) ) {
-                Logger.info( "Streaming vinyl fs: ", bundleFilePath + ".js" );
+                Logger.info( "Streaming vinyl js: ", bundleFilePath + ".js" );
                 var bundleJsVinylFile = new TsVinylFile( {
                     path: path.join( bundleFilePath + ".js" ),
                     contents: new Buffer( this.outputText[path.basename( bundle.name ) + ".js"] )
@@ -129,7 +129,7 @@ export class BundleCompiler {
             
             // d.ts should have been generated, but just in case
             if ( utils.hasProperty( this.outputText, path.basename( bundle.name ) + ".d.ts" ) ) {
-                Logger.info( "Streaming vinyl fs: ", bundleFilePath + "d.ts" );
+                Logger.info( "Streaming vinyl d.ts: ", bundleFilePath + "d.ts" );
                 var bundleDtsVinylFile = new TsVinylFile( {
                     path: path.join( bundleFilePath + ".d.ts" ),
                     contents: new Buffer( this.outputText[ path.basename( bundle.name ) + ".d.ts"] )
@@ -142,33 +142,35 @@ export class BundleCompiler {
         return compileResult;
     }
 
-    private isCodeModule( importSymbol: ts.Symbol ): boolean {
-        let declaration = importSymbol.getDeclarations()[0];
-
-        return ( declaration.kind === ts.SyntaxKind.SourceFile &&
-            !( declaration.flags & ts.NodeFlags.DeclarationFile ) );
-    }
-
     private editImportStatements( file: ts.SourceFile ): string {
         Logger.info( "---> editImportStatement()" );
         let editText = file.text;
         ts.forEachChild( file, node => {
             if ( node.kind === ts.SyntaxKind.ImportDeclaration || node.kind === ts.SyntaxKind.ImportEqualsDeclaration || node.kind === ts.SyntaxKind.ExportDeclaration ) {
-                let pos = node.pos;
-                let end = node.end;
+                let moduleNameExpr = this.getExternalModuleName( node );
 
-                // White out import statement. 
-                // NOTE: Length needs to stay the same as original import statement
-                let length = end - pos;
-                let middle = "";
-                for ( var i = 0; i < length; i++ ) {
-                    middle += " ";
+                if ( moduleNameExpr && moduleNameExpr.kind === ts.SyntaxKind.StringLiteral ) {
+                    let moduleSymbol = this.program.getTypeChecker().getSymbolAtLocation( moduleNameExpr );
+
+                    if ( ( moduleSymbol ) && ( this.isCodeModule( moduleSymbol ) ) ) {
+
+                        let pos = node.pos;
+                        let end = node.end;
+
+                        // White out import statement. 
+                        // NOTE: Length needs to stay the same as original import statement
+                        let length = end - pos;
+                        let middle = "";
+                        for ( var i = 0; i < length; i++ ) {
+                            middle += " ";
+                        }
+
+                        var prefix = editText.substring( 0, pos );
+                        var suffix = editText.substring( end );
+
+                        editText = prefix + middle + suffix;
+                    }
                 }
-                
-                var prefix = editText.substring( 0, pos );
-                var suffix = editText.substring( end );
-
-                editText = prefix + middle + suffix;
             }
         });
 
@@ -176,16 +178,25 @@ export class BundleCompiler {
     }
 
     private addSourceFile( file: ts.SourceFile ) {
-        // Before adding the source text, we must white out import statement(s)
-        let editText = this.editImportStatements( file );
+        Logger.log( "Entering addSourceFile() with: ", file.fileName );
 
-        this.bundleText += editText + "\n";
-        this.bundleImportedFiles[file.fileName] = file.fileName;
+        if ( this.isCodeSourceFile( file ) ) {
+            // Before adding the source text, we must white out import statement(s)
+            let editText = this.editImportStatements( file );
+
+            this.bundleText += editText + "\n";
+            this.bundleImportedFiles[file.fileName] = file.fileName;
+        }
+        else {
+            Logger.warn( ".. Cannot add non-code file to bundle: ", file.fileName );
+        }
     }
 
     // Replace with Transpile function from typescript 1.5 when available
     private compileBundle( fileName: string, input: string, compilerOptions?: ts.CompilerOptions ): CompilerResult {
+        Logger.info( "Default compiler options: ", ts.getDefaultCompilerOptions() );
         let options = compilerOptions ? utils.clone( compilerOptions ) : ts.getDefaultCompilerOptions();
+        Logger.info( "Bundle compiler options: ", options );
 
         // Parse
         var inputFileName = fileName;
@@ -249,5 +260,32 @@ export class BundleCompiler {
         }
 
         return new CompilerResult( ts.ExitStatus.Success, new CompilerStatistics( bundlerProgram, emitTime ) );
+    }
+
+    private isCodeSourceFile( file: ts.SourceFile ): boolean {
+        return ( file.kind === ts.SyntaxKind.SourceFile &&
+            !( file.flags & ts.NodeFlags.DeclarationFile ) );
+    }
+
+    private isCodeModule( importSymbol: ts.Symbol ): boolean {
+        let declaration = importSymbol.getDeclarations()[0];
+
+        return ( declaration.kind === ts.SyntaxKind.SourceFile &&
+            !( declaration.flags & ts.NodeFlags.DeclarationFile ) );
+    }
+
+    private getExternalModuleName( node: ts.Node ): ts.Expression {
+        if ( node.kind === ts.SyntaxKind.ImportDeclaration ) {
+            return ( <ts.ImportDeclaration>node ).moduleSpecifier;
+        }
+        if ( node.kind === ts.SyntaxKind.ImportEqualsDeclaration ) {
+            let reference = ( <ts.ImportEqualsDeclaration>node ).moduleReference;
+            if ( reference.kind === ts.SyntaxKind.ExternalModuleReference ) {
+                return ( <ts.ExternalModuleReference>reference ).expression;
+            }
+        }
+        if ( node.kind === ts.SyntaxKind.ExportDeclaration ) {
+            return ( <ts.ExportDeclaration>node ).moduleSpecifier;
+        }
     }
 } 

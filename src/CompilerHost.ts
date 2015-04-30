@@ -20,7 +20,13 @@ export class CompilerHost implements ts.CompilerHost {
     }
 
     getSourceFile( fileName: string, languageVersion: ts.ScriptTarget, onError?: ( message: string ) => void ): ts.SourceFile {
+        Logger.info( "---> getSourceFile() with: ", fileName );
         let text: string;
+
+        // return undefined for a non-existent fileName
+        if ( !fs.existsSync( fileName ) ) {
+            return undefined;
+        }
 
         try {
             text = fs.readFileSync( fileName ).toString("utf8");
@@ -36,9 +42,11 @@ export class CompilerHost implements ts.CompilerHost {
 
             this.sourceFiles[fileName] = sourceFile;
 
+            Logger.info( ".. getSourceFile() found" );
             return sourceFile;
         }
         
+        Logger.warn( ".. getSourceFile() not found" );
         return undefined;            
     }
 
