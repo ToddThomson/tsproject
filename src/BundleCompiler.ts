@@ -18,9 +18,10 @@ export class BundleCompiler {
     private program: ts.Program;
     private compilerOptions: ts.CompilerOptions = { charset: "utf-8" };
 
-    private outputText: ts.Map <string> = { };
+    private outputText: ts.Map <string> = {};
     private bundleText: string = "";
     private bundleImportedFiles: ts.Map<string> = {};
+    private bundleSourceFiles: ts.Map<string> = {};
 
     constructor( compilerHost: CompilerHost, program: ts.Program ) {
         this.compilerHost = compilerHost
@@ -44,6 +45,7 @@ export class BundleCompiler {
         // We now have an array of files to bundle together..
         this.bundleText = "";
         this.bundleImportedFiles = {};
+        this.bundleSourceFiles = {};
 
         let allDependencies: ts.Map<ts.Symbol[]> = {};
 
@@ -142,9 +144,9 @@ export class BundleCompiler {
         return compileResult;
     }
 
-    private editImportStatements( file: ts.SourceFile ): string {
-        Logger.info( "---> editImportStatement()" );
+    private processImportStatements( file: ts.SourceFile ): string {
         let editText = file.text;
+
         ts.forEachChild( file, node => {
             if ( node.kind === ts.SyntaxKind.ImportDeclaration || node.kind === ts.SyntaxKind.ImportEqualsDeclaration || node.kind === ts.SyntaxKind.ExportDeclaration ) {
                 let moduleNameExpr = this.getExternalModuleName( node );
@@ -153,6 +155,8 @@ export class BundleCompiler {
                     let moduleSymbol = this.program.getTypeChecker().getSymbolAtLocation( moduleNameExpr );
 
                     if ( ( moduleSymbol ) && ( this.isCodeModule( moduleSymbol ) ) ) {
+
+                        Logger.info( ".. symbol: ", moduleSymbol.name, node.pos, node.end );
 
                         let pos = node.pos;
                         let end = node.end;
@@ -172,35 +176,40 @@ export class BundleCompiler {
                     }
                 }
             }
+            else {
+                //Logger.info( "passing node: ", node.getFullText() );
+            }
         });
 
         return editText;
     }
 
     private addSourceFile( file: ts.SourceFile ) {
-        Logger.log( "Entering addSourceFile() with: ", file.fileName );
+        Logger.info( "Entering addSourceFile() with: ", file.fileName );
 
         if ( this.isCodeSourceFile( file ) ) {
             // Before adding the source text, we must white out import statement(s)
-            let editText = this.editImportStatements( file );
+            let editText = this.processImportStatements( file );
 
             this.bundleText += editText + "\n";
             this.bundleImportedFiles[file.fileName] = file.fileName;
         }
         else {
-            Logger.warn( ".. Cannot add non-code file to bundle: ", file.fileName );
+            // Add d.ts files to the build source files context
+            if ( !utils.hasProperty( this.bundleSourceFiles, file.fileName ) ) {
+                Logger.warn( "Adding definition file to bundle source context: ", file.fileName );
+                this.bundleSourceFiles[file.fileName] = file.text;
+            }
         }
     }
 
     // Replace with Transpile function from typescript 1.5 when available
-    private compileBundle( fileName: string, input: string, compilerOptions?: ts.CompilerOptions ): CompilerResult {
-        Logger.info( "Default compiler options: ", ts.getDefaultCompilerOptions() );
+    private compileBundle( bundleFileName: string, bundleText: string, compilerOptions?: ts.CompilerOptions ): CompilerResult {
         let options = compilerOptions ? utils.clone( compilerOptions ) : ts.getDefaultCompilerOptions();
-        Logger.info( "Bundle compiler options: ", options );
 
-        // Parse
-        var inputFileName = fileName;
-        var sourceFile = ts.createSourceFile( inputFileName, input, options.target, true );
+        // Create bundle source file
+        var bundleSourceFile = ts.createSourceFile( bundleFileName, bundleText, options.target );
+        this.bundleSourceFiles[bundleFileName] = bundleText;
 
         // Clear bundle output text
         this.outputText = {};
@@ -209,18 +218,26 @@ export class BundleCompiler {
         var bundlerCompilerHost: ts.CompilerHost = {
             getSourceFile: ( fileName, languageVersion ) => {
                 Logger.info( "getSourceFile(): ", path.normalize( fileName ) );
-                if ( path.normalize( fileName ) === path.normalize( ts.getDefaultLibFilePath( this.compilerOptions ) )  ){
+                if ( path.normalize( fileName ) === path.normalize( ts.getDefaultLibFilePath( this.compilerOptions ) ) ) {
                     let libSourceText = fs.readFileSync( fileName ).toString( "utf8" );
                     var libSourceFile = ts.createSourceFile( fileName, libSourceText, languageVersion );
 
                     return libSourceFile;
                 }
-                else {
-                    return fileName === inputFileName ? sourceFile : undefined
+                else if ( utils.hasProperty( this.bundleSourceFiles, fileName ) ) {
+                    Logger.info( "getSourceFile() found included file: ", fileName );
+                    return ts.createSourceFile( fileName, this.bundleSourceFiles[ fileName ], languageVersion );
                 }
+                 
+                if ( fileName === bundleFileName ) {
+                    Logger.info( "getSourceFile() found: ", fileName );
+                    return bundleSourceFile;
+                }
+                Logger.warn( " getSourceFile(): file not found: ", fileName );
+
+                return undefined;
             },
             writeFile: ( name, text, writeByteOrderMark ) => {
-                Logger.info( "writeFile() with: ", name );
                 this.outputText[name] = text;
             },
             getDefaultLibFileName: () => ts.getDefaultLibFilePath( this.compilerOptions ),
@@ -230,7 +247,16 @@ export class BundleCompiler {
             getNewLine: () => "\n"
         };
 
-        var bundlerProgram = ts.createProgram( [inputFileName], options, bundlerCompilerHost );
+        // Get bundleSourceFileNames
+
+        let bundleFiles: string[] = [];
+        for ( let key in this.bundleSourceFiles ) {
+            bundleFiles.push(key);
+        }
+
+        Logger.info( "bundle files: ", bundleFiles );
+
+        var bundlerProgram = ts.createProgram( bundleFiles, options, bundlerCompilerHost );
 
         // Check for preEmit diagnostics
         var preEmitDiagnostics = ts.getPreEmitDiagnostics( bundlerProgram );
