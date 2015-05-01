@@ -58,44 +58,35 @@ export class DependencyBuilder {
     public getImportsOfModule( file: ts.SourceFile ): ts.Symbol[] {
         Logger.info( "---> Entering getImportsOfModule() for file: ", file.fileName );
 
-        let importSymbols: ts.Symbol[] = [];
+        var importSymbols: ts.Symbol[] = [];
+        var self = this;
+        
+        function getImports( searchNode: ts.Node ) {
+            ts.forEachChild( searchNode, node => {
+                if ( node.kind === ts.SyntaxKind.ImportDeclaration || node.kind === ts.SyntaxKind.ImportEqualsDeclaration || node.kind === ts.SyntaxKind.ExportDeclaration ) {
+                    let moduleNameExpr = tsCore.getExternalModuleName( node );
+                    Logger.info( "Import kind: ", moduleNameExpr.kind );
 
-        ts.forEachChild( file, node => {
-            if ( node.kind === ts.SyntaxKind.ImportDeclaration || node.kind === ts.SyntaxKind.ImportEqualsDeclaration || node.kind === ts.SyntaxKind.ExportDeclaration ) {
-                let moduleNameExpr = tsCore.getExternalModuleName( node );
-                Logger.info( "Import kind: ", moduleNameExpr.kind );
+                    if ( moduleNameExpr && moduleNameExpr.kind === ts.SyntaxKind.StringLiteral ) {
+                        let moduleSymbol = self.program.getTypeChecker().getSymbolAtLocation( moduleNameExpr );
 
-                if ( moduleNameExpr && moduleNameExpr.kind === ts.SyntaxKind.StringLiteral ) {
-                    let moduleSymbol = this.program.getTypeChecker().getSymbolAtLocation( moduleNameExpr );
-
-                    if ( moduleSymbol ) {
-                        importSymbols.push( moduleSymbol );
-                    }
-                    else {
-                        Logger.warn( "Module symbol NOT FOUND" );
-                    }
-                }
-            }
-            else if ( node.kind === ts.SyntaxKind.ModuleDeclaration && ( <ts.ModuleDeclaration>node ).name.kind === ts.SyntaxKind.StringLiteral && ( node.flags & ts.NodeFlags.Ambient || tsCore.isDeclarationFile( file ) ) ) {
-                // An AmbientExternalModuleDeclaration declares an external module. 
-                Logger.info( "Processing ambient module declaration..." );
-                ts.forEachChild(( <ts.ModuleDeclaration>node ).body, node => {
-                    Logger.info( "Investigating node..." );
-                    if ( this.isExternalModuleImportEqualsDeclaration( node ) &&
-                        this.getExternalModuleImportEqualsDeclarationExpression( node ).kind === ts.SyntaxKind.StringLiteral ) {
-                        let nameLiteral = <ts.LiteralExpression>this.getExternalModuleImportEqualsDeclarationExpression( node );
-                        let moduleName = nameLiteral.text;
-                        Logger.info( "Module name: ", moduleName );
-
-                        if ( moduleName ) {
+                        if ( moduleSymbol ) {
+                            importSymbols.push( moduleSymbol );
+                        }
+                        else {
+                            Logger.warn( "Module symbol not found" );
                         }
                     }
-                    else {
-                        Logger.info( "No child module name" );
-                    }
-                });
-            }
-        });
+                }
+                else if ( node.kind === ts.SyntaxKind.ModuleDeclaration && ( <ts.ModuleDeclaration>node ).name.kind === ts.SyntaxKind.StringLiteral && ( node.flags & ts.NodeFlags.Ambient || tsCore.isDeclarationFile( file ) ) ) {
+                    // An AmbientExternalModuleDeclaration declares an external module. 
+                    Logger.info( "Processing ambient module declaration..." );
+                    getImports(( <ts.ModuleDeclaration>node ).body );
+                }
+            });
+        };
+
+        getImports( file );
 
         return importSymbols;
     }

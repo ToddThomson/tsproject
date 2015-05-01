@@ -38,13 +38,10 @@ export class BundleCompiler {
 
         if ( bundle.config.outDir ) {
             bundleBaseDir = path.normalize( path.resolve( bundleBaseDir, bundle.config.outDir) );
-            Logger.info( "Adjusting bundleBaseDir to: ", bundleBaseDir );
         }
 
         let bundleFilePath = path.join( bundleBaseDir, path.basename( bundle.name ) );
-        Logger.info( "Bundle full path name: ", bundleFilePath );
 
-        // We now have an array of files to bundle together..
         this.bundleText = "";
         this.bundleImportedFiles = {};
         this.bundleSourceFiles = {};
@@ -67,7 +64,7 @@ export class BundleCompiler {
 
             let sourceDependencies = dependencyBuilder.getSourceFileDependencies( bundleSourceFile );
 
-            // merge current bundle file dependencies into all dependencies
+            // Merge current bundle file dependencies into all dependencies
             for ( var key in sourceDependencies ) {
                 if ( !utils.hasProperty( allDependencies, key ) ) {
                     allDependencies[key] = sourceDependencies[key];
@@ -157,9 +154,6 @@ export class BundleCompiler {
                     let moduleSymbol = this.program.getTypeChecker().getSymbolAtLocation( moduleNameExpr );
 
                     if ( ( moduleSymbol ) && ( this.isCodeModule( moduleSymbol ) ) ) {
-
-                        Logger.info( ".. symbol: ", moduleSymbol.name, node.pos, node.end );
-
                         let pos = node.pos;
                         let end = node.end;
 
@@ -167,6 +161,7 @@ export class BundleCompiler {
                         // NOTE: Length needs to stay the same as original import statement
                         let length = end - pos;
                         let middle = "";
+
                         for ( var i = 0; i < length; i++ ) {
                             middle += " ";
                         }
@@ -177,9 +172,6 @@ export class BundleCompiler {
                         editText = prefix + middle + suffix;
                     }
                 }
-            }
-            else {
-                //Logger.info( "passing node: ", node.getFullText() );
             }
         });
 
@@ -205,9 +197,7 @@ export class BundleCompiler {
         }
     }
 
-    // Replace with Transpile function from typescript 1.5 when available
     private compileBundle( bundleFileName: string, bundleText: string ): CompilerResult {
-
         // Create bundle source file
         var bundleSourceFile = ts.createSourceFile( bundleFileName, bundleText, this.compilerOptions.target );
         this.bundleSourceFiles[bundleFileName] = bundleText;
@@ -248,14 +238,12 @@ export class BundleCompiler {
             getNewLine: () => "\n"
         };
 
-        // Get bundleSourceFileNames
-
+        // Get the list of bundle files to pass to program 
         let bundleFiles: string[] = [];
+
         for ( let key in this.bundleSourceFiles ) {
             bundleFiles.push(key);
         }
-
-        Logger.info( "bundle files: ", bundleFiles );
 
         var bundlerProgram = ts.createProgram( bundleFiles, this.compilerOptions, bundlerCompilerHost );
 
@@ -300,6 +288,4 @@ export class BundleCompiler {
         return ( declaration.kind === ts.SyntaxKind.SourceFile &&
             !( declaration.flags & ts.NodeFlags.DeclarationFile ) );
     }
-
-    
 } 
