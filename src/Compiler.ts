@@ -18,17 +18,16 @@ export class Compiler {
 
     public configFileName: string;
     private configDirPath: string;
-    public errors: ts.Diagnostic[] = [];
     private rootFileNames: string[];
-    private bundles: Bundle[];
 
     private compilerHost: CompilerHost;
     private program: ts.Program;
-    private compilerOptions: ts.CompilerOptions = { charset: "utf-8" };
+    private compilerOptions: ts.CompilerOptions;
 
     constructor( compilerHost: CompilerHost, program: ts.Program ) {
         this.compilerHost = compilerHost
         this.program = program;
+        this.compilerOptions = this.program.getCompilerOptions();
     }
 
     public compileFilesToStream(

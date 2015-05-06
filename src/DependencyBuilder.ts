@@ -16,12 +16,6 @@ export class DependencyBuilder {
         this.host = host;
         this.program = program;
         this.options = this.program.getCompilerOptions();
-
-        //this.buildDependencyGraph();
-    }
-
-    public dumpDependencyGraph() {
-        Logger.log( this.moduleImportsByName );
     }
 
     public getSourceFileDependencies( sourceFile: ts.SourceFile ): ts.Map<ts.Symbol[]> {
@@ -89,45 +83,6 @@ export class DependencyBuilder {
         getImports( file );
 
         return importSymbols;
-    }
-
-    private buildDependencyGraph() {
-        Logger.info( "---> Entering buildDependecyGraph()" );
-        this.program.getSourceFiles().forEach( sourceFile => {
-            let canonicalFileName = this.host.getCanonicalFileName( sourceFile.fileName );
-
-            if ( !utilities.hasProperty( this.moduleImportsByName, canonicalFileName ) ) {
-
-                this.moduleImportsByName[canonicalFileName] = [];
-
-                this.getImportsOfModule( sourceFile ).forEach( importSymbol => {
-                    let importFile = this.getSourceFileFromSymbol( importSymbol );
-                    this.moduleImportsByName[canonicalFileName].push( importSymbol );
-                    this.processSourceFileDependencies( this.getSourceFileFromSymbol( importSymbol ) );
-                });
-            }
-        });
-    }
-
-    private processSourceFileDependencies( sourceFile: ts.SourceFile ) {
-        Logger.info( "---> Entering processSourceFileDependencies() for file: ", sourceFile.fileName );
-        let canonicalSourceFileName = this.host.getCanonicalFileName( sourceFile.fileName );
-
-        // If we've haven't visited this module yet, get it's dependencies
-        if ( !utilities.hasProperty( this.moduleImportsByName, canonicalSourceFileName ) ) {
-            this.moduleImportsByName[ canonicalSourceFileName ] = [];
-
-            this.getImportsOfModule( sourceFile ).forEach( importSymbol => {
-                this.moduleImportsByName[canonicalSourceFileName].push( importSymbol );
-                let importFile = this.getSourceFileFromSymbol( importSymbol );
-                let canonicalImportFileName = this.host.getCanonicalFileName( importFile.fileName );
-                
-                // If we haven't visited this import, we need to walk it's dependencies
-                if ( !utilities.hasProperty( this.moduleImportsByName, canonicalImportFileName ) ) {
-                    this.processSourceFileDependencies( importFile );
-                }
-            });
-        }
     }
 
     private isExternalModuleImportEqualsDeclaration( node: ts.Node ) {

@@ -1,6 +1,5 @@
 ﻿/// <reference path="references.d.ts" />
 
-import { TsVinylFile } from "./TsVinylFile";
 import { Logger } from "./Logger";
 import ts = require( "typescript" );
 import fs = require( "fs" );
@@ -10,17 +9,15 @@ import os = require( "os" );
 export class CompilerHost implements ts.CompilerHost {
 
     public output: ts.Map<string> = {};
+
     private compilerOptions: ts.CompilerOptions;
-    private setParentNodes: boolean = false;
     private currentDirectory: string;
-    private sourceFiles: ts.Map<ts.SourceFile> = {};
     
-    constructor( compilerOptions: ts.CompilerOptions, setParentNodes?: boolean ) {
+    constructor( compilerOptions: ts.CompilerOptions ) {
         this.compilerOptions = compilerOptions;
     }
 
     getSourceFile( fileName: string, languageVersion: ts.ScriptTarget, onError?: ( message: string ) => void ): ts.SourceFile {
-        Logger.info( "---> getSourceFile() with: ", fileName );
         let text: string;
 
         // return undefined for a non-existent fileName
@@ -38,15 +35,9 @@ export class CompilerHost implements ts.CompilerHost {
         }
 
         if ( text !== undefined ) {
-            var sourceFile = ts.createSourceFile( fileName, text, languageVersion );
-
-            this.sourceFiles[fileName] = sourceFile;
-
-            Logger.info( ".. getSourceFile() found" );
-            return sourceFile;
+            return ts.createSourceFile( fileName, text, languageVersion );
         }
         
-        Logger.warn( ".. getSourceFile() not found" );
         return undefined;            
     }
 

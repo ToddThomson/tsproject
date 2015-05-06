@@ -21,9 +21,7 @@ export interface ParsedBundlesResult {
 }
 
 export class BundleParser {
-    constructor() {
-    }
-
+    
     parseConfigFile( json: any, basePath: string ): ParsedBundlesResult {
         var errors: ts.Diagnostic[] = [];
 
@@ -50,7 +48,6 @@ export class BundleParser {
                     bundleName = path.join( basePath, id );
 
                     // Files..
-
                     if ( utils.hasProperty( jsonBundle, "files" ) ) {
                         if ( json["files"] instanceof Array ) {
                             files = utils.map( <string[]>jsonBundle["files"], s => path.join( basePath, s ) );
@@ -65,7 +62,6 @@ export class BundleParser {
                     }
 
                     // Config..
-
                     if ( utils.hasProperty( jsonBundle, "config" ) ) {
                         config = jsonBundle.config
                     }
