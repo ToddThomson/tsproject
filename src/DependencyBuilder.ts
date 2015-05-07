@@ -59,7 +59,6 @@ export class DependencyBuilder {
             ts.forEachChild( searchNode, node => {
                 if ( node.kind === ts.SyntaxKind.ImportDeclaration || node.kind === ts.SyntaxKind.ImportEqualsDeclaration || node.kind === ts.SyntaxKind.ExportDeclaration ) {
                     let moduleNameExpr = tsCore.getExternalModuleName( node );
-                    Logger.info( "Import kind: ", moduleNameExpr.kind );
 
                     if ( moduleNameExpr && moduleNameExpr.kind === ts.SyntaxKind.StringLiteral ) {
                         let moduleSymbol = self.program.getTypeChecker().getSymbolAtLocation( moduleNameExpr );
