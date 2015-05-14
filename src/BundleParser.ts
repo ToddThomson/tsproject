@@ -1,4 +1,5 @@
 ﻿import { Logger } from "./Logger";
+import { Glob } from "./Glob";
 import * as utils from "./Utilities";
 import * as tsCore from "./TsCore";
 
@@ -51,6 +52,7 @@ export class BundleParser {
                     if ( utils.hasProperty( jsonBundle, "files" ) ) {
                         if ( jsonBundle["files"] instanceof Array ) {
                             files = utils.map( <string[]>jsonBundle["files"], s => path.join( basePath, s ) );
+                            files = new Glob().expand( files );
                             Logger.info( "bundle files: ", files );
                         }
                         else {

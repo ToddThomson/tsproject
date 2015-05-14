@@ -1,6 +1,6 @@
 {
   "name": "tsproject",
-  "version": "0.8.9",
+  "version": "0.8.10",
   "description": "Typescript project compiler and module bundle optimizer for gulp (Ts Vinyl Adapter).",
   "homepage": "https://github.com/toddthomson/tsproject",
   "bugs": "https://github.com/toddthomson/tsproject/issues",
@@ -9,6 +9,8 @@
     "typescript": "^1.5.0-beta",
     "readable-stream": "^1.0.33",
     "vinyl": "^0.4.6",
+    "glob": "^5.0.6",
+    "lodash": "^3.8.0",
     "chalk": "^1.0.0"
   },
   "devDependencies": {},
