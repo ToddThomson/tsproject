@@ -24,9 +24,6 @@ interface ProjectConfig {
     errors?: ts.Diagnostic[];
 }
 
-enum BuildResult {
-}
-
 export class Project {
     private configPath: string;
     private configFileName: string;
@@ -54,11 +51,12 @@ export class Project {
 
         this.configFileName = configFileName;
 
+        // TODO: TJT - Update to changed API in 1.5 final
         configJson = ts.readConfigFile( configFileName );
 
         if ( !configJson ) {
-            let error = tsCore.createDiagnostic( { code: 6061, category: ts.DiagnosticCategory.Error, key: "Provide a valid path to the project configuration directory or file" } );
-            return { success: false, errors: [error] };
+            let diagnostic = tsCore.createDiagnostic( { code: 6064, category: ts.DiagnosticCategory.Error, key: "Syntax error in tsconfig file '{0}'." }, configFileName );
+            return { success: false, errors: [diagnostic] };
         }
 
         // parse standard project configuration objects: compilerOptions, files.

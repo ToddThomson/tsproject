@@ -49,7 +49,7 @@ export class BundleParser {
 
                     // Files..
                     if ( utils.hasProperty( jsonBundle, "files" ) ) {
-                        if ( json["files"] instanceof Array ) {
+                        if ( jsonBundle["files"] instanceof Array ) {
                             files = utils.map( <string[]>jsonBundle["files"], s => path.join( basePath, s ) );
                             Logger.info( "bundle files: ", files );
                         }
