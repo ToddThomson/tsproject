@@ -17,11 +17,12 @@ export class CompilerHost implements ts.CompilerHost {
         this.compilerOptions = compilerOptions;
     }
 
-    getSourceFile( fileName: string, languageVersion: ts.ScriptTarget, onError?: ( message: string ) => void ): ts.SourceFile {
+    getSourceFile(fileName: string, languageVersion: ts.ScriptTarget, onError?: (message: string) => void): ts.SourceFile {
         let text: string;
 
         // return undefined for a non-existent fileName
-        if ( !fs.existsSync( fileName ) ) {
+        if (!fs.existsSync(fileName)) {
+            Logger.warn("File not found: ", fileName);
             return undefined;
         }
 
@@ -38,6 +39,8 @@ export class CompilerHost implements ts.CompilerHost {
             return ts.createSourceFile( fileName, text, languageVersion );
         }
         
+        Logger.warn("File not readable: ", fileName);
+
         return undefined;            
     }
 

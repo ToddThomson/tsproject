@@ -22,6 +22,7 @@ export class BundleCompiler {
     private outputText: ts.Map <string> = {};
     private bundleText: string = "";
     private bundleImportedFiles: ts.Map<string> = {};
+    private bundleImportedModuleBlocks: ts.Map<string> = {};
     private bundleSourceFiles: ts.Map<string> = {};
 
     constructor( compilerHost: CompilerHost, program: ts.Program ) {
@@ -46,11 +47,11 @@ export class BundleCompiler {
         this.bundleImportedFiles = {};
         this.bundleSourceFiles = {};
 
-        let allDependencies: ts.Map<ts.Symbol[]> = {};
+        let allDependencies: ts.Map<ts.Node[]> = {};
 
         for ( var filesKey in bundle.files ) {
             let fileName = bundle.files[filesKey];
-            Logger.info( "Processing bundle file:", fileName );
+            Logger.info( ">>> Processing bundle file:", fileName );
 
             let bundleSourceFileName = this.compilerHost.getCanonicalFileName( tsCore.normalizeSlashes( fileName ) );
             Logger.info( "BundleSourceFileName:", bundleSourceFileName );
@@ -65,33 +66,48 @@ export class BundleCompiler {
             let sourceDependencies = dependencyBuilder.getSourceFileDependencies( bundleSourceFile );
 
             // Merge current bundle file dependencies into all dependencies
-            for ( var key in sourceDependencies ) {
-                if ( !utils.hasProperty( allDependencies, key ) ) {
-                    allDependencies[key] = sourceDependencies[key];
+            for (var mergeKey in sourceDependencies) {
+                if ( !utils.hasProperty( allDependencies, mergeKey ) ) {
+                    allDependencies[mergeKey] = sourceDependencies[mergeKey];
                 }
             }
 
-            for ( var key in sourceDependencies ) {
+            Logger.info("traversing source dependencies for: ", bundleSourceFile.fileName );
+            for (var depKey in sourceDependencies) {
                 // Add module dependencies first..
-                sourceDependencies[key].forEach( importSymbol => {
-                    if ( this.isCodeModule( importSymbol ) ) {
+                sourceDependencies[depKey].forEach( importNode => {
+                    var importSymbol = this.getSymbolFromNode( importNode );
+                    if (this.isCodeModule(importSymbol)) {
                         let declaration = importSymbol.getDeclarations()[0];
                         let importedSource = declaration.getSourceFile();
                         let importedSourceFileName = importedSource.fileName;
 
-                        if ( !utils.hasProperty( this.bundleImportedFiles, importedSourceFileName ) ) {
-                            this.addSourceFile( importedSource );
+                        if (!utils.hasProperty(this.bundleImportedFiles, importedSourceFileName)) {
+                            this.addSourceFile(importedSource);
+                        }
+                    }
+                    else {
+                        // Import Module block
+                        let importedModuleBlockName = importSymbol.name;
+
+                        if (!utils.hasProperty(this.bundleImportedModuleBlocks, importedModuleBlockName)) {
+                            let moduleBlockText = importNode.getText();
+                            this.addModuleBlock( moduleBlockText );
+                            this.bundleImportedModuleBlocks[importedModuleBlockName] = importedModuleBlockName;
                         }
                     }
                 });
 
-                // Add the source module as specified by key
-                let dependentSourceFile = this.program.getSourceFile( key );
-                let outputFileName = dependentSourceFile.fileName;
+                // TJT: top level source file inclusion is now in dependency processing.
+                // TJT: Remove code after release 1.0 RC check in
 
-                if ( !utils.hasProperty( this.bundleImportedFiles, outputFileName ) ) {
-                    this.addSourceFile( dependentSourceFile );
-                }
+                // Add the source module as specified by key
+                //let dependentSourceFile = this.program.getSourceFile( keyB );
+                //let outputFileName = dependentSourceFile.fileName;
+
+                //if ( !utils.hasProperty( this.bundleImportedFiles, outputFileName ) ) {
+                //    this.addSourceFile( dependentSourceFile );
+                //}
             }
 
             // Finally, add bundle source file
@@ -130,7 +146,7 @@ export class BundleCompiler {
             
             // d.ts should have been generated, but just in case
             if ( utils.hasProperty( this.outputText, path.basename( bundle.name ) + ".d.ts" ) ) {
-                Logger.info( "Streaming vinyl d.ts: ", bundleFilePath + "d.ts" );
+                Logger.info( "Streaming vinyl d.ts: ", bundleFilePath + ".d.ts" );
                 var bundleDtsVinylFile = new TsVinylFile( {
                     path: path.join( bundleFilePath + ".d.ts" ),
                     contents: new Buffer( this.outputText[ path.basename( bundle.name ) + ".d.ts"] )
@@ -144,16 +160,20 @@ export class BundleCompiler {
     }
 
     private processImportStatements( file: ts.SourceFile ): string {
+        Logger.info( "Processing import statements in file: ", file.fileName );
         let editText = file.text;
 
         ts.forEachChild( file, node => {
             if ( node.kind === ts.SyntaxKind.ImportDeclaration || node.kind === ts.SyntaxKind.ImportEqualsDeclaration || node.kind === ts.SyntaxKind.ExportDeclaration ) {
+                Logger.info( "processImportStatements() found import" );
                 let moduleNameExpr = tsCore.getExternalModuleName( node );
 
                 if ( moduleNameExpr && moduleNameExpr.kind === ts.SyntaxKind.StringLiteral ) {
+                    
                     let moduleSymbol = this.program.getTypeChecker().getSymbolAtLocation( moduleNameExpr );
-
-                    if ( ( moduleSymbol ) && ( this.isCodeModule( moduleSymbol ) ) ) {
+                   
+                    if ((moduleSymbol) && (this.isCodeModule(moduleSymbol))) {
+                        Logger.info("processImportStatements() removing code module symbol");
                         let pos = node.pos;
                         let end = node.end;
 
@@ -162,12 +182,12 @@ export class BundleCompiler {
                         let length = end - pos;
                         let middle = "";
 
-                        for ( var i = 0; i < length; i++ ) {
+                        for (var i = 0; i < length; i++) {
                             middle += " ";
                         }
 
-                        var prefix = editText.substring( 0, pos );
-                        var suffix = editText.substring( end );
+                        var prefix = editText.substring(0, pos);
+                        var suffix = editText.substring(end);
 
                         editText = prefix + middle + suffix;
                     }
@@ -176,6 +196,12 @@ export class BundleCompiler {
         });
 
         return editText;
+    }
+
+    private addModuleBlock( moduleBlockText: string ) {
+        Logger.info("Entering addModuleBlock()" );
+
+        this.bundleText += moduleBlockText + "\n";
     }
 
     private addSourceFile( file: ts.SourceFile ) {
@@ -197,7 +223,7 @@ export class BundleCompiler {
         }
     }
 
-    private compileBundle( bundleFileName: string, bundleText: string ): CompilerResult {
+    private compileBundle(bundleFileName: string, bundleText: string): CompilerResult {
         // Create bundle source file
         var bundleSourceFile = ts.createSourceFile( bundleFileName, bundleText, this.compilerOptions.target );
         this.bundleSourceFiles[bundleFileName] = bundleText;
@@ -207,24 +233,38 @@ export class BundleCompiler {
 
         // Create a compilerHost object to allow the compiler to read and write files
         var bundlerCompilerHost: ts.CompilerHost = {
-            getSourceFile: ( fileName, languageVersion ) => {
-                Logger.info( "getSourceFile(): ", path.normalize( fileName ) );
-                if ( path.normalize( fileName ) === path.normalize( ts.getDefaultLibFilePath( this.compilerOptions ) ) ) {
+            getSourceFile: (fileName, languageVersion) => {
+                if (path.normalize(fileName) === path.normalize(ts.getDefaultLibFilePath(this.compilerOptions))) {
                     let libSourceText = fs.readFileSync( fileName ).toString( "utf8" );
                     var libSourceFile = ts.createSourceFile( fileName, libSourceText, languageVersion );
 
                     return libSourceFile;
                 }
                 else if ( utils.hasProperty( this.bundleSourceFiles, fileName ) ) {
-                    Logger.info( "getSourceFile() found included file: ", fileName );
                     return ts.createSourceFile( fileName, this.bundleSourceFiles[ fileName ], languageVersion );
                 }
                  
                 if ( fileName === bundleFileName ) {
-                    Logger.info( "getSourceFile() found: ", fileName );
                     return bundleSourceFile;
                 }
-                Logger.warn( " getSourceFile(): file not found: ", fileName );
+
+                // return undefined for a non-existent fileName
+                if (!fs.existsSync(fileName)) {
+                    Logger.warn(" getSourceFile(): file not found: ", fileName);
+                    return undefined;
+                }
+
+                let text: string;
+                try {
+                    text = fs.readFileSync(fileName).toString("utf8");
+                }
+                catch (e) { }
+
+                if (text !== undefined) {
+                    return ts.createSourceFile(fileName, text, languageVersion);
+                }
+
+                Logger.warn( " getSourceFile(): file not readable: ", fileName );
 
                 return undefined;
             },
@@ -287,5 +327,20 @@ export class BundleCompiler {
 
         return ( declaration.kind === ts.SyntaxKind.SourceFile &&
             !( declaration.flags & ts.NodeFlags.DeclarationFile ) );
+    }
+
+    private isAmbientModule(importSymbol: ts.Symbol): boolean {
+        let declaration = importSymbol.getDeclarations()[0];
+
+        return ( ( declaration.kind === ts.SyntaxKind.ModuleDeclaration ) && ( ( declaration.flags & ts.NodeFlags.Ambient ) > 0 ) );
+    }
+
+    // TJT: Review duplicate code. Move to TsCore pass program as arg.
+    private getSymbolFromNode( node: ts.Node ): ts.Symbol {
+        let moduleNameExpr = tsCore.getExternalModuleName( node );
+
+        if ( moduleNameExpr && moduleNameExpr.kind === ts.SyntaxKind.StringLiteral ) {
+            return this.program.getTypeChecker().getSymbolAtLocation( moduleNameExpr );
+        }
     }
 } 

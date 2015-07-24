@@ -1,24 +1,24 @@
 {
   "name": "tsproject",
-  "version": "0.8.10",
-  "description": "Typescript project compiler and module bundle optimizer for gulp (Ts Vinyl Adapter).",
+  "version": "0.9.0",
+  "description": "Typescript project compiler and modular typescript bundle optimizer for gulp (Ts Vinyl Adapter).",
   "homepage": "https://github.com/toddthomson/tsproject",
   "bugs": "https://github.com/toddthomson/tsproject/issues",
   "main": "./src/tsproject.js",
   "dependencies": {
-    "typescript": "^1.5.0-beta",
-    "readable-stream": "^1.0.33",
-    "vinyl": "^0.4.6",
+    "chalk": "^1.0.0",
     "glob": "^5.0.6",
     "lodash": "^3.8.0",
-    "chalk": "^1.0.0"
+    "readable-stream": "^1.0.33",
+    "typescript": "^1.5.3",
+    "vinyl": "^0.4.6"
   },
   "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
-    "typescript",
+    "typescript bundling",
     "compiler",
     "tsconfig.json",
     "project",

@@ -18,70 +18,84 @@ export class DependencyBuilder {
         this.options = this.program.getCompilerOptions();
     }
 
-    public getSourceFileDependencies( sourceFile: ts.SourceFile ): ts.Map<ts.Symbol[]> {
+    public getSourceFileDependencies( sourceFile: ts.SourceFile ): ts.Map<ts.Node[]> {
         var self = this;
-        Logger.info( "---> Entering getSourceFileDependencies()" );
-        var dependencies: ts.Map<ts.Symbol[]> = {};
+        var dependencies: ts.Map<ts.Node[]> = {};
         var importWalked: ts.Map<boolean> = {};
 
-        function walkModuleImports( sourceFile: ts.SourceFile ) {
-            Logger.info( "---> Entering walkModuleImports() with: ", sourceFile.fileName );
-            self.getImportsOfModule( sourceFile ).forEach( importSymbol => {
-                let symbolSourceFile = self.getSourceFileFromSymbol( importSymbol );
-                let canonicalFileName = self.host.getCanonicalFileName( symbolSourceFile.fileName );
+        function walkModuleImports( importNodes: ts.Node[] ) {
+            importNodes.forEach( importNode => {
+                // Get the import symbol for the import node
+                let importSymbol = self.getSymbolFromNode( importNode );
+                let importSymbolSourceFile = self.getSourceFileFromSymbol( importSymbol );
+                let canonicalFileName = self.host.getCanonicalFileName( importSymbolSourceFile.fileName );
+                Logger.info( "Import symbol file name: ", canonicalFileName );
 
                 // Don't walk imports that we've already processed
                 if ( !utilities.hasProperty( importWalked, canonicalFileName ) ) {
                     importWalked[canonicalFileName] = true;
 
-                    // Build dependencies bottom up, left to right
-                    walkModuleImports( symbolSourceFile );
+                    // Build dependencies bottom up, left to right by recursively calling walkModuleImports
+                    walkModuleImports( self.getImportsOfModule( importSymbolSourceFile ) );
                 }
-                
+
                 if ( !utilities.hasProperty( dependencies, canonicalFileName ) ) {
-                    dependencies[canonicalFileName] = self.getImportsOfModule( symbolSourceFile );
+                    Logger.info( "Adding module import dependencies for file: ", canonicalFileName );
+                    dependencies[canonicalFileName] = self.getImportsOfModule( importSymbolSourceFile );
                 }
             });
         }
 
-        walkModuleImports( sourceFile );
+        // Get the top level imports
+        var sourceFileImports = self.getImportsOfModule(sourceFile);
+
+        // Walk the module import tree
+        walkModuleImports(sourceFileImports);
+
+        let canonicalSourceFileName = self.host.getCanonicalFileName( sourceFile.fileName );
+
+        if (!utilities.hasProperty(dependencies, canonicalSourceFileName)) {
+            Logger.info("Adding top level import dependencies for file: ", canonicalSourceFileName);
+            dependencies[canonicalSourceFileName] = sourceFileImports;
+        }
 
         return dependencies;
     }
 
-    public getImportsOfModule( file: ts.SourceFile ): ts.Symbol[] {
-        Logger.info( "---> Entering getImportsOfModule() for file: ", file.fileName );
-
-        var importSymbols: ts.Symbol[] = [];
+    public getImportsOfModule( file: ts.SourceFile ): ts.Node[] {
+        var importNodes: ts.Node[] = [];
         var self = this;
         
-        function getImports( searchNode: ts.Node ) {
-            ts.forEachChild( searchNode, node => {
-                if ( node.kind === ts.SyntaxKind.ImportDeclaration || node.kind === ts.SyntaxKind.ImportEqualsDeclaration || node.kind === ts.SyntaxKind.ExportDeclaration ) {
-                    let moduleNameExpr = tsCore.getExternalModuleName( node );
+        function getImports(searchNode: ts.Node) {
+            ts.forEachChild(searchNode, node => {
+                if (node.kind === ts.SyntaxKind.ImportDeclaration || node.kind === ts.SyntaxKind.ImportEqualsDeclaration || node.kind === ts.SyntaxKind.ExportDeclaration) {
+                    Logger.info("Found import declaration");
+                    let moduleNameExpr = tsCore.getExternalModuleName(node);
 
-                    if ( moduleNameExpr && moduleNameExpr.kind === ts.SyntaxKind.StringLiteral ) {
-                        let moduleSymbol = self.program.getTypeChecker().getSymbolAtLocation( moduleNameExpr );
+                    if (moduleNameExpr && moduleNameExpr.kind === ts.SyntaxKind.StringLiteral) {
+                        let moduleSymbol = self.program.getTypeChecker().getSymbolAtLocation(moduleNameExpr);
 
-                        if ( moduleSymbol ) {
-                            importSymbols.push( moduleSymbol );
+                        if (moduleSymbol) {
+                            Logger.info("Adding import symbol: ", moduleSymbol.name, file.fileName);
+                            importNodes.push(node);
                         }
                         else {
-                            Logger.warn( "Module symbol not found" );
+                            Logger.warn("Module symbol not found");
                         }
                     }
                 }
-                else if ( node.kind === ts.SyntaxKind.ModuleDeclaration && ( <ts.ModuleDeclaration>node ).name.kind === ts.SyntaxKind.StringLiteral && ( node.flags & ts.NodeFlags.Ambient || tsCore.isDeclarationFile( file ) ) ) {
-                    // An AmbientExternalModuleDeclaration declares an external module. 
-                    Logger.info( "Processing ambient module declaration..." );
-                    getImports(( <ts.ModuleDeclaration>node ).body );
+                else if (node.kind === ts.SyntaxKind.ModuleDeclaration && (<ts.ModuleDeclaration>node).name.kind === ts.SyntaxKind.StringLiteral && (node.flags & ts.NodeFlags.Ambient || tsCore.isDeclarationFile(file))) {
+                    // An AmbientExternalModuleDeclaration declares an external module.
+                    var moduleDeclaration = <ts.ModuleDeclaration>node;
+                    Logger.info("Processing ambient module declaration: ", moduleDeclaration.name.text);
+                    getImports((<ts.ModuleDeclaration>node).body);
                 }
             });
         };
 
         getImports( file );
 
-        return importSymbols;
+        return importNodes;
     }
 
     private isExternalModuleImportEqualsDeclaration( node: ts.Node ) {
@@ -90,6 +104,18 @@ export class DependencyBuilder {
 
     private getExternalModuleImportEqualsDeclarationExpression( node: ts.Node ) {
         return ( <ts.ExternalModuleReference>( <ts.ImportEqualsDeclaration>node ).moduleReference ).expression;
+    }
+
+    private getSymbolFromNode( node: ts.Node ): ts.Symbol {
+        let moduleNameExpr = tsCore.getExternalModuleName( node );
+
+        if ( moduleNameExpr && moduleNameExpr.kind === ts.SyntaxKind.StringLiteral ) {
+            return this.program.getTypeChecker().getSymbolAtLocation( moduleNameExpr );
+        }
+    }
+
+    private getSourceFileFromNode( importNode: ts.Node ): ts.SourceFile {
+        return importNode.getSourceFile();
     }
 
     private getSourceFileFromSymbol( importSymbol: ts.Symbol ): ts.SourceFile {

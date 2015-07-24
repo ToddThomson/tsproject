@@ -1,5 +1,4 @@
 ﻿/// <reference path="references.d.ts" />
-/// <reference path="bundleparser.ts" />
 
 import { CompilerResult } from "./CompilerResult";
 import { CompilerStatistics } from "./CompilerStatistics";
@@ -33,6 +32,9 @@ export class Compiler {
     public compileFilesToStream(
         compileStream: CompileStream,
         onError?: ( message: string ) => void ): CompilerResult {
+
+        Logger.log( "TypeScript compiler version: ", ts.version );
+        Logger.log( "Compiling Project Files..." );
 
         // Check for preEmit diagnostics
         var preEmitDiagnostics = ts.getPreEmitDiagnostics( this.program );

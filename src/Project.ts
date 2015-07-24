@@ -35,10 +35,14 @@ export class Project {
     public getConfig(): ProjectConfig {
         let configDirPath: string;
         let configFileName: string;
-        let configJson: any;
 
-        Logger.info( "Project config file path:", this.configPath );
-        let isConfigDirectory = fs.lstatSync( this.configPath ).isDirectory();
+        try {
+            var isConfigDirectory = fs.lstatSync(this.configPath).isDirectory();
+        }
+        catch (e) {
+            let diagnostic = tsCore.createDiagnostic({ code: 6064, category: ts.DiagnosticCategory.Error, key: "Cannot read project path '{0}'." }, this.configPath );
+            return { success: false, errors: [diagnostic] };
+        }
 
         if ( isConfigDirectory ) {
             configDirPath = this.configPath;
@@ -51,24 +55,28 @@ export class Project {
 
         this.configFileName = configFileName;
 
-        // TODO: TJT - Update to changed API in 1.5 final
-        configJson = ts.readConfigFile( configFileName );
+        Logger.info( "Reading config file:", configFileName );
+        let readConfigResult = ts.readConfigFile( configFileName );
 
-        if ( !configJson ) {
-            let diagnostic = tsCore.createDiagnostic( { code: 6064, category: ts.DiagnosticCategory.Error, key: "Syntax error in tsconfig file '{0}'." }, configFileName );
-            return { success: false, errors: [diagnostic] };
+        if ( readConfigResult.error ) {
+            return { success: false, errors: [readConfigResult.error] };
         }
 
+        let configObject = readConfigResult.config;
+
         // parse standard project configuration objects: compilerOptions, files.
-        var configParseResult = ts.parseConfigFile( configJson, configDirPath );
+        Logger.info( "Parsing config file..." );
+        var configParseResult = ts.parseConfigFile( configObject, ts.sys, configDirPath );
 
         if ( configParseResult.errors.length > 0 ) {
             return { success: false, errors: configParseResult.errors };
         }
 
+        Logger.info("Parse Result: ", configParseResult);
+
         // parse standard project configuration objects: compilerOptions, files.
         var bundleParser = new BundleParser();
-        var bundleParseResult = bundleParser.parseConfigFile( configJson, configDirPath );
+        var bundleParseResult = bundleParser.parseConfigFile( configObject, configDirPath );
 
         if ( bundleParseResult.errors.length > 0 ) {
             return { success: false, errors: bundleParseResult.errors };
@@ -105,7 +113,7 @@ export class Project {
         let program = ts.createProgram( rootFileNames, compilerOptions, compilerHost );
 
         // Files..
-        Logger.log( "Compiling Project Files..." );
+        
         var compiler = new Compiler( compilerHost, program );
         var compileResult = compiler.compileFilesToStream( outputStream );
         let compilerReporter = new CompilerReporter( compileResult );
