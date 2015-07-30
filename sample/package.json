@@ -1,9 +1,9 @@
 {
     "name": "TsProjectSample",
     "version": "1.0.0",
-    "description": "NodejsTsProject",
+    "description": "TsProject sample website.",
     "devDependencies": {
-        "gulp": "^3.8.10",
+        "gulp": "^3.9.0",
         "gulp-concat": "~2.4.3",
         "gulp-rimraf": "~0.1.1",
         "gulp-replace": "~0.5.1",
@@ -13,8 +13,8 @@
         "deeply": "~0.1.0",
         "chalk": "~1.0.0",
         "event-stream": "~3.3.0",
-        "typescript": ">=1.5.0-alpha <2.0.0",
-        "tsproject": "^0.7.8"
+        "typescript": "^1.5.3",
+        "tsproject": "1.0.0-rc.1"
     },
     "author": "Todd Thomson <todd.thomson@me.com>",
     "license": "MIT"

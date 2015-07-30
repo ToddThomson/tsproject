@@ -1,5 +1,5 @@
 ﻿import { foo } from "./foo";
-export class bar {
+export class baz {
     public foo2 = new foo();
-    public barvalue3: number = 45
+    public bazValue3: number = 45
 }

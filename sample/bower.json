@@ -7,8 +7,5 @@
     "requirejs": "~2.1.11",
     "requirejs-text": "~2.0.10",
     "knockout": "~3.3.0"
-  },
-  "resolutions": {
-    "knockout": "~3.3.0"
   }
 }

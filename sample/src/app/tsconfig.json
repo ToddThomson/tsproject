@@ -14,20 +14,15 @@
         "greeter.ts",
         "foo.ts",
         "bar.ts",
-        "plugin.ts"
+        "plugin.ts",
+        "../references.d.ts"
     ],
 
     "bundles": {
         "app": {
-            "files": [ "main.ts" ]
-        },
-        "projectspkg": {
-            "files": [
-                "projects.ts",
-                "plugin.ts"
-            ],
-            "config": {
-                "outDir": "./packages"
+            "files": [ "main.ts", "../references.d.ts" ],
+            "config": { 
+                "outDir": "./bundles"  
             }
         }
     }

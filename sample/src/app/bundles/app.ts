@@ -1,10 +1,29 @@
-﻿import {bar} from "./bar";
+                             
+export class baz {
+    public foo2 = new foo();
+    public bazValue3: number = 45
+}
+                             
+
+export class foo {
+    public bazValue = new baz().bazValue3;
+    valuea: string;
+}
+
+export class foo2 {
+    public fooVal: string = "foo2you";
+}
+                             
+export class bar {
+    public foo2 = new foo();
+    public barvalue3: number = 45;
+}
+                           
 
 export class Greeter {
     element: HTMLElement;
     span: HTMLElement;
     timerToken: number;
-    private bar: bar;
 
     constructor( element: HTMLElement ) {
         this.element = element;
@@ -12,7 +31,6 @@ export class Greeter {
         this.span = document.createElement( 'span' );
         this.element.appendChild( this.span );
         this.span.innerText = new Date().toUTCString();
-        this.bar = new bar();
     }
 
     start() {
@@ -24,9 +42,10 @@ export class Greeter {
     }
 
 }
+                                     
 
-window.onload = () => {
-    var el = document.getElementById( 'content' );
-    var greeter = new Greeter( el );
-    greeter.start();
-};
+var el = document.getElementById( 'content' );
+var greeter = new Greeter( el );
+
+greeter.start();
+

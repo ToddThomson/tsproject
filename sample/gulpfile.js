@@ -17,27 +17,24 @@ var gulp = require( 'gulp' ),
 
 // Require Optimizer Config
 var requireJsOptimizerConfig = {
-    out: 'sample.js',
+    out: 'scripts.js',
     baseUrl: './src',
-    name: 'app/app',
+    name: 'app/bundles/app',
     paths: {
         requireLib: 'bower_modules/requirejs/require'
     },
     include: [
         'requireLib',
     ],
-    insertRequire: ['app/app']
+    insertRequire: ['app/bundles/app']
 };
 
 gulp.task( 'ts', function() {
-    return projectStream = tsproject.src( './src/app', { logLevel: 0 } )
-        .pipe( gulp.dest( './dist' ) );
-
-    //return projectStream;
+    return tsproject.src( './src/app/tsconfig.json', { logLevel: 0 } )
+        .pipe( gulp.dest( './' ) );
 } );
 
 gulp.task( 'js', ['ts'], function( callback ) {
-    
     rjs( requireJsOptimizerConfig )
         //.pipe(uglify({ preserveComments: 'some' }))
         .pipe( gulp.dest( './dist/' ) );
@@ -61,7 +58,7 @@ gulp.task( 'html', function() {
     return gulp.src( './src/index.html' )
         .pipe( htmlreplace( {
             'css': 'css.css',
-            'js': 'sample.js'
+            'js': 'scripts.js'
         } ) )
         .pipe( gulp.dest( './dist/' ) );
 } );
