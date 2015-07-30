@@ -30,6 +30,7 @@ var BundleCompiler = (function () {
         var bundleFilePath = path.join(bundleBaseDir, path.basename(bundle.name));
         this.bundleText = "";
         this.bundleImportedFiles = {};
+        this.bundleImportedModuleBlocks = {};
         this.bundleSourceFiles = {};
         var allDependencies = {};
         for (var filesKey in bundle.files) {
@@ -121,7 +122,7 @@ var BundleCompiler = (function () {
                 var moduleNameExpr = tsCore.getExternalModuleName(node);
                 if (moduleNameExpr && moduleNameExpr.kind === 8 /* StringLiteral */) {
                     var moduleSymbol = _this.program.getTypeChecker().getSymbolAtLocation(moduleNameExpr);
-                    if ((moduleSymbol) && (_this.isCodeModule(moduleSymbol))) {
+                    if ((moduleSymbol) && (_this.isCodeModule(moduleSymbol) || _this.isAmbientModule)) {
                         Logger_1.Logger.info("processImportStatements() removing code module symbol");
                         var pos = node.pos;
                         var end = node.end;

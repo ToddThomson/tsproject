@@ -14,7 +14,7 @@
         "chalk": "~1.0.0",
         "event-stream": "~3.3.0",
         "typescript": "^1.5.3",
-        "tsproject": "1.0.0-rc.1"
+        "tsproject": "1.0.0-rc.2"
     },
     "author": "Todd Thomson <todd.thomson@me.com>",
     "license": "MIT"

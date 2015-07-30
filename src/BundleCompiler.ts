@@ -45,6 +45,7 @@ export class BundleCompiler {
 
         this.bundleText = "";
         this.bundleImportedFiles = {};
+        this.bundleImportedModuleBlocks = {};
         this.bundleSourceFiles = {};
 
         let allDependencies: ts.Map<ts.Node[]> = {};
@@ -90,7 +91,7 @@ export class BundleCompiler {
                         // Import Module block
                         let importedModuleBlockName = importSymbol.name;
 
-                        if (!utils.hasProperty(this.bundleImportedModuleBlocks, importedModuleBlockName)) {
+                        if ( !utils.hasProperty( this.bundleImportedModuleBlocks, importedModuleBlockName ) ) {
                             let moduleBlockText = importNode.getText();
                             this.addModuleBlock( moduleBlockText );
                             this.bundleImportedModuleBlocks[importedModuleBlockName] = importedModuleBlockName;
@@ -172,7 +173,7 @@ export class BundleCompiler {
                     
                     let moduleSymbol = this.program.getTypeChecker().getSymbolAtLocation( moduleNameExpr );
                    
-                    if ((moduleSymbol) && (this.isCodeModule(moduleSymbol))) {
+                    if ((moduleSymbol) && (this.isCodeModule(moduleSymbol) || this.isAmbientModule )) {
                         Logger.info("processImportStatements() removing code module symbol");
                         let pos = node.pos;
                         let end = node.end;
