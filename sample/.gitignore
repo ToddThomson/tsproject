@@ -8,5 +8,5 @@ src/**/*.js
 src/**/*.js.map
 
 # ... except specific ones, which should be tracked
-!src/require.config.js
-!src/lib/*.js*
+!src/app/require.config.js
+!src/lib/*.js
