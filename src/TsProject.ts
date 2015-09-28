@@ -17,9 +17,11 @@ function src( configDirPath: string, settings?: any ) {
     Logger.setLevel( settings.logLevel );
     Logger.setName( "TsProject" );
 
+    let overrideCompilerOptions = settings.compilerOptions || {};
+
     var outputStream = new CompileStream();
 
-    var project = new Project( configDirPath );
+    var project = new Project( configDirPath, overrideCompilerOptions );
     var buildStatus = project.build( outputStream );
 
     // EOF the compilation output stream after build.

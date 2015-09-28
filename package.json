@@ -10,7 +10,7 @@
     "glob": "^5.0.6",
     "lodash": "^3.8.0",
     "readable-stream": "^1.0.33",
-    "typescript": "^1.5.3",
+    "typescript": "~1.5.3",
     "vinyl": "^0.4.6"
   },
   "devDependencies": {},

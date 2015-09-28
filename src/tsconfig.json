@@ -1,0 +1,52 @@
+{
+    "version": "1.5.3",
+    "compilerOptions": {
+        "target": "es5",
+        "module": "commonjs",
+        "isolatedModules": false,
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
+        "declaration": false,
+        "noImplicitAny": false,
+        "removeComments": false,
+        "noLib": false,
+        "preserveConstEnums": true,
+        "suppressImplicitAnyIndexErrors": true,
+        "sourceMap": true
+    },
+    "filesGlob": [
+        "./**/*.ts",
+        "./**/*.tsx",
+        "../definitions/*.d.ts",
+        "!./node_modules/**/*"
+    ],
+    "files": [
+        "./BundleCompiler.ts",
+        "./BundleParser.ts",
+        "./CompileStream.ts",
+        "./Compiler.ts",
+        "./CompilerError.ts",
+        "./CompilerHost.ts",
+        "./CompilerReporter.ts",
+        "./CompilerResult.ts",
+        "./CompilerStatistics.ts",
+        "./DependencyBuilder.ts",
+        "./DiagnosticsReporter.ts",
+        "./EventEmitter.ts",
+        "./Glob.ts",
+        "./Logger.ts",
+        "./Project.ts",
+        "./TsCore.ts",
+        "./TsProject.ts",
+        "./TsVinylFile.ts",
+        "./Utilities.ts",
+        "./references.d.ts",
+        "../definitions/chalk.d.ts",
+        "../definitions/glob.d.ts",
+        "../definitions/lodash.d.ts",
+        "../definitions/minimatch.d.ts",
+        "../definitions/node.d.ts",
+        "../definitions/typescript.d.ts",
+        "../definitions/vinyl.d.ts"
+    ]
+}

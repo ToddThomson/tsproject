@@ -27,9 +27,11 @@ interface ProjectConfig {
 export class Project {
     private configPath: string;
     private configFileName: string;
+    private overrideCompilerOptions: any;
 
-    constructor( configPath: string ) {
+    constructor( configPath: string, overrideCompilerOptions?: any ) {
         this.configPath = configPath;
+        this.overrideCompilerOptions = overrideCompilerOptions || {};
     }
 
     public getConfig(): ProjectConfig {
@@ -82,9 +84,13 @@ export class Project {
             return { success: false, errors: bundleParseResult.errors };
         }
 
+        let resolvedCompilerOptions =
+          this.extend({}, configParseResult.options, this.overrideCompilerOptions);
+
+        Logger.info("Compiler options: ", resolvedCompilerOptions);
         return {
             success: true,
-            compilerOptions: configParseResult.options,
+            compilerOptions: resolvedCompilerOptions,
             files: configParseResult.fileNames,
             bundles: bundleParseResult.bundles
         }
@@ -92,7 +98,7 @@ export class Project {
 
     public build( outputStream: CompileStream ): ts.ExitStatus {
         let allDiagnostics: ts.Diagnostic[] = [];
-        
+
         // Get project configuration items for the project build context.
         let config = this.getConfig();
         Logger.log( "Building Project with: " + chalk.magenta(`${this.configFileName}`) );
@@ -113,7 +119,7 @@ export class Project {
         let program = ts.createProgram( rootFileNames, compilerOptions, compilerHost );
 
         // Files..
-        
+
         var compiler = new Compiler( compilerHost, program );
         var compileResult = compiler.compileFilesToStream( outputStream );
         let compilerReporter = new CompilerReporter( compileResult );
@@ -169,4 +175,19 @@ export class Project {
 
         return ts.ExitStatus.Success;
     }
-}  
+
+    private extend(obj1: any, obj2: any, ...args: any[]) : any {
+        for (var i in obj2) {
+            if (obj2.hasOwnProperty(i)) {
+                obj1[i] = obj2[i];
+            }
+        }
+
+        for (let i = 0; i < args.length; i++) {
+            this.extend(obj1, args[i]);
+        }
+
+        return obj1;
+    }
+
+}

@@ -12,8 +12,9 @@ var chalk = require("chalk");
 var tsCore = require("./TsCore");
 var utils = require("./Utilities");
 var Project = (function () {
-    function Project(configPath) {
+    function Project(configPath, overrideCompilerOptions) {
         this.configPath = configPath;
+        this.overrideCompilerOptions = overrideCompilerOptions || {};
     }
     Project.prototype.getConfig = function () {
         var configDirPath;
@@ -53,9 +54,11 @@ var Project = (function () {
         if (bundleParseResult.errors.length > 0) {
             return { success: false, errors: bundleParseResult.errors };
         }
+        var resolvedCompilerOptions = this.extend({}, configParseResult.options, this.overrideCompilerOptions);
+        Logger_1.Logger.info("Compiler options: ", resolvedCompilerOptions);
         return {
             success: true,
-            compilerOptions: configParseResult.options,
+            compilerOptions: resolvedCompilerOptions,
             files: configParseResult.fileNames,
             bundles: bundleParseResult.bundles
         };
@@ -118,6 +121,21 @@ var Project = (function () {
             return ts.ExitStatus.DiagnosticsPresent_OutputsGenerated;
         }
         return ts.ExitStatus.Success;
+    };
+    Project.prototype.extend = function (obj1, obj2) {
+        var args = [];
+        for (var _i = 2; _i < arguments.length; _i++) {
+            args[_i - 2] = arguments[_i];
+        }
+        for (var i in obj2) {
+            if (obj2.hasOwnProperty(i)) {
+                obj1[i] = obj2[i];
+            }
+        }
+        for (var i_1 = 0; i_1 < args.length; i_1++) {
+            this.extend(obj1, args[i_1]);
+        }
+        return obj1;
     };
     return Project;
 })();
