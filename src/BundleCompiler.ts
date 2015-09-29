@@ -6,10 +6,12 @@ import { Logger } from "./Logger";
 import { TsVinylFile } from "./TsVinylFile";
 import { BundleParser, Bundle } from "./BundleParser";
 import { DependencyBuilder } from "./DependencyBuilder";
+import { Glob } from "./Glob";
+
 import * as utils from "./Utilities";
 import * as tsCore from "./TsCore";
 
-import ts = require( 'typescript' );
+import ts = require( "typescript" );
 import fs = require( "fs" );
 import path = require( 'path' );
 
@@ -53,6 +55,10 @@ export class BundleCompiler {
         for ( var filesKey in bundle.files ) {
             let fileName = bundle.files[filesKey];
             Logger.info( ">>> Processing bundle file:", fileName );
+
+            if ( this.compilerOptions.listFiles ) {
+                Logger.log( fileName );
+            }
 
             let bundleSourceFileName = this.compilerHost.getCanonicalFileName( tsCore.normalizeSlashes( fileName ) );
             Logger.info( "BundleSourceFileName:", bundleSourceFileName );
@@ -269,9 +275,19 @@ export class BundleCompiler {
 
                 return undefined;
             },
+
+            readFile: ( fileName ): string => {
+                return "";
+            },
+
             writeFile: ( name, text, writeByteOrderMark ) => {
                 this.outputText[name] = text;
             },
+
+            fileExists: ( fileName ): boolean => {
+                return true;
+            },
+
             getDefaultLibFileName: () => ts.getDefaultLibFilePath( this.compilerOptions ),
             useCaseSensitiveFileNames: () => false,
             getCanonicalFileName: fileName => fileName,

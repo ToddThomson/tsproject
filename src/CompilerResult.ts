@@ -1,4 +1,4 @@
-﻿import ts = require( 'typescript' );
+﻿import ts = require( "typescript" );
 import { CompilerStatistics } from "./CompilerStatistics";
 
 export class CompilerResult {

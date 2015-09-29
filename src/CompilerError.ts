@@ -1,6 +1,6 @@
 ﻿/// <reference path="./references.d.ts" />
 
-import ts = require ( 'typescript' );
+import ts = require ( "typescript" );
 
 export class CompilerError {
 

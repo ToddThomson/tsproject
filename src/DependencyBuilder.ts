@@ -3,7 +3,7 @@
 import ts = require( "typescript" );
 import fs = require( "fs" );
 import path = require( "path" );
-import * as utilities from "./Utilities";
+import * as utils from "./Utilities";
 import * as tsCore from "./TsCore";
 
 export class DependencyBuilder {
@@ -32,14 +32,14 @@ export class DependencyBuilder {
                 Logger.info( "Import symbol file name: ", canonicalFileName );
 
                 // Don't walk imports that we've already processed
-                if ( !utilities.hasProperty( importWalked, canonicalFileName ) ) {
+                if ( !utils.hasProperty( importWalked, canonicalFileName ) ) {
                     importWalked[canonicalFileName] = true;
 
                     // Build dependencies bottom up, left to right by recursively calling walkModuleImports
                     walkModuleImports( self.getImportsOfModule( importSymbolSourceFile ) );
                 }
 
-                if ( !utilities.hasProperty( dependencies, canonicalFileName ) ) {
+                if ( !utils.hasProperty( dependencies, canonicalFileName ) ) {
                     Logger.info( "Adding module import dependencies for file: ", canonicalFileName );
                     dependencies[canonicalFileName] = self.getImportsOfModule( importSymbolSourceFile );
                 }
@@ -54,7 +54,7 @@ export class DependencyBuilder {
 
         let canonicalSourceFileName = self.host.getCanonicalFileName( sourceFile.fileName );
 
-        if (!utilities.hasProperty(dependencies, canonicalSourceFileName)) {
+        if (!utils.hasProperty(dependencies, canonicalSourceFileName)) {
             Logger.info("Adding top level import dependencies for file: ", canonicalSourceFileName);
             dependencies[canonicalSourceFileName] = sourceFileImports;
         }

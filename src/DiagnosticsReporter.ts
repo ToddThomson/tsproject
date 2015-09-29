@@ -2,7 +2,6 @@
 
 import ts = require( "typescript" );
 import chalk = require( "chalk" );
-import * as utils from "./utilities";
 
 export class DiagnosticsReporter {
     private errors: ts.Diagnostic[];

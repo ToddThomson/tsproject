@@ -9,9 +9,9 @@ import { Logger } from "./Logger";
 import { TsVinylFile } from "./TsVinylFile";
 import { BundleParser, Bundle } from "./BundleParser";
 
-import ts = require( 'typescript' );
+import ts = require( "typescript" );
 import fs = require( "fs" );
-import path = require( 'path' );
+import path = require( "path" );
 import chalk = require( "chalk" );
 import * as tsCore from "./TsCore";
 import * as utils from "./Utilities";
@@ -27,11 +27,11 @@ interface ProjectConfig {
 export class Project {
     private configPath: string;
     private configFileName: string;
-    private overrideCompilerOptions: any;
+    private settings: any;
 
-    constructor( configPath: string, overrideCompilerOptions?: any ) {
+    constructor( configPath: string, settings?: any  ) {
         this.configPath = configPath;
-        this.overrideCompilerOptions = overrideCompilerOptions || {};
+        this.settings = settings;
     }
 
     public getConfig(): ProjectConfig {
@@ -84,13 +84,21 @@ export class Project {
             return { success: false, errors: bundleParseResult.errors };
         }
 
-        let resolvedCompilerOptions =
-          this.extend({}, configParseResult.options, this.overrideCompilerOptions);
+        // Parse the command line args to override project file compiler options
+        let settingsCompilerOptions = this.getSettingsCompilerOptions( this.settings, configDirPath );
 
-        Logger.info("Compiler options: ", resolvedCompilerOptions);
+        // Check for any errors due to command line parsing
+        if ( settingsCompilerOptions.errors.length > 0 ) {
+            return { success: false, errors: settingsCompilerOptions.errors };
+        }
+
+        let compilerOptions = utils.extend( settingsCompilerOptions.options, configParseResult.options );
+
+        Logger.info( "Compiler options: ", compilerOptions );
+
         return {
             success: true,
-            compilerOptions: resolvedCompilerOptions,
+            compilerOptions: compilerOptions,
             files: configParseResult.fileNames,
             bundles: bundleParseResult.bundles
         }
@@ -98,7 +106,7 @@ export class Project {
 
     public build( outputStream: CompileStream ): ts.ExitStatus {
         let allDiagnostics: ts.Diagnostic[] = [];
-
+        
         // Get project configuration items for the project build context.
         let config = this.getConfig();
         Logger.log( "Building Project with: " + chalk.magenta(`${this.configFileName}`) );
@@ -119,7 +127,7 @@ export class Project {
         let program = ts.createProgram( rootFileNames, compilerOptions, compilerHost );
 
         // Files..
-
+        
         var compiler = new Compiler( compilerHost, program );
         var compileResult = compiler.compileFilesToStream( outputStream );
         let compilerReporter = new CompilerReporter( compileResult );
@@ -176,18 +184,25 @@ export class Project {
         return ts.ExitStatus.Success;
     }
 
-    private extend(obj1: any, obj2: any, ...args: any[]) : any {
-        for (var i in obj2) {
-            if (obj2.hasOwnProperty(i)) {
-                obj1[i] = obj2[i];
-            }
+    private getSettingsCompilerOptions( jsonSettings: any, configDirPath: string ): ts.ParsedCommandLine {
+        // Parse the json settings from the TsProject src() API
+        let parsedResult = ts.parseConfigFile( jsonSettings, ts.sys, configDirPath );
+
+        // Check for compiler options that are not relevent/supported.
+
+        // Not supported: --project, --init
+        // Ignored: --help, --version
+
+        if ( parsedResult.options.project ) {
+            let diagnostic = tsCore.createDiagnostic( { code: 5099, category: ts.DiagnosticCategory.Error, key: "The compiler option '{0}' is not supported in this context." }, "--project" );
+            parsedResult.errors.push( diagnostic );
         }
 
-        for (let i = 0; i < args.length; i++) {
-            this.extend(obj1, args[i]);
+        if ( parsedResult.options.init ) {
+            let diagnostic = tsCore.createDiagnostic( { code: 5099, category: ts.DiagnosticCategory.Error, key: "The compiler option '{0}' is not supported in this context." }, "--init" );
+            parsedResult.errors.push( diagnostic );
         }
 
-        return obj1;
+        return parsedResult;
     }
-
-}
+}  

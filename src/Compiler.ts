@@ -8,10 +8,9 @@ import { Logger } from "./Logger";
 import { TsVinylFile } from "./TsVinylFile";
 import { BundleParser, Bundle } from "./BundleParser";
 import { DependencyBuilder } from "./DependencyBuilder";
-import  * as utilities from "./Utilities";
 
-import ts = require( 'typescript' );
-import path = require( 'path' );
+import ts = require( "typescript" );
+import path = require( "path" );
 
 export class Compiler {
 

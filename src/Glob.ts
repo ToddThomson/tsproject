@@ -4,13 +4,29 @@
  * https://github.com/gruntjs/grunt/blob/master/LICENSE-MIT
  */
 
-import _ = require( 'lodash' );
-import fileGlob = require( 'glob' );
-import fs = require( 'fs' );
-import path = require( 'path' );
+import _ = require( "lodash" );
+import fileGlob = require( "glob" );
+import fs = require( "fs" );
+import path = require( "path" );
 
 export class Glob {
-    public expand( patterns: string[] ): string[] {
+
+    public hasPattern( pattern: string ) {
+        var g = new fileGlob.Glob( pattern );
+        var minimatchSet = g.minimatch.set;
+
+        if ( minimatchSet.length > 1 )
+            return true;
+
+        for ( var j = 0; j < minimatchSet[0].length; j++ ) {
+            if ( typeof minimatchSet[0][j] !== 'string' )
+                return true;
+        }
+
+        return false;
+    }
+
+    public expand( patterns: string[] ): string[]{
 
         if ( patterns.length === 0 ) {
             return [];

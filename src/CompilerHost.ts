@@ -17,6 +17,12 @@ export class CompilerHost implements ts.CompilerHost {
         this.compilerOptions = compilerOptions;
     }
 
+    fileExists( fileName: string ): boolean {
+        let result = ts.sys.fileExists( fileName );
+        Logger.info( "CompilerHost:fileExists for: ", fileName, result );
+        return result;
+    }
+
     getSourceFile(fileName: string, languageVersion: ts.ScriptTarget, onError?: (message: string) => void): ts.SourceFile {
         let text: string;
 
@@ -44,11 +50,19 @@ export class CompilerHost implements ts.CompilerHost {
         return undefined;            
     }
 
+    readFile( fileName: string ): string {
+        Logger.info( "CompilerHost in readFile() with: ", fileName );
+
+        let result = ts.sys.readFile( fileName );
+
+        return result;
+    }
+
     writeFile = ( fileName: string, data: string, writeByteOrderMark: boolean, onError?: ( message: string ) => void ) => {
         this.output[fileName] = data;
     }
 
-    getDefaultLibFileName() {
+    getDefaultLibFileName( options: ts.CompilerOptions ): string {
         return ts.getDefaultLibFilePath( this.compilerOptions );
     }
 
@@ -68,7 +82,8 @@ export class CompilerHost implements ts.CompilerHost {
         return this.currentDirectory || ( this.currentDirectory = process.cwd() );
     }
 
-    getNewLine() {
+    getNewLine() : string {
         return "\n";
     }
 }
+

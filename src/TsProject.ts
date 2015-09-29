@@ -4,7 +4,7 @@ import { Project } from "./Project";
 import { CompileStream } from "./CompileStream";
 import { Logger } from "./Logger";
 
-import ts = require( 'typescript' );
+import ts = require( "typescript" );
 import chalk = require( "chalk" );
 
 function src( configDirPath: string, settings?: any ) {
@@ -12,16 +12,16 @@ function src( configDirPath: string, settings?: any ) {
     if ( configDirPath === undefined && typeof configDirPath !== 'string' ) {
         throw new Error( "Provide a valid directory path to the project tsconfig.json" );
     }
+
     settings = settings || {};
     settings.logLevel = settings.logLevel || 0;
+
     Logger.setLevel( settings.logLevel );
     Logger.setName( "TsProject" );
 
-    let overrideCompilerOptions = settings.compilerOptions || {};
-
     var outputStream = new CompileStream();
 
-    var project = new Project( configDirPath, overrideCompilerOptions );
+    var project = new Project( configDirPath, settings );
     var buildStatus = project.build( outputStream );
 
     // EOF the compilation output stream after build.

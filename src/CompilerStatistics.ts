@@ -1,4 +1,4 @@
-﻿import ts = require( 'typescript' );
+﻿import ts = require( "typescript" );
 import * as utils from "./Utilities";
 import * as tsCore from "./TsCore";
 

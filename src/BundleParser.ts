@@ -3,6 +3,7 @@ import { Glob } from "./Glob";
 import * as utils from "./Utilities";
 import * as tsCore from "./TsCore";
 
+import _ = require( "lodash" );
 import ts = require( "typescript" );
 import path = require( "path" );
 
@@ -52,7 +53,34 @@ export class BundleParser {
                     if ( utils.hasProperty( jsonBundle, "files" ) ) {
                         if ( jsonBundle["files"] instanceof Array ) {
                             files = utils.map( <string[]>jsonBundle["files"], s => path.join( basePath, s ) );
-                            files = new Glob().expand( files );
+
+                            // The bundle files may contain a mix of glob patterns and filenames.
+                            // glob.expand() will only return a list of all expanded "found" files. 
+                            // For filenames without glob patterns, we add them to the list of files as we will want to know
+                            // if any filenames are not found during bundle processing.
+
+                            var glob = new Glob();
+                            var nonglobFiles: string[] = [];
+
+                            utils.forEach( files, file => {
+                                if ( !glob.hasPattern( file ) ) {
+                                    nonglobFiles.push( file );
+                                }
+                            });
+                            
+                            // Get the list of expanded glob files
+                            var globFiles = glob.expand( files );
+                            var normalizedGlobFiles: string[] = [];
+
+                            // Normalize paths of glob files so we can match properly. Glob returns forward slash separators.
+                            utils.forEach( globFiles, file => {
+                                normalizedGlobFiles.push( path.normalize( file ) );
+
+                            });
+
+                            // The overall file list is the union of both non-glob and glob files
+                            files = _.union( normalizedGlobFiles, nonglobFiles );
+
                             Logger.info( "bundle files: ", files );
                         }
                         else {
