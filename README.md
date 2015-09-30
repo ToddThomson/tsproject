@@ -1,12 +1,12 @@
 ﻿[![npm version](https://badge.fury.io/js/tsproject.svg)](http://badge.fury.io/js/tsproject)
 # TsProject
-TsProject is a Typescript bundle compiler which utilizes the Typescript project configuration file, tsconfig.json, to provide a compilation context for source files, bundles and compile options.
+TsProject is a Typescript bundle compiler which utilizes the Typescript project configuration file, tsconfig.json, to provide a compilation context for source files, module bundles and compile options.
 
 TsProject produces a compiled output stream of vinyl files for further processing in the gulp build pipeline.
 
 ## What's New
 
-The TsProject 1.0.0 typescript bundle compiler now supports Typescript 1.5.3!
+The TsProject 1.0.0 typescript bundle compiler now supports Typescript 1.6!
 
 ## Why TsProject?
 
@@ -87,12 +87,18 @@ var tsproject = require( 'tsproject' );
 var gulp = require( 'gulp' );
 gulp.task( 'build', function() {
 
-    // path to directory of tsconfig.json provided..
+    // path to directory of tsconfig.json provided
     tsproject.src( './src/project' )
         .pipe(gulp.dest('./build'));
-    
-    // path to named configuration file provided..
-    return tsproject.src( './src/project_a/myconfig.json', { logLevel: 1 } )
+
+    // path to named configuration file provided and optional settings specified 
+    return tsproject.src( './src/project_a/myconfig.json',
+		{ 
+			logLevel: 1,
+			compilerOptions: {
+				listFiles: true
+			} 
+		})
         .pipe( gulp.dest( './mybuild' ) );
 
 });
