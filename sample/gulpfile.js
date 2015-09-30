@@ -34,6 +34,17 @@ gulp.task( 'ts', function() {
         .pipe( gulp.dest( './' ) );
 } );
 
+gulp.task( 'ts-common', function() {
+    return tsproject.src( './src/app/tsconfig.json',
+        {
+          logLevel: 0,
+          compilerOptions: {
+            "module": "commonjs"
+          }
+        })
+    .pipe( gulp.dest( './commonjs' ) );
+} );
+
 gulp.task( 'js', ['ts'], function( callback ) {
     rjs( requireJsOptimizerConfig )
         //.pipe(uglify({ preserveComments: 'some' }))
