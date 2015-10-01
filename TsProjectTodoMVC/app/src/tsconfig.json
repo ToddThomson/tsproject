@@ -1,0 +1,30 @@
+﻿{
+    "compilerOptions": {
+        "module": "amd",
+        "target": "es5",
+        "noResolve": false,
+        "diagnostics": true,
+        "listFiles": true
+    },
+
+    "files": [
+        "references.d.ts",
+        "./controllers/todoctrl.ts",
+        "./directives/todoblur.ts",
+        "./directives/todofocus.ts",
+        "./interfaces/itodoscope.ts",
+        "./interfaces/itodostorage.ts",
+        "./models/todoitem.ts",
+        "./services/todostorage.ts",
+        "app.ts"
+    ],
+
+    "bundles": {
+        "app": {
+            "files": [ "app.ts", "references.d.ts" ],
+            "config": { 
+                "outDir": "./bundles"  
+            }
+        }
+    }
+}

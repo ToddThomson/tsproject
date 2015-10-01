@@ -1,0 +1,22 @@
+{
+    "name": "TsProjectTodoMVC",
+    "version": "1.0.0",
+    "description": "TodoMVC app build with TsProject module bundle compiler.",
+    "devDependencies": {
+        "gulp": "^3.9.0",
+        "gulp-concat": "~2.6.0",
+        "gulp-rimraf": "~0.2.0",
+        "gulp-replace": "~0.5.4",
+        "gulp-uglify": "~1.4.1",
+        "gulp-html-replace": "~1.5.4",
+        "gulp-requirejs": "latest",
+        "tsd" : "~0.6.4",
+        "deeply": "~0.1.0",
+        "chalk": "~1.1.1",
+        "event-stream": "~3.3.1",
+        "typescript": "^1.5.3",
+        "tsproject": "1.0.0-rc.3"
+    },
+    "author": "Todd Thomson <todd.thomson@me.com>",
+    "license": "MIT"
+}
