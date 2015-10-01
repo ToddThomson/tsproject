@@ -1,50 +1,50 @@
 {
-    "name": "tsproject",
-    "version": "1.0.0-rc.2",
-    "description": "Typescript project compiler and modular typescript bundle optimizer for gulp (Ts Vinyl Adapter).",
-    "homepage": "https://github.com/toddthomson/tsproject",
-    "bugs": "https://github.com/toddthomson/tsproject/issues",
-    "main": "./src/TsProject.js",
-    "dependencies": {
-        "chalk": "^1.1.1",
-        "glob": "^5.0.15",
-        "lodash": "^3.10.1",
-        "readable-stream": "^1.1.13",
-        "tsproject": "^1.0.0-rc.2",
-        "typescript": "^1.6.2",
-        "vinyl": "^1.0.0"
-    },
-    "devDependencies": {
-        "gulp": "^3.9.0",
-        "gulp-rimraf": "~0.1.1",
-        "gulp-uglify": "~1.0.2",
-        "chalk": "~1.0.0"
-    },
-    "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1"
-    },
-    "keywords": [
-        "typescript bundles",
-        "module bundles",
-        "compiler",
-        "tsconfig.json",
-        "project",
-        "library",
-        "definitions",
-        "d.ts",
-        "declaration",
-        "transpiler",
-        "optimizer",
-        "bundle",
-        "external modules",
-        "gulp",
-        "vinyl adapter",
-        "modular typescript"
-    ],
-    "author": "Todd Thomson <todd.thomson@me.com>",
-    "license": "MIT",
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/toddthomson/tsproject.git"
-    }
+  "name": "tsproject",
+  "version": "1.0.0",
+  "description": "Typescript project compiler and modular typescript bundle optimizer for gulp (Ts Vinyl Adapter).",
+  "homepage": "https://github.com/toddthomson/tsproject",
+  "bugs": "https://github.com/toddthomson/tsproject/issues",
+  "main": "./src/TsProject.js",
+  "dependencies": {
+    "chalk": "^1.1.1",
+    "glob": "^5.0.15",
+    "lodash": "^3.10.1",
+    "readable-stream": "^1.1.13",
+    "tsproject": "^1.0.0",
+    "typescript": "^1.6.2",
+    "vinyl": "^1.0.0"
+  },
+  "devDependencies": {
+    "gulp": "^3.9.0",
+    "gulp-rimraf": "~0.1.1",
+    "gulp-uglify": "~1.0.2",
+    "chalk": "~1.0.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "typescript bundles",
+    "module bundles",
+    "compiler",
+    "tsconfig.json",
+    "project",
+    "library",
+    "definitions",
+    "d.ts",
+    "declaration",
+    "transpiler",
+    "optimizer",
+    "bundle",
+    "external modules",
+    "gulp",
+    "vinyl adapter",
+    "modular typescript"
+  ],
+  "author": "Todd Thomson <todd.thomson@me.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/toddthomson/tsproject.git"
+  }
 }

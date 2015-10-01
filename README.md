@@ -73,14 +73,15 @@ npm install tsproject
 Where:
 
 **projectConfigPath** is a relative directory path to the default Typescript project file named "tsconfig.json".
-
+Or,
 **projectConfigPath** is a relative path to a named Typescript project file.   
 
 ## Usage - Gulp Build Pipeline
 
-TsProject on github contains a [sample](https://github.com/ToddThomson/tsproject/tree/master/sample) to help you get started.
+TsProject on github contains a [TodoMVC sample](https://github.com/ToddThomson/tsproject/tree/master/TsProjectTodoMVC) to help you get started.
+The sample is built using Angular, Typescript ES6 modules and Require.
 
-Here is the gulpfile.js from the sample:
+Here is a simple gulpfile.js:
 
 ```
 var tsproject = require( 'tsproject' );

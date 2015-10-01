@@ -31,10 +31,21 @@ var requireJsOptimizerConfig = {
     insertRequire: ['src/bundles/app']
 };
 
-gulp.task( 'ts', function() {
-    return tsproject.src( './app/src/tsconfig.json', { logLevel: 0 } )
-        .pipe( gulp.dest( './' ) );
-} );
+gulp.task( 'ts-common', function() {
+    return tsproject.src('./app/src/tsconfig.json',
+        {
+            logLevel: 0,
+            compilerOptions: {
+                "module": "commonjs"
+            }
+        })
+        .pipe( gulp.dest( './commonjs' ) );
+});
+
+gulp.task('ts', function () {
+    return tsproject.src('./app/src/tsconfig.json', { logLevel: 0 })
+        .pipe(gulp.dest('./'));
+});
 
 gulp.task( 'js', ['ts'], function( callback ) {
     rjs( requireJsOptimizerConfig )

@@ -7,7 +7,9 @@ bin
 obj
 src\**\*.ts
 src\**\*.map
+src\**\*.json
 tsproject.js
+gulpfile.js
 *.dat
 *.njsproj
 *.njsproj.user
