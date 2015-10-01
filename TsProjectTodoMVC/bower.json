@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "components-bootstrap": "~3.3.5",
+    "todomvc-app-css": "~2.0.1",
     "requirejs": "~2.1.20",
     "requirejs-text": "~2.0.14",
     "angular": "1.3.13"
