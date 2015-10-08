@@ -50,6 +50,11 @@ export class BundleCompiler {
         this.bundleImportedModuleBlocks = {};
         this.bundleSourceFiles = {};
 
+        // Look for tsx source files in bunle name or bundle dependencies.
+        // Output tsx for bundle extension if typescript react files found
+
+        var isBundleTsx = false;
+
         let allDependencies: ts.Map<ts.Node[]> = {};
 
         for ( var filesKey in bundle.files ) {
@@ -68,6 +73,11 @@ export class BundleCompiler {
             if ( !bundleSourceFile ) {
                 let diagnostic = tsCore.createDiagnostic( { code: 6060, category: ts.DiagnosticCategory.Error, key: "Bundle Source File '{0}' not found." }, bundleSourceFileName );
                 return new CompilerResult( ts.ExitStatus.DiagnosticsPresent_OutputsSkipped, new CompilerStatistics( this.program, 0 ), [diagnostic] );
+            }
+
+            // Check for TSX
+            if ( bundleSourceFile.languageVariant == ts.LanguageVariant.JSX ) {
+                isBundleTsx = true;
             }
 
             let sourceDependencies = dependencyBuilder.getSourceFileDependencies( bundleSourceFile );
@@ -121,16 +131,18 @@ export class BundleCompiler {
             this.addSourceFile( bundleSourceFile );
         }
 
-        Logger.info( "Streaming vinyl ts: ", bundleFilePath + ".ts" );
+        var bundleExtension = isBundleTsx ? ".tsx" : ".ts";
+
+        Logger.info( "Streaming vinyl bundle source: ", bundleFilePath + bundleExtension );
         var tsVinylFile = new TsVinylFile( {
-            path: bundleFilePath + ".ts",
+            path: bundleFilePath + bundleExtension,
             contents: new Buffer( this.bundleText )
         });
 
         outputStream.push( tsVinylFile );
 
         // Compile the bundle to generate javascript and declaration file
-        let compileResult = this.compileBundle( path.basename(bundle.name ) + ".ts", this.bundleText );
+        let compileResult = this.compileBundle( path.basename(bundle.name ) + bundleExtension, this.bundleText );
         let compileStatus = compileResult.getStatus();
 
         // Only stream bundle if there is some compiled output

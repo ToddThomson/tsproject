@@ -1,6 +1,6 @@
 {
   "name": "tsproject",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Typescript project compiler and modular typescript bundle optimizer for gulp (Ts Vinyl Adapter).",
   "homepage": "https://github.com/toddthomson/tsproject",
   "bugs": "https://github.com/toddthomson/tsproject/issues",
@@ -10,15 +10,15 @@
     "glob": "^5.0.15",
     "lodash": "^3.10.1",
     "readable-stream": "^1.1.13",
-    "tsproject": "^1.0.0",
+    "tsproject": "1.0.1",
     "typescript": "^1.6.2",
     "vinyl": "^1.0.0"
   },
   "devDependencies": {
     "gulp": "^3.9.0",
-    "gulp-rimraf": "~0.1.1",
-    "gulp-uglify": "~1.0.2",
-    "chalk": "~1.0.0"
+    "gulp-rimraf": "~0.2.0",
+    "gulp-uglify": "~1.4.1",
+    "chalk": "~1.1.1"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

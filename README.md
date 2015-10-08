@@ -6,6 +6,8 @@ TsProject produces a compiled output stream of vinyl files for further processin
 
 ## What's New
 
+The TsProject 1.0.1 typescript bundle compiler now bundles React (.tsx) file types. TsProject on github contains a [React based TodoMVC sample](https://github.com/ToddThomson/tsproject/tree/master/ReactTodoMVC) to help you get started.
+
 The TsProject 1.0.0 typescript bundle compiler now supports Typescript 1.6!
 
 ## Why TsProject?
