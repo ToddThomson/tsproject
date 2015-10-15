@@ -43,6 +43,23 @@ export function isDeclarationFile( file: ts.SourceFile ): boolean {
     return ( file.flags & ts.NodeFlags.DeclarationFile ) !== 0;
 }
 
+// An alias symbol is created by one of the following declarations:
+// import <symbol> = ...
+// import <symbol> from ...
+// import * as <symbol> from ...
+// import { x as <symbol> } from ...
+// export { x as <symbol> } from ...
+// export = ...
+// export default ...
+export function isAliasSymbolDeclaration( node: ts.Node ): boolean {
+    return node.kind === ts.SyntaxKind.ImportEqualsDeclaration ||
+        node.kind === ts.SyntaxKind.ImportClause && !!( <ts.ImportClause>node ).name ||
+        node.kind === ts.SyntaxKind.NamespaceImport ||
+        node.kind === ts.SyntaxKind.ImportSpecifier ||
+        node.kind === ts.SyntaxKind.ExportSpecifier ||
+        node.kind === ts.SyntaxKind.ExportAssignment && ( <ts.ExportAssignment>node ).expression.kind === ts.SyntaxKind.Identifier;
+}
+
 export function normalizeSlashes( path: string ): string {
     return path.replace( /\\/g, "/" );
 }

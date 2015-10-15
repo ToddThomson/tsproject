@@ -21,10 +21,10 @@ export class BundleCompiler {
     private program: ts.Program;
     private compilerOptions: ts.CompilerOptions;
 
-    private outputText: ts.Map <string> = {};
+    private outputText: ts.Map<string> = {};
     private bundleText: string = "";
     private bundleImportedFiles: ts.Map<string> = {};
-    private bundleImportedModuleBlocks: ts.Map<string> = {};
+    private bundleModuleImports: ts.Map<ts.Map<string>> = {};
     private bundleSourceFiles: ts.Map<string> = {};
 
     constructor( compilerHost: CompilerHost, program: ts.Program ) {
@@ -47,7 +47,7 @@ export class BundleCompiler {
 
         this.bundleText = "";
         this.bundleImportedFiles = {};
-        this.bundleImportedModuleBlocks = {};
+        this.bundleModuleImports = {};
         this.bundleSourceFiles = {};
 
         // Look for tsx source files in bunle name or bundle dependencies.
@@ -94,7 +94,8 @@ export class BundleCompiler {
                 // Add module dependencies first..
                 sourceDependencies[depKey].forEach( importNode => {
                     var importSymbol = this.getSymbolFromNode( importNode );
-                    if (this.isCodeModule(importSymbol)) {
+
+                    if ( this.isCodeModule( importSymbol ) ) {
                         let declaration = importSymbol.getDeclarations()[0];
                         let importedSource = declaration.getSourceFile();
                         let importedSourceFileName = importedSource.fileName;
@@ -104,27 +105,9 @@ export class BundleCompiler {
                         }
                     }
                     else {
-                        // Import Module block
-                        let importedModuleBlockName = importSymbol.name;
-
-                        if ( !utils.hasProperty( this.bundleImportedModuleBlocks, importedModuleBlockName ) ) {
-                            let moduleBlockText = importNode.getText();
-                            this.addModuleBlock( moduleBlockText );
-                            this.bundleImportedModuleBlocks[importedModuleBlockName] = importedModuleBlockName;
-                        }
+                        this.writeImportDeclaration( <ts.ImportDeclaration>importNode );
                     }
                 });
-
-                // TJT: top level source file inclusion is now in dependency processing.
-                // TJT: Remove code after release 1.0 RC check in
-
-                // Add the source module as specified by key
-                //let dependentSourceFile = this.program.getSourceFile( keyB );
-                //let outputFileName = dependentSourceFile.fileName;
-
-                //if ( !utils.hasProperty( this.bundleImportedFiles, outputFileName ) ) {
-                //    this.addSourceFile( dependentSourceFile );
-                //}
             }
 
             // Finally, add bundle source file
@@ -178,6 +161,99 @@ export class BundleCompiler {
         return compileResult;
     }
 
+    private addModuleImport( moduleName: string, importName: string ): boolean {
+
+        if ( !utils.hasProperty( this.bundleModuleImports, moduleName ) ) {
+            this.bundleModuleImports[ moduleName ] = {};
+        }
+
+        var moduleImports = this.bundleModuleImports[ moduleName ];
+
+        if ( !utils.hasProperty( moduleImports, importName ) ) {
+            moduleImports[importName] = importName;
+            
+            return true;
+        }
+
+        return false;
+    }
+
+    private writeImportDeclaration( node: ts.ImportDeclaration ) {
+
+        if ( !node.importClause ) {
+            // Do not write import declarations that don't have import clauses
+            return;
+        }
+
+        var moduleName = node.moduleSpecifier.getText();
+
+        var importToWrite = "import ";
+        var hasDefaultBinding = false;
+        var hasNamedBindings = false;
+
+        if ( node.importClause ) {
+            if ( node.importClause.name && this.addModuleImport( moduleName, node.importClause.name.text ) ) {
+                importToWrite += node.importClause.name.text;
+                hasDefaultBinding = true;
+            }
+        }
+
+        if ( node.importClause.namedBindings ) {
+            if ( node.importClause.namedBindings.kind === ts.SyntaxKind.NamespaceImport ) {
+                if ( this.addModuleImport( moduleName, ( <ts.NamespaceImport>node.importClause.namedBindings ).name.text ) ) {
+                    if ( hasDefaultBinding ) {
+                        importToWrite += ", ";
+                    }
+
+                    importToWrite += "* as ";
+                    importToWrite += ( <ts.NamespaceImport>node.importClause.namedBindings ).name.text;
+
+                    hasNamedBindings = true;
+                }
+            }
+            else {
+                if ( hasDefaultBinding ) {
+                    importToWrite += ", ";
+                }
+
+                importToWrite += "{ ";
+                let isFirstElement = true;
+
+                utils.forEach(( <ts.NamedImports>node.importClause.namedBindings ).elements, element => {
+                    if ( !isFirstElement ) {
+                        importToWrite += ", ";
+                    }
+                    else {
+                        isFirstElement = false;
+                    }
+
+                    if ( this.addModuleImport( moduleName, element.name.text ) ) {
+                        let alias = element.propertyName;
+
+                        if ( alias ) {
+                            importToWrite += alias.text + " as " + element.name.text;
+                        }
+                        else {
+                            importToWrite += element.name.text;
+                        }
+
+                        hasNamedBindings = true;
+                    }
+                });
+
+                importToWrite += " }";
+            }
+        }
+
+        importToWrite += " from ";
+        importToWrite += moduleName;
+        importToWrite += ";";
+
+        if ( hasDefaultBinding || hasNamedBindings ) {
+            this.emitModuleImportDeclaration( importToWrite );
+        }
+    }
+
     private processImportStatements( file: ts.SourceFile ): string {
         Logger.info( "Processing import statements in file: ", file.fileName );
         let editText = file.text;
@@ -217,8 +293,8 @@ export class BundleCompiler {
         return editText;
     }
 
-    private addModuleBlock( moduleBlockText: string ) {
-        Logger.info("Entering addModuleBlock()" );
+    private emitModuleImportDeclaration( moduleBlockText: string ) {
+        Logger.info("Entering emitModuleImportDeclaration()" );
 
         this.bundleText += moduleBlockText + "\n";
     }
