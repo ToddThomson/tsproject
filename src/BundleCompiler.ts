@@ -217,17 +217,16 @@ export class BundleCompiler {
                 }
 
                 importToWrite += "{ ";
-                let isFirstElement = true;
 
                 utils.forEach(( <ts.NamedImports>node.importClause.namedBindings ).elements, element => {
-                    if ( !isFirstElement ) {
-                        importToWrite += ", ";
-                    }
-                    else {
-                        isFirstElement = false;
-                    }
-
                     if ( this.addModuleImport( moduleName, element.name.text ) ) {
+                        if ( !hasNamedBindings ) {
+                            hasNamedBindings = true;                            
+                        }
+                        else {
+                            importToWrite += ", ";
+                        }
+
                         let alias = element.propertyName;
 
                         if ( alias ) {
@@ -236,8 +235,6 @@ export class BundleCompiler {
                         else {
                             importToWrite += element.name.text;
                         }
-
-                        hasNamedBindings = true;
                     }
                 });
 
