@@ -105,7 +105,22 @@ export class BundleCompiler {
                         }
                     }
                     else {
-                        this.writeImportDeclaration( <ts.ImportDeclaration>importNode );
+                        if ( importNode.kind === ts.SyntaxKind.ImportEqualsDeclaration ) {
+                            // For ImportEqualsDeclarations we emit the import declaration
+                            // if it hasn't already been added to the bundle.
+
+                             // Get the import and module names
+                            let importName = ( <ts.ImportEqualsDeclaration>importNode ).name.text;
+                            var moduleName = this.getImportModuleName( <ts.ImportEqualsDeclaration>importNode );
+
+                            if ( this.addModuleImport( moduleName, importName ) ) {
+                                this.emitModuleImportDeclaration( importNode.getText() );
+                            }
+                        }
+                        else {
+                            // ImportDeclaration kind..
+                            this.writeImportDeclaration( <ts.ImportDeclaration>importNode );
+                        }
                     }
                 });
             }
@@ -161,6 +176,18 @@ export class BundleCompiler {
         return compileResult;
     }
 
+    private getImportModuleName( node: ts.ImportEqualsDeclaration ): string {
+
+        if ( node.moduleReference.kind === ts.SyntaxKind.ExternalModuleReference ) {
+            let moduleReference = (<ts.ExternalModuleReference>node.moduleReference);
+            return ( <ts.LiteralExpression>moduleReference.expression ).text;
+        }
+        else {
+            // TJT: This code should never be hit as we currently do not process dependencies of this kind. 
+            return (<ts.EntityName>node.moduleReference).getText();
+        }
+    }
+
     private addModuleImport( moduleName: string, importName: string ): boolean {
 
         if ( !utils.hasProperty( this.bundleModuleImports, moduleName ) ) {
@@ -181,11 +208,10 @@ export class BundleCompiler {
     private writeImportDeclaration( node: ts.ImportDeclaration ) {
 
         if ( !node.importClause ) {
-            // Do not write import declarations that don't have import clauses
             return;
         }
 
-        var moduleName = node.moduleSpecifier.getText();
+        let moduleName = (<ts.LiteralExpression>node.moduleSpecifier).text;
 
         var importToWrite = "import ";
         var hasDefaultBinding = false;
@@ -243,7 +269,7 @@ export class BundleCompiler {
         }
 
         importToWrite += " from ";
-        importToWrite += moduleName;
+        importToWrite += node.moduleSpecifier.getText();
         importToWrite += ";";
 
         if ( hasDefaultBinding || hasNamedBindings ) {
