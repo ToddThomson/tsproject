@@ -15,31 +15,40 @@
     "vinyl": "^1.0.0"
   },
   "devDependencies": {
+    "chalk": "~1.1.1",
     "gulp": "^3.9.0",
+    "gulp-debug": "^2.1.2",
+    "gulp-ignore": "^2.0.1",
+    "gulp-rename": "^1.2.2",
     "gulp-rimraf": "~0.2.0",
+    "gulp-tsd": "0.0.4",
     "gulp-uglify": "~1.4.1",
-    "chalk": "~1.1.1"
+    "require-dir": "^0.3.0",
+    "run-sequence": "^1.1.4",
+    "tsd": "^0.6.5",
+    "tsproject": "^1.0.2",
+    "vinyl-paths": "^2.0.0"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
-    "typescript bundles",
-    "module bundles",
+    "bundle",
     "compiler",
-    "tsconfig.json",
-    "project",
-    "library",
-    "definitions",
     "d.ts",
     "declaration",
-    "transpiler",
-    "optimizer",
-    "bundle",
+    "definitions",
     "external modules",
     "gulp",
-    "vinyl adapter",
-    "modular typescript"
+    "library",
+    "modular typescript",
+    "module bundles",
+    "optimizer",
+    "project",
+    "transpiler",
+    "tsconfig.json",
+    "typescript bundles",
+    "vinyl adapter"
   ],
   "author": "Todd Thomson <todd.thomson@me.com>",
   "license": "MIT",
