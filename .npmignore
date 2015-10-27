@@ -10,6 +10,7 @@ src\**\*.ts
 src\**\*.map
 src\**\*.json
 tsproject.js
+typings
 gulpfile.js
 *.dat
 *.njsproj
