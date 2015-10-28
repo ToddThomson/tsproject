@@ -9,15 +9,8 @@ var tsd = require('gulp-tsd');
 var chalk = require('chalk');
 
 gulp.task('tsd', function (callback) {
-  callback();
-  return;
-  // tsd({
-  //     command: 'reinstall',
-  //     config: './tsd.json'
-  // }, callback);
-
-  // OR
-  // return gulp.src('./gulp_tsd.json').pipe(tsd());
+  console.log('\nRunning tsd\n');
+  return gulp.src('./gulp_tsd.json').pipe(tsd());
 });
 
 gulp.task('build', ['tsd'], function () {
