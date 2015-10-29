@@ -107,5 +107,17 @@ gulp.task( 'build', function() {
 });
 ```
 
+## Building TsProject
 
+TsProject depends on [NPM](https://docs.npmjs.com/) as a package manager and 
+[Gulp](https://github.com/gulpjs/gulp/blob/master/docs/getting-started.md) as a build tool. 
+If you haven't already, you'll need to install both these tools in order to 
+build TsProject.
+
+Once Gulp is installed, you can build it with the following commands:
+
+```
+npm install
+gulp default
+```  
 
