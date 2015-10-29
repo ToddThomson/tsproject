@@ -1,7 +1,7 @@
 ﻿import { Logger } from "./Logger";
 import { Glob } from "./Glob";
-import * as utils from "./Utilities";
-import * as tsCore from "./TsCore";
+import { Utils } from "./Utilities";
+import { TsCore } from "./TsCore";
 
 import _ = require( "lodash" );
 import ts = require( "typescript" );
@@ -50,9 +50,9 @@ export class BundleParser {
                     bundleName = path.join( basePath, id );
 
                     // Files..
-                    if ( utils.hasProperty( jsonBundle, "files" ) ) {
+                    if ( Utils.hasProperty( jsonBundle, "files" ) ) {
                         if ( jsonBundle["files"] instanceof Array ) {
-                            files = utils.map( <string[]>jsonBundle["files"], s => path.join( basePath, s ) );
+                            files = Utils.map( <string[]>jsonBundle["files"], s => path.join( basePath, s ) );
 
                             // The bundle files may contain a mix of glob patterns and filenames.
                             // glob.expand() will only return a list of all expanded "found" files. 
@@ -62,7 +62,7 @@ export class BundleParser {
                             var glob = new Glob();
                             var nonglobFiles: string[] = [];
 
-                            utils.forEach( files, file => {
+                            Utils.forEach( files, file => {
                                 if ( !glob.hasPattern( file ) ) {
                                     nonglobFiles.push( file );
                                 }
@@ -73,7 +73,7 @@ export class BundleParser {
                             var normalizedGlobFiles: string[] = [];
 
                             // Normalize paths of glob files so we can match properly. Glob returns forward slash separators.
-                            utils.forEach( globFiles, file => {
+                            Utils.forEach( globFiles, file => {
                                 normalizedGlobFiles.push( path.normalize( file ) );
 
                             });
@@ -84,15 +84,15 @@ export class BundleParser {
                             Logger.info( "bundle files: ", files );
                         }
                         else {
-                            errors.push( tsCore.createDiagnostic( { code: 6063, category: ts.DiagnosticCategory.Error, key: "Bundle '{0}' files is not an array." }, id ) );
+                            errors.push( TsCore.createDiagnostic( { code: 6063, category: ts.DiagnosticCategory.Error, key: "Bundle '{0}' files is not an array." }, id ) );
                         }
                     }
                     else {
-                        errors.push( tsCore.createDiagnostic( { code: 6062, category: ts.DiagnosticCategory.Error, key: "Bundle '{0}' requires an array of files." }, id ) );
+                        errors.push( TsCore.createDiagnostic( { code: 6062, category: ts.DiagnosticCategory.Error, key: "Bundle '{0}' requires an array of files." }, id ) );
                     }
 
                     // Config..
-                    if ( utils.hasProperty( jsonBundle, "config" ) ) {
+                    if ( Utils.hasProperty( jsonBundle, "config" ) ) {
                         config = jsonBundle.config
                     }
 

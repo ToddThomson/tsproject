@@ -1,10 +1,10 @@
 ﻿import { Logger } from "./Logger";
+import { Utils } from "./Utilities";
+import { TsCore } from "./TsCore";
 
 import ts = require( "typescript" );
 import fs = require( "fs" );
 import path = require( "path" );
-import * as utils from "./Utilities";
-import * as tsCore from "./TsCore";
 
 export class DependencyBuilder {
     private host: ts.CompilerHost;
@@ -32,14 +32,14 @@ export class DependencyBuilder {
                 Logger.info( "Import symbol file name: ", canonicalFileName );
 
                 // Don't walk imports that we've already processed
-                if ( !utils.hasProperty( importWalked, canonicalFileName ) ) {
+                if ( !Utils.hasProperty( importWalked, canonicalFileName ) ) {
                     importWalked[canonicalFileName] = true;
 
                     // Build dependencies bottom up, left to right by recursively calling walkModuleImports
                     walkModuleImports( self.getImportsOfModule( importSymbolSourceFile ) );
                 }
 
-                if ( !utils.hasProperty( dependencies, canonicalFileName ) ) {
+                if ( !Utils.hasProperty( dependencies, canonicalFileName ) ) {
                     Logger.info( "Adding module import dependencies for file: ", canonicalFileName );
                     dependencies[canonicalFileName] = self.getImportsOfModule( importSymbolSourceFile );
                 }
@@ -54,7 +54,7 @@ export class DependencyBuilder {
 
         let canonicalSourceFileName = self.host.getCanonicalFileName( sourceFile.fileName );
 
-        if (!utils.hasProperty(dependencies, canonicalSourceFileName)) {
+        if (!Utils.hasProperty(dependencies, canonicalSourceFileName)) {
             Logger.info("Adding top level import dependencies for file: ", canonicalSourceFileName);
             dependencies[canonicalSourceFileName] = sourceFileImports;
         }
@@ -70,7 +70,7 @@ export class DependencyBuilder {
             ts.forEachChild(searchNode, node => {
                 if (node.kind === ts.SyntaxKind.ImportDeclaration || node.kind === ts.SyntaxKind.ImportEqualsDeclaration || node.kind === ts.SyntaxKind.ExportDeclaration) {
                     Logger.info("Found import declaration");
-                    let moduleNameExpr = tsCore.getExternalModuleName(node);
+                    let moduleNameExpr = TsCore.getExternalModuleName(node);
 
                     if (moduleNameExpr && moduleNameExpr.kind === ts.SyntaxKind.StringLiteral) {
                         let moduleSymbol = self.program.getTypeChecker().getSymbolAtLocation(moduleNameExpr);
@@ -84,7 +84,7 @@ export class DependencyBuilder {
                         }
                     }
                 }
-                else if (node.kind === ts.SyntaxKind.ModuleDeclaration && (<ts.ModuleDeclaration>node).name.kind === ts.SyntaxKind.StringLiteral && (node.flags & ts.NodeFlags.Ambient || tsCore.isDeclarationFile(file))) {
+                else if (node.kind === ts.SyntaxKind.ModuleDeclaration && (<ts.ModuleDeclaration>node).name.kind === ts.SyntaxKind.StringLiteral && (node.flags & ts.NodeFlags.Ambient || TsCore.isDeclarationFile(file))) {
                     // An AmbientExternalModuleDeclaration declares an external module.
                     var moduleDeclaration = <ts.ModuleDeclaration>node;
                     Logger.info("Processing ambient module declaration: ", moduleDeclaration.name.text);
@@ -107,7 +107,7 @@ export class DependencyBuilder {
     }
 
     private getSymbolFromNode( node: ts.Node ): ts.Symbol {
-        let moduleNameExpr = tsCore.getExternalModuleName( node );
+        let moduleNameExpr = TsCore.getExternalModuleName( node );
 
         if ( moduleNameExpr && moduleNameExpr.kind === ts.SyntaxKind.StringLiteral ) {
             return this.program.getTypeChecker().getSymbolAtLocation( moduleNameExpr );

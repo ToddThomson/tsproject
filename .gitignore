@@ -1,3 +1,11 @@
+app
+bin
+issues
 node_modules/*
+obj
 typings/*
 dist/*
+tsproject.js
+*.dat
+*.njsproj.user
+*.njsproj.vspscc

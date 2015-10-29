@@ -8,8 +8,8 @@ import { BundleParser, Bundle } from "./BundleParser";
 import { DependencyBuilder } from "./DependencyBuilder";
 import { Glob } from "./Glob";
 
-import * as utils from "./Utilities";
-import * as tsCore from "./TsCore";
+import { Utils } from "./Utilities";
+import { TsCore } from "./TsCore";
 
 import ts = require( "typescript" );
 import fs = require( "fs" );
@@ -65,13 +65,13 @@ export class BundleCompiler {
                 Logger.log( fileName );
             }
 
-            let bundleSourceFileName = this.compilerHost.getCanonicalFileName( tsCore.normalizeSlashes( fileName ) );
+            let bundleSourceFileName = this.compilerHost.getCanonicalFileName( TsCore.normalizeSlashes( fileName ) );
             Logger.info( "BundleSourceFileName:", bundleSourceFileName );
 
             let bundleSourceFile = this.program.getSourceFile( bundleSourceFileName );
 
             if ( !bundleSourceFile ) {
-                let diagnostic = tsCore.createDiagnostic( { code: 6060, category: ts.DiagnosticCategory.Error, key: "Bundle Source File '{0}' not found." }, bundleSourceFileName );
+                let diagnostic = TsCore.createDiagnostic( { code: 6060, category: ts.DiagnosticCategory.Error, key: "Bundle Source File '{0}' not found." }, bundleSourceFileName );
                 return new CompilerResult( ts.ExitStatus.DiagnosticsPresent_OutputsSkipped, new CompilerStatistics( this.program, 0 ), [diagnostic] );
             }
 
@@ -84,7 +84,7 @@ export class BundleCompiler {
 
             // Merge current bundle file dependencies into all dependencies
             for (var mergeKey in sourceDependencies) {
-                if ( !utils.hasProperty( allDependencies, mergeKey ) ) {
+                if ( !Utils.hasProperty( allDependencies, mergeKey ) ) {
                     allDependencies[mergeKey] = sourceDependencies[mergeKey];
                 }
             }
@@ -100,7 +100,7 @@ export class BundleCompiler {
                         let importedSource = declaration.getSourceFile();
                         let importedSourceFileName = importedSource.fileName;
 
-                        if (!utils.hasProperty(this.bundleImportedFiles, importedSourceFileName)) {
+                        if (!Utils.hasProperty(this.bundleImportedFiles, importedSourceFileName)) {
                             this.addSourceFile(importedSource);
                         }
                     }
@@ -147,7 +147,7 @@ export class BundleCompiler {
         if ( compileStatus !== ts.ExitStatus.DiagnosticsPresent_OutputsSkipped ) {
             
             // js should have been generated, but just in case!
-            if ( utils.hasProperty( this.outputText, path.basename( bundle.name ) + ".js" ) ) {
+            if ( Utils.hasProperty( this.outputText, path.basename( bundle.name ) + ".js" ) ) {
                 Logger.info( "Streaming vinyl js: ", bundleFilePath + ".js" );
                 var bundleJsVinylFile = new TsVinylFile( {
                     path: path.join( bundleFilePath + ".js" ),
@@ -162,7 +162,7 @@ export class BundleCompiler {
         if ( compileStatus === ts.ExitStatus.Success ) {
             
             // d.ts should have been generated, but just in case
-            if ( utils.hasProperty( this.outputText, path.basename( bundle.name ) + ".d.ts" ) ) {
+            if ( Utils.hasProperty( this.outputText, path.basename( bundle.name ) + ".d.ts" ) ) {
                 Logger.info( "Streaming vinyl d.ts: ", bundleFilePath + ".d.ts" );
                 var bundleDtsVinylFile = new TsVinylFile( {
                     path: path.join( bundleFilePath + ".d.ts" ),
@@ -190,13 +190,13 @@ export class BundleCompiler {
 
     private addModuleImport( moduleName: string, importName: string ): boolean {
 
-        if ( !utils.hasProperty( this.bundleModuleImports, moduleName ) ) {
+        if ( !Utils.hasProperty( this.bundleModuleImports, moduleName ) ) {
             this.bundleModuleImports[ moduleName ] = {};
         }
 
         var moduleImports = this.bundleModuleImports[ moduleName ];
 
-        if ( !utils.hasProperty( moduleImports, importName ) ) {
+        if ( !Utils.hasProperty( moduleImports, importName ) ) {
             moduleImports[importName] = importName;
             
             return true;
@@ -244,7 +244,7 @@ export class BundleCompiler {
 
                 importToWrite += "{ ";
 
-                utils.forEach(( <ts.NamedImports>node.importClause.namedBindings ).elements, element => {
+                Utils.forEach(( <ts.NamedImports>node.importClause.namedBindings ).elements, element => {
                     if ( this.addModuleImport( moduleName, element.name.text ) ) {
                         if ( !hasNamedBindings ) {
                             hasNamedBindings = true;                            
@@ -284,7 +284,7 @@ export class BundleCompiler {
         ts.forEachChild( file, node => {
             if ( node.kind === ts.SyntaxKind.ImportDeclaration || node.kind === ts.SyntaxKind.ImportEqualsDeclaration || node.kind === ts.SyntaxKind.ExportDeclaration ) {
                 Logger.info( "processImportStatements() found import" );
-                let moduleNameExpr = tsCore.getExternalModuleName( node );
+                let moduleNameExpr = TsCore.getExternalModuleName( node );
 
                 if ( moduleNameExpr && moduleNameExpr.kind === ts.SyntaxKind.StringLiteral ) {
                     
@@ -334,7 +334,7 @@ export class BundleCompiler {
         }
         else {
             // Add d.ts files to the build source files context
-            if ( !utils.hasProperty( this.bundleSourceFiles, file.fileName ) ) {
+            if ( !Utils.hasProperty( this.bundleSourceFiles, file.fileName ) ) {
                 Logger.info( "Adding definition file to bundle source context: ", file.fileName );
                 this.bundleSourceFiles[file.fileName] = file.text;
             }
@@ -358,7 +358,7 @@ export class BundleCompiler {
 
                     return libSourceFile;
                 }
-                else if ( utils.hasProperty( this.bundleSourceFiles, fileName ) ) {
+                else if ( Utils.hasProperty( this.bundleSourceFiles, fileName ) ) {
                     return ts.createSourceFile( fileName, this.bundleSourceFiles[ fileName ], languageVersion );
                 }
                  
@@ -465,7 +465,7 @@ export class BundleCompiler {
 
     // TJT: Review duplicate code. Move to TsCore pass program as arg.
     private getSymbolFromNode( node: ts.Node ): ts.Symbol {
-        let moduleNameExpr = tsCore.getExternalModuleName( node );
+        let moduleNameExpr = TsCore.getExternalModuleName( node );
 
         if ( moduleNameExpr && moduleNameExpr.kind === ts.SyntaxKind.StringLiteral ) {
             return this.program.getTypeChecker().getSymbolAtLocation( moduleNameExpr );

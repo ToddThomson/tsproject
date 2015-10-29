@@ -8,13 +8,13 @@ import { BundleCompiler } from "./BundleCompiler";
 import { Logger } from "./Logger";
 import { TsVinylFile } from "./TsVinylFile";
 import { BundleParser, Bundle } from "./BundleParser";
+import { TsCore } from "./TsCore";
+import { Utils } from "./Utilities";
 
 import ts = require( "typescript" );
 import fs = require( "fs" );
 import path = require( "path" );
 import chalk = require( "chalk" );
-import * as tsCore from "./TsCore";
-import * as utils from "./Utilities";
 
 interface ProjectConfig {
     success: boolean;
@@ -42,7 +42,7 @@ export class Project {
             var isConfigDirectory = fs.lstatSync(this.configPath).isDirectory();
         }
         catch (e) {
-            let diagnostic = tsCore.createDiagnostic({ code: 6064, category: ts.DiagnosticCategory.Error, key: "Cannot read project path '{0}'." }, this.configPath );
+            let diagnostic = TsCore.createDiagnostic({ code: 6064, category: ts.DiagnosticCategory.Error, key: "Cannot read project path '{0}'." }, this.configPath );
             return { success: false, errors: [diagnostic] };
         }
 
@@ -92,7 +92,7 @@ export class Project {
             return { success: false, errors: settingsCompilerOptions.errors };
         }
 
-        let compilerOptions = utils.extend( settingsCompilerOptions.options, configParseResult.options );
+        let compilerOptions = Utils.extend( settingsCompilerOptions.options, configParseResult.options );
 
         Logger.info( "Compiler options: ", compilerOptions );
 
@@ -143,7 +143,7 @@ export class Project {
         }
 
         if ( compilerOptions.listFiles ) {
-            utils.forEach( program.getSourceFiles(), file => {
+            Utils.forEach( program.getSourceFiles(), file => {
                 Logger.log( file.fileName );
             });
         }
@@ -194,12 +194,12 @@ export class Project {
         // Ignored: --help, --version
 
         if ( parsedResult.options.project ) {
-            let diagnostic = tsCore.createDiagnostic( { code: 5099, category: ts.DiagnosticCategory.Error, key: "The compiler option '{0}' is not supported in this context." }, "--project" );
+            let diagnostic = TsCore.createDiagnostic( { code: 5099, category: ts.DiagnosticCategory.Error, key: "The compiler option '{0}' is not supported in this context." }, "--project" );
             parsedResult.errors.push( diagnostic );
         }
 
         if ( parsedResult.options.init ) {
-            let diagnostic = tsCore.createDiagnostic( { code: 5099, category: ts.DiagnosticCategory.Error, key: "The compiler option '{0}' is not supported in this context." }, "--init" );
+            let diagnostic = TsCore.createDiagnostic( { code: 5099, category: ts.DiagnosticCategory.Error, key: "The compiler option '{0}' is not supported in this context." }, "--init" );
             parsedResult.errors.push( diagnostic );
         }
 

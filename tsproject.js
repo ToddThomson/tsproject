@@ -1,8 +1,8 @@
-﻿var tsproject = require('./src/tsproject');
+﻿var tsproject = require('./dist/tsproject2');
 
-tsproject.src('./src/tsconfig.json', {
+tsproject.src('./issues/fortyfive/src/tsconfig.json', /*'./src/tsconfig.json' */ {
     logLevel: 0,
     compilerOptions: {
         listFiles: true
-    }       
+    }
 });
