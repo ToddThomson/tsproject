@@ -1,6 +1,4 @@
-﻿/// <reference path="../definitions/node.d.ts" />
-
-import stream = require( "stream" );
+﻿import stream = require( "stream" );
 
 export class CompileStream extends stream.Readable {
 

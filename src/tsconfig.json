@@ -19,14 +19,12 @@
   },
   "filesGlob": [
     "./**/*{.ts, .d.ts}",
-    "../typings/tsd.d.ts",
     "../typings/**/*.d.ts",
     "../node_modules/typescript/lib/typescript.d.ts"
   ],
   "files": [
     "../typings/tsd.d.ts",
     "../node_modules/typescript/lib/typescript.d.ts",
-    "./references.d.ts",
     "../typings/chalk/chalk.d.ts",
     "../typings/glob/glob.d.ts",
     "../typings/lodash/lodash.d.ts",

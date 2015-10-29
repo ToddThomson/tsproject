@@ -1,6 +1,4 @@
-﻿/// <reference path="references.d.ts" />
-
-import { Project } from "./Project";
+﻿import { Project } from "./Project";
 import { CompileStream } from "./CompileStream";
 import { Logger } from "./Logger";
 

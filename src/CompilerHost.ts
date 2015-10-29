@@ -1,6 +1,4 @@
-﻿/// <reference path="references.d.ts" />
-
-import { Logger } from "./Logger";
+﻿import { Logger } from "./Logger";
 import ts = require( "typescript" );
 import fs = require( "fs" );
 import path = require( "path" );

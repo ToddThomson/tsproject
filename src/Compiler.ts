@@ -1,6 +1,4 @@
-﻿/// <reference path="references.d.ts" />
-
-import { CompilerResult } from "./CompilerResult";
+﻿import { CompilerResult } from "./CompilerResult";
 import { CompilerStatistics } from "./CompilerStatistics";
 import { CompilerHost }  from "./CompilerHost";
 import { CompileStream }  from "./CompileStream";
