@@ -52,13 +52,5 @@
     "./CompilerStatistics.ts",
     "./CompileStream.ts",
     "./Project.ts"
-  ],
-  "bundles": {
-    "app": {
-      "files": [
-        "tsproject.ts",
-        "references.d.ts"
-      ]
-    }
-  }
+  ]
 }
