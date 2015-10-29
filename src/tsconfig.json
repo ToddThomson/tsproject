@@ -17,14 +17,8 @@
     "suppressImplicitAnyIndexErrors": true,
     "sourceMap": true
   },
-  "filesGlob": [
-    "./**/*{.ts, .d.ts}",
-    "../typings/tsd.d.ts",
-    "../node_modules/typescript/lib/typescript.d.ts"
-  ],
   "files": [
     "../typings/tsd.d.ts",
-    "../node_modules/typescript/lib/typescript.d.ts",
     "./DependencyBuilder.ts",
     "./DiagnosticsReporter.ts",
     "./EventEmitter.ts",

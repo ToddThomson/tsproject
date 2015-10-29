@@ -25,7 +25,7 @@
     "require-dir": "^0.3.0",
     "run-sequence": "^1.1.4",
     "tsd": "^0.6.5",
-    "tsproject": "^1.0.2",
+    "tsproject": "^1.0.4",
     "vinyl-paths": "^2.0.0"
   },
   "scripts": {

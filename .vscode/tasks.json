@@ -7,7 +7,7 @@
     ],
     "tasks": [
         {
-			"taskName": "default",
+			"taskName": "build",
 			"isBuildCommand": true,
 			"showOutput": "always"
 		}
