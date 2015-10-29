@@ -2,7 +2,6 @@
 .vscode
 issues
 app
-dist
 bin
 obj
 build

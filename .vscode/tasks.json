@@ -10,11 +10,6 @@
 			"taskName": "default",
 			"isBuildCommand": true,
 			"showOutput": "always"
-		},
-        {
-			"taskName": "tsconfig-glob",
-			"isBuildCommand": true,
-			"showOutput": "always"
 		}
     ]
 }
