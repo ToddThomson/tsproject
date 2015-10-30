@@ -1,10 +1,10 @@
 {
   "name": "tsproject",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Typescript project compiler and modular typescript bundle optimizer for gulp (Ts Vinyl Adapter).",
   "homepage": "https://github.com/toddthomson/tsproject",
   "bugs": "https://github.com/toddthomson/tsproject/issues",
-  "main": "./dist/TsProject.js",
+  "main": "./tsproject.js",
   "dependencies": {
     "chalk": "^1.1.1",
     "glob": "^5.0.15",

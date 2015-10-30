@@ -5,10 +5,13 @@ TsProject is a Typescript bundle compiler which utilizes the Typescript project 
 TsProject produces a compiled output stream of vinyl files for further processing in the gulp build pipeline.
 
 ## What's New
+TsProject 1.0.5 now provides file glob pattern matching for specifying "files" in the tsconfig.json project file.
 
-The TsProject 1.0.1 typescript bundle compiler now bundles React (.tsx) file types. TsProject on github contains a [React based TodoMVC sample](https://github.com/ToddThomson/tsproject/tree/master/ReactTodoMVC) to help you get started.
+TsProject 1.0.5 is now used to build TsProject. TsProject is a bundled, single file node module using ES6 module imports.
 
-The TsProject 1.0.0 typescript bundle compiler now supports Typescript 1.6!
+TsProject 1.0.1 now bundles React (.tsx) file types. TsProject on github contains a [React based TodoMVC sample](https://github.com/ToddThomson/tsproject/tree/master/ReactTodoMVC) to help you get started.
+
+The TsProject 1.0.0 now supports Typescript 1.6!
 
 ## Why TsProject?
 

@@ -8,18 +8,20 @@ import { BundleCompiler } from "./BundleCompiler";
 import { Logger } from "./Logger";
 import { TsVinylFile } from "./TsVinylFile";
 import { BundleParser, Bundle } from "./BundleParser";
+import { Glob } from "./Glob";
 import { TsCore } from "./TsCore";
 import { Utils } from "./Utilities";
 
 import ts = require( "typescript" );
+import _ = require( "lodash" );
 import fs = require( "fs" );
 import path = require( "path" );
 import chalk = require( "chalk" );
 
-interface ProjectConfig {
+export interface ParsedProjectConfig {
     success: boolean;
     compilerOptions?: ts.CompilerOptions;
-    files?: string[];
+    fileNames?: string[];
     bundles?: Bundle[];
     errors?: ts.Diagnostic[];
 }
@@ -34,25 +36,25 @@ export class Project {
         this.settings = settings;
     }
 
-    public getConfig(): ProjectConfig {
+    public parseProjectConfig( configPath: string, settings: any ): ParsedProjectConfig {
         let configDirPath: string;
         let configFileName: string;
 
         try {
-            var isConfigDirectory = fs.lstatSync(this.configPath).isDirectory();
+            var isConfigDirectory = fs.lstatSync( configPath ).isDirectory();
         }
-        catch (e) {
-            let diagnostic = TsCore.createDiagnostic({ code: 6064, category: ts.DiagnosticCategory.Error, key: "Cannot read project path '{0}'." }, this.configPath );
+        catch ( e ) {
+            let diagnostic = TsCore.createDiagnostic( { code: 6064, category: ts.DiagnosticCategory.Error, key: "Cannot read project path '{0}'." }, this.configPath );
             return { success: false, errors: [diagnostic] };
         }
 
         if ( isConfigDirectory ) {
-            configDirPath = this.configPath;
-            configFileName = path.join( this.configPath, "tsconfig.json" );
+            configDirPath = configPath;
+            configFileName = path.join( configPath, "tsconfig.json" );
         }
         else {
-            configDirPath = path.dirname( this.configPath );
-            configFileName = this.configPath;
+            configDirPath = path.dirname( configPath );
+            configFileName = configPath;
         }
 
         this.configFileName = configFileName;
@@ -66,7 +68,7 @@ export class Project {
 
         let configObject = readConfigResult.config;
 
-        // parse standard project configuration objects: compilerOptions, files.
+        // Parse standard project configuration objects: compilerOptions, files.
         Logger.info( "Parsing config file..." );
         var configParseResult = ts.parseConfigFile( configObject, ts.sys, configDirPath );
 
@@ -74,18 +76,30 @@ export class Project {
             return { success: false, errors: configParseResult.errors };
         }
 
-        Logger.info("Parse Result: ", configParseResult);
+        // The returned "Files" list may contain file glob patterns. 
+        configParseResult.fileNames = this.expandFileNames( configParseResult.fileNames, configDirPath );
 
-        // parse standard project configuration objects: compilerOptions, files.
-        var bundleParser = new BundleParser();
-        var bundleParseResult = bundleParser.parseConfigFile( configObject, configDirPath );
-
-        if ( bundleParseResult.errors.length > 0 ) {
-            return { success: false, errors: bundleParseResult.errors };
+        // The glob file patterns in "Files" is an enhancement to the standard Typescript project file (tsconfig.json) spec.
+        // To convert the project file to use only a standard filename list, specify the setting: "convertFiles" : "true"
+        if ( settings.convertFiles === true ) {
+            this.convertProjectFileNames( configParseResult.fileNames, configDirPath );
         }
 
+        // Parse "bundle" project configuration objects: compilerOptions, files.
+        var bundleParser = new BundleParser();
+        var bundlesParseResult = bundleParser.parseConfigFile( configObject, configDirPath );
+
+        if ( bundlesParseResult.errors.length > 0 ) {
+            return { success: false, errors: bundlesParseResult.errors };
+        }
+
+        // The returned bundles "Files" list may contain file glob patterns. 
+        bundlesParseResult.bundles.forEach( bundle => {
+            bundle.fileNames = this.expandFileNames( bundle.fileNames, configDirPath );
+        });
+
         // Parse the command line args to override project file compiler options
-        let settingsCompilerOptions = this.getSettingsCompilerOptions( this.settings, configDirPath );
+        let settingsCompilerOptions = this.getSettingsCompilerOptions( settings, configDirPath );
 
         // Check for any errors due to command line parsing
         if ( settingsCompilerOptions.errors.length > 0 ) {
@@ -99,8 +113,8 @@ export class Project {
         return {
             success: true,
             compilerOptions: compilerOptions,
-            files: configParseResult.fileNames,
-            bundles: bundleParseResult.bundles
+            fileNames: configParseResult.fileNames,
+            bundles: bundlesParseResult.bundles
         }
     }
 
@@ -108,7 +122,7 @@ export class Project {
         let allDiagnostics: ts.Diagnostic[] = [];
         
         // Get project configuration items for the project build context.
-        let config = this.getConfig();
+        let config = this.parseProjectConfig( this.configPath, this.settings );
         Logger.log( "Building Project with: " + chalk.magenta(`${this.configFileName}`) );
 
         if ( !config.success ) {
@@ -119,15 +133,13 @@ export class Project {
         }
 
         let compilerOptions = config.compilerOptions;
-        let rootFileNames = config.files;
+        let rootFileNames = config.fileNames;
         let bundles = config.bundles;
 
         // Create host and program.
         let compilerHost = new CompilerHost( compilerOptions );
         let program = ts.createProgram( rootFileNames, compilerOptions, compilerHost );
 
-        // Files..
-        
         var compiler = new Compiler( compilerHost, program );
         var compileResult = compiler.compileFilesToStream( outputStream );
         let compilerReporter = new CompilerReporter( compileResult );
@@ -205,4 +217,57 @@ export class Project {
 
         return parsedResult;
     }
-}  
+
+    private expandFileNames( files: string[], configDirPath: string ): string[] {
+        // The parameter files may contain a mix of glob patterns and filenames.
+        // glob.expand() will only return a list of all expanded "found" files. 
+        // For filenames without glob patterns, we add them to the list of files as we will want to know
+        // if any filenames are not found during bundle processing.
+
+        var glob = new Glob();
+        var nonglobFiles: string[] = [];
+
+        Utils.forEach( files, file => {
+            if ( !glob.hasPattern( file ) ) {
+                nonglobFiles.push( path.normalize( file ) );
+            }
+        });
+                            
+        // Get the list of expanded glob files
+        var globFiles = glob.expand( files, configDirPath );
+        var normalizedGlobFiles: string[] = [];
+
+        // Normalize file paths for matching
+        Utils.forEach( globFiles, file => {
+            normalizedGlobFiles.push( path.normalize( file ) );
+        });
+
+        // The overall file list is the union of both non-glob and glob files
+        return _.union( normalizedGlobFiles, nonglobFiles );
+    }
+
+    // TJT: This method really should be in src()
+    private convertProjectFileNames( fileNames: string[], configDirPath: string ) {
+        Logger.log( "Converting project files." );
+        let configFileText = "";
+        try {
+            configFileText = fs.readFileSync( this.configFileName, 'utf8' );
+
+            if ( configFileText !== undefined ) {
+                let jsonConfigObject = JSON.parse( configFileText );
+
+                let relativeFileNames = [];
+                fileNames.forEach( fileName => {
+                    relativeFileNames.push ( path.relative( configDirPath, fileName ).replace( /\\/g, "/" ) );
+                });
+
+                jsonConfigObject["files"] = relativeFileNames;
+
+                fs.writeFileSync( this.configFileName, JSON.stringify( jsonConfigObject, undefined, 4 ) );
+            }
+        }
+        catch( e ) {
+            Logger.log( chalk.yellow( "Converting project files failed." ) );
+        }
+    }
+}

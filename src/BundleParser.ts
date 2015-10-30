@@ -1,9 +1,8 @@
 ﻿import { Logger } from "./Logger";
-import { Glob } from "./Glob";
 import { Utils } from "./Utilities";
 import { TsCore } from "./TsCore";
 
-import _ = require( "lodash" );
+//import _ = require( "lodash" );
 import ts = require( "typescript" );
 import path = require( "path" );
 
@@ -13,7 +12,7 @@ export interface BundleConfig {
 
 export interface Bundle {
     name: string;
-    files: string[];
+    fileNames: string[];
     config: BundleConfig;
 }
 
@@ -43,7 +42,7 @@ export class BundleParser {
                     Logger.info( "Bundle Id: ", id, jsonBundles[id] );
                     var jsonBundle: any = jsonBundles[id];
                     var bundleName: string;
-                    var files: string[] = [];
+                    var fileNames: string[] = [];
                     var config: any = {};
 
                     // Name
@@ -52,36 +51,8 @@ export class BundleParser {
                     // Files..
                     if ( Utils.hasProperty( jsonBundle, "files" ) ) {
                         if ( jsonBundle["files"] instanceof Array ) {
-                            files = Utils.map( <string[]>jsonBundle["files"], s => path.join( basePath, s ) );
-
-                            // The bundle files may contain a mix of glob patterns and filenames.
-                            // glob.expand() will only return a list of all expanded "found" files. 
-                            // For filenames without glob patterns, we add them to the list of files as we will want to know
-                            // if any filenames are not found during bundle processing.
-
-                            var glob = new Glob();
-                            var nonglobFiles: string[] = [];
-
-                            Utils.forEach( files, file => {
-                                if ( !glob.hasPattern( file ) ) {
-                                    nonglobFiles.push( file );
-                                }
-                            });
-                            
-                            // Get the list of expanded glob files
-                            var globFiles = glob.expand( files );
-                            var normalizedGlobFiles: string[] = [];
-
-                            // Normalize paths of glob files so we can match properly. Glob returns forward slash separators.
-                            Utils.forEach( globFiles, file => {
-                                normalizedGlobFiles.push( path.normalize( file ) );
-
-                            });
-
-                            // The overall file list is the union of both non-glob and glob files
-                            files = _.union( normalizedGlobFiles, nonglobFiles );
-
-                            Logger.info( "bundle files: ", files );
+                            fileNames = Utils.map( <string[]>jsonBundle["files"], s => path.join( basePath, s ) );
+                            Logger.info( "bundle files: ", fileNames );
                         }
                         else {
                             errors.push( TsCore.createDiagnostic( { code: 6063, category: ts.DiagnosticCategory.Error, key: "Bundle '{0}' files is not an array." }, id ) );
@@ -96,7 +67,7 @@ export class BundleParser {
                         config = jsonBundle.config
                     }
 
-                    bundles.push( { name: bundleName, files: files, config: config });
+                    bundles.push( { name: bundleName, fileNames: fileNames, config: config });
                 }
             }
 

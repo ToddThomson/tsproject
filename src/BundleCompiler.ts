@@ -57,8 +57,8 @@ export class BundleCompiler {
 
         let allDependencies: ts.Map<ts.Node[]> = {};
 
-        for ( var filesKey in bundle.files ) {
-            let fileName = bundle.files[filesKey];
+        for ( var filesKey in bundle.fileNames ) {
+            let fileName = bundle.fileNames[filesKey];
             Logger.info( ">>> Processing bundle file:", fileName );
 
             if ( this.compilerOptions.listFiles ) {

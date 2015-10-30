@@ -40,10 +40,10 @@
         "./Project.ts"
     ],
     "bundles": {
-        "tsproject2": {
+        "tsproject": {
             "files": [ "../typings/tsd.d.ts", "./tsproject.ts" ],
             "config": {
-                "outDir": "./bundles"
+                "outDir": "./bundle"
             }
         }
     }

@@ -26,14 +26,14 @@ export class Glob {
         return false;
     }
 
-    public expand( patterns: string[] ): string[]{
+    public expand( patterns: string[], root: string ): string[]{
 
         if ( patterns.length === 0 ) {
             return [];
         }
 
         var matches = this.processPatterns( patterns, function ( pattern: string ) {
-            return fileGlob.sync( pattern );
+            return fileGlob.sync( pattern, { root: root } );
         });
 
         return matches;
