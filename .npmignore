@@ -2,9 +2,10 @@
 .vscode
 app
 bin
-obj
 build
+dist
 issues
+obj
 src
 typings
 .gitignore
@@ -12,10 +13,9 @@ typings
 gulp_tsd.json
 gulpfile.js
 tsd.json
+rundbg.js
 TsProjectTodoMVC
 ReactTodoMVC
-dist/**/*.map
-tsproject.js
 *.dat
 *.njsproj
 *.njsproj.user
