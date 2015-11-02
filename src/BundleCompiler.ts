@@ -159,7 +159,7 @@ export class BundleCompiler {
         }
 
         // Only stream bundle definition if the compile was successful
-        if ( compileStatus === ts.ExitStatus.Success ) {
+        if ( this.shouldEmitDefinitions(compileStatus) ) {
             
             // d.ts should have been generated, but just in case
             if ( Utils.hasProperty( this.outputText, path.basename( bundle.name ) + ".d.ts" ) ) {
@@ -470,5 +470,21 @@ export class BundleCompiler {
         if ( moduleNameExpr && moduleNameExpr.kind === ts.SyntaxKind.StringLiteral ) {
             return this.program.getTypeChecker().getSymbolAtLocation( moduleNameExpr );
         }
+    }
+    
+    private shouldEmitDefinitions(compileStatus: ts.ExitStatus): boolean {
+        this.compilerOptions.noEmitOnError
+        // Only stream bundle definition if the compile was successful, or if there were warnings
+        // but something was emitted 
+        if ( compileStatus === ts.ExitStatus.Success ) {
+            return true;
+        }
+        
+        if ( compileStatus === ts.ExitStatus.DiagnosticsPresent_OutputsGenerated &&
+                !this.compilerOptions.noEmitOnError ) {
+            return true;
+        }
+        
+        return false;
     }
 } 
