@@ -2,6 +2,7 @@
 import { CompilerStatistics } from "./CompilerStatistics";
 import { CompilerHost }  from "./CompilerHost";
 import { CompileStream }  from "./CompileStream";
+import { CompilerReporter } from "./CompilerReporter";
 import { Logger } from "./Logger";
 import { TsVinylFile } from "./TsVinylFile";
 import { BundleParser, Bundle } from "./BundleParser";
@@ -140,9 +141,19 @@ export class BundleCompiler {
         outputStream.push( tsVinylFile );
 
         // Compile the bundle to generate javascript and declaration file
+        let compilerOptions = this.compilerOptions;
         let compileResult = this.compileBundle( path.basename(bundle.name ) + bundleExtension, this.bundleText );
         let compileStatus = compileResult.getStatus();
+        let compilerReporter = new CompilerReporter( compileResult );
 
+        if ( !compileResult.succeeded() ) {
+            compilerReporter.reportDiagnostics();
+
+            if ( compilerOptions.noEmitOnError ) {
+                return compileResult;
+            }
+        }
+        
         // Only stream bundle if there is some compiled output
         if ( compileStatus !== ts.ExitStatus.DiagnosticsPresent_OutputsSkipped ) {
             
@@ -156,10 +167,6 @@ export class BundleCompiler {
 
                 outputStream.push( bundleJsVinylFile );
             }
-        }
-
-        // Only stream bundle definition if the compile was successful
-        if ( compileStatus === ts.ExitStatus.Success ) {
             
             // d.ts should have been generated, but just in case
             if ( Utils.hasProperty( this.outputText, path.basename( bundle.name ) + ".d.ts" ) ) {
