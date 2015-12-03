@@ -439,8 +439,7 @@ var Compiler = (function () {
         if (!this.compilerOptions.noEmit) {
             // Compile the source files..
             var startTime = new Date().getTime();
-            if (this.compilerOptions.noEmit)
-                var emitResult = this.program.emit();
+            var emitResult = this.program.emit();
             this.emitTime = new Date().getTime() - startTime;
             diagnostics = diagnostics.concat(emitResult.diagnostics);
             // If the emitter didn't emit anything, then we're done
