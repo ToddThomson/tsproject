@@ -47,9 +47,7 @@ export class Compiler {
             // Compile the source files..
             let startTime = new Date().getTime();
 
-            if ( this.compilerOptions.noEmit )
-
-                var emitResult = this.program.emit();
+            var emitResult = this.program.emit();
 
             this.emitTime = new Date().getTime() - startTime;
 
