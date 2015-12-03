@@ -6,7 +6,10 @@
   "bundle": "typings/tsd.d.ts",
   "installed": {
     "chalk/chalk.d.ts": {
-      "commit": "62eedc3121a5e28c50473d2e4a9cefbcb9c3957f"
+        "commit": "62eedc3121a5e28c50473d2e4a9cefbcb9c3957f"
+    },
+    "chokidar/chokidar.d.ts": {
+        "commit": "62eedc3121a5e28c50473d2e4a9cefbcb9c3957f"
     },
     "glob/glob.d.ts": {
       "commit": "62eedc3121a5e28c50473d2e4a9cefbcb9c3957f"
@@ -21,9 +24,6 @@
       "commit": "62eedc3121a5e28c50473d2e4a9cefbcb9c3957f"
     },
     "vinyl/vinyl.d.ts": {
-        "commit": "62eedc3121a5e28c50473d2e4a9cefbcb9c3957f"
-    },
-    "typescript/typescript.d.ts": {
         "commit": "62eedc3121a5e28c50473d2e4a9cefbcb9c3957f"
     }
   }

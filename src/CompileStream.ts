@@ -2,8 +2,8 @@
 
 export class CompileStream extends stream.Readable {
 
-    constructor(opts?: stream.ReadableOptions) {
-        super( { objectMode: true });
+    constructor (opts?: stream.ReadableOptions ) {
+        super( { objectMode: true } );
     }
 
     _read() {

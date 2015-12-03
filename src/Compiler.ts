@@ -1,60 +1,67 @@
 ﻿import { CompilerResult } from "./CompilerResult";
-import { CompilerStatistics } from "./CompilerStatistics";
-import { CompilerHost }  from "./CompilerHost";
+import { CachingCompilerHost }  from "./CachingCompilerHost";
 import { CompileStream }  from "./CompileStream";
+import { StatisticsReporter } from "./StatisticsReporter";
 import { Logger } from "./Logger";
 import { TsVinylFile } from "./TsVinylFile";
-import { BundleParser, Bundle } from "./BundleParser";
-import { DependencyBuilder } from "./DependencyBuilder";
+import { Utils } from "./Utilities";
+import { TsCore } from "./TsCore";
 
 import ts = require( "typescript" );
 import path = require( "path" );
 
 export class Compiler {
 
-    public configFileName: string;
-    private configDirPath: string;
-    private rootFileNames: string[];
-
-    private compilerHost: CompilerHost;
+    private compilerHost: CachingCompilerHost;
     private program: ts.Program;
+    private compileStream: CompileStream;
     private compilerOptions: ts.CompilerOptions;
 
-    constructor( compilerHost: CompilerHost, program: ts.Program ) {
+    private preEmitTime;
+    private emitTime;
+    private streamTime;
+    private compileTime;
+
+    constructor( compilerHost: CachingCompilerHost, program: ts.Program, compileStream: CompileStream ) {
         this.compilerHost = compilerHost
         this.program = program;
+        this.compileStream = compileStream;
         this.compilerOptions = this.program.getCompilerOptions();
     }
 
-    public compileFilesToStream(
-        compileStream: CompileStream,
-        onError?: ( message: string ) => void ): CompilerResult {
+    public compile( onError?: ( message: string ) => void ): CompilerResult {
+        this.compileTime = this.preEmitTime = new Date().getTime();
 
-        Logger.log( "TypeScript compiler version: ", ts.version );
-        Logger.log( "Compiling Project Files..." );
+        Logger.log( "Compiling project files..." );
 
         // Check for preEmit diagnostics
         var preEmitDiagnostics = ts.getPreEmitDiagnostics( this.program );
 
         // Return if noEmitOnError flag is set, and we have errors
         if ( this.compilerOptions.noEmitOnError && preEmitDiagnostics.length > 0 ) {
-            return new CompilerResult( ts.ExitStatus.DiagnosticsPresent_OutputsSkipped, new CompilerStatistics( this.program ), preEmitDiagnostics );
+            return new CompilerResult( ts.ExitStatus.DiagnosticsPresent_OutputsSkipped, preEmitDiagnostics );
         }
 
+        this.preEmitTime = new Date().getTime() - this.preEmitTime;
+
         // Compile the source files..
-        let emitTime = 0;
         let startTime = new Date().getTime();
 
         var emitResult = this.program.emit();
 
-        emitTime += new Date().getTime() - startTime;
+        this.emitTime = new Date().getTime() - startTime;
 
-        // If the emitter didn't emit anything, then pass that value along.
+        let allDiagnostics = preEmitDiagnostics.concat( emitResult.diagnostics );
+
+        // If the emitter didn't emit anything, then we're done
         if ( emitResult.emitSkipped ) {
-            return new CompilerResult( ts.ExitStatus.DiagnosticsPresent_OutputsSkipped, new CompilerStatistics( this.program, 0 ), emitResult.diagnostics );
+            return new CompilerResult( ts.ExitStatus.DiagnosticsPresent_OutputsSkipped, allDiagnostics );
         }
 
-        var fileOutput = this.compilerHost.output;
+        this.streamTime = new Date().getTime();
+        
+        // Stream the compilation output...
+        var fileOutput = this.compilerHost.getOutput();
 
         for ( var fileName in fileOutput ) {
             var fileData = fileOutput[fileName];
@@ -64,16 +71,47 @@ export class Compiler {
                 contents: new Buffer( fileData )
             });
 
-            compileStream.push( tsVinylFile );
+            this.compileStream.push( tsVinylFile );
         }
 
-        let allDiagnostics = preEmitDiagnostics.concat( emitResult.diagnostics );
-        
+        this.streamTime = new Date().getTime() - this.streamTime;
+        this.compileTime = new Date().getTime() - this.compileTime;
+
         // The emitter emitted something, inform the caller if that happened in the presence of diagnostics.
         if ( allDiagnostics.length > 0 ) {
-            return new CompilerResult( ts.ExitStatus.DiagnosticsPresent_OutputsGenerated, new CompilerStatistics( this.program, emitTime ), allDiagnostics );
+            return new CompilerResult( ts.ExitStatus.DiagnosticsPresent_OutputsGenerated, allDiagnostics );
         }
 
-        return new CompilerResult( ts.ExitStatus.Success, new CompilerStatistics( this.program, emitTime ) );
+        if ( this.compilerOptions.diagnostics ) {
+            this.reportStatistics();
+        }
+
+        return new CompilerResult( ts.ExitStatus.Success );
+    }
+
+    private reportStatistics() {
+        let statisticsReporter = new StatisticsReporter();
+
+        statisticsReporter.reportCount( "Files", this.program.getSourceFiles().length );
+        statisticsReporter.reportCount( "Lines", this.compiledLines() );
+        statisticsReporter.reportTime( "Pre-emit time", this.preEmitTime );
+        statisticsReporter.reportTime( "Emit time", this.emitTime );
+        statisticsReporter.reportTime( "Stream IO time", this.streamTime );
+        statisticsReporter.reportTime( "Compile time", this.compileTime );
+    }
+
+    private compiledLines(): number {
+        var count = 0;
+        Utils.forEach( this.program.getSourceFiles(), file => {
+            if ( !TsCore.isDeclarationFile( file ) ) {
+                count += this.getLineStarts( file ).length;
+            }
+        });
+
+        return count;
+    }
+
+    private getLineStarts( sourceFile: ts.SourceFile ): number[] {
+        return sourceFile.getLineStarts();
     }
 } 
