@@ -136,8 +136,8 @@ export class Project {
         let bundles = this.buildContext.config.bundles;
         let compilerOptions = this.buildContext.config.compilerOptions;
 
-        // Create a new program to handle the increment build. Pass the current build context program ( if it exists )
-        // t reuse the current program structure.
+        // Create a new program to handle the incremental build. Pass the current build context program ( if it exists )
+        // to reuse the current program structure.
         let program = ts.createProgram( fileNames, compilerOptions, this.buildContext.host, this.buildContext.getProgram() );
 
         this.totalPreBuildTime = new Date().getTime() - this.totalPreBuildTime;
@@ -184,7 +184,7 @@ export class Project {
                 return ts.ExitStatus.DiagnosticsPresent_OutputsSkipped;
             }
 
-            compileResult = bundleCompiler.compile( bundleResult.getBundleSource() );
+            compileResult = bundleCompiler.compile( bundleResult.getBundleSource(), bundles[ i ].config );
 
             if ( !compileResult.succeeded() ) {
                 DiagnosticsReporter.reportDiagnostics( compileResult.getErrors() );

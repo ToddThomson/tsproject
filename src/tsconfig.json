@@ -1,23 +1,24 @@
 {
-    "version": "1.7.4",
+    "version": "1.7.3",
     "compilerOptions": {
         "target": "es5",
         "module": "commonjs",
         "moduleResolution": "node",
         "declaration": false,
-        "diagnostics": true,
+        "diagnostics": false,
         "listFiles": false,
         "noImplicitAny": false,
         "preserveConstEnums": true,
         "removeComments": false,
-        "sourceMap": false
+        "sourceMap": false,
+        "noEmit": true
     },
     "files": [
         "../typings/tsd.d.ts",
         "./BundleBuilder.ts",
         "./BundleCompiler.ts",
         "./BundleParser.ts",
-        "./BUndleResult.ts",
+        "./BundleResult.ts",
         "./CachingCompilerHost.ts",
         "./Compiler.ts",
         "./CompilerError.ts",
@@ -40,14 +41,6 @@
     ],
     "bundles": {
         "tsproject": {
-            "files": [ "../typings/tsd.d.ts", "./Glob.ts", "./EventEmitter.ts" ],
-            "config": {
-                "declaration": true,
-                "sourceMap": true,
-                "outDir": "./bundle"
-            }
-        },
-        "test": {
             "files": [ "../typings/tsd.d.ts", "./TsProject.ts" ],
             "config": {
                 "declaration": true,

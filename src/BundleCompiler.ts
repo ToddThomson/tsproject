@@ -4,7 +4,7 @@ import { WatchCompilerHost }  from "./WatchCompilerHost";
 import { CompileStream }  from "./CompileStream";
 import { Logger } from "./Logger";
 import { TsVinylFile } from "./TsVinylFile";
-import { BundleParser, Bundle } from "./BundleParser";
+import { BundleParser, Bundle, BundleConfig } from "./BundleParser";
 import { BundleResult, BundleFile } from "./BundleResult";
 import { DependencyBuilder } from "./DependencyBuilder";
 import { Glob } from "./Glob";
@@ -23,10 +23,9 @@ export class BundleCompiler {
     private outputStream: CompileStream;
     private compilerOptions: ts.CompilerOptions;
 
-    private streamIoTime;
-    private emitTime;
-    private compileTime;
-    private preEmitTime;
+    private emitTime: number = 0;
+    private compileTime: number = 0;
+    private preEmitTime: number = 0;
 
     private bundleSourceFiles: ts.Map<string> = {};
 
@@ -37,28 +36,27 @@ export class BundleCompiler {
         this.compilerOptions = this.program.getCompilerOptions();
     }
 
-    public compile( bundleFile: BundleFile ): CompilerResult {
-
+    public compile( bundleFile: BundleFile, bundleConfig: BundleConfig ): CompilerResult {
         Logger.log( "Compiling bundle files..." );
 
         this.compileTime = this.preEmitTime = new Date().getTime();
 
         let outputText: ts.Map<string> = {};
-        let hostGetSourceFile: ( fileName: string, languageVersion: ts.ScriptTarget, onError?: ( message: string ) => void ) => ts.SourceFile;
+        let defaultGetSourceFile: ( fileName: string, languageVersion: ts.ScriptTarget, onError?: ( message: string ) => void ) => ts.SourceFile;
 
         let bundleFileName = bundleFile.path;
         let bundleFileText = bundleFile.text;
         
         var bundleSourceFile = ts.createSourceFile( bundleFile.path, bundleFile.text, this.compilerOptions.target );
-        this.bundleSourceFiles[bundleFileName] = bundleFileText;
+        this.bundleSourceFiles[ bundleFileName ] = bundleFileText;
         
         // Reuse the project program source files
         Utils.forEach( this.program.getSourceFiles(), file => {
-            this.bundleSourceFiles[file.fileName] = file.text;
+            this.bundleSourceFiles[ file.fileName ] = file.text;
         });
 
         function writeFile( fileName: string, data: string, writeByteOrderMark: boolean, onError?: ( message: string ) => void ) {
-            outputText[fileName] = data;
+            outputText[ fileName ] = data;
         }
 
         function getSourceFile( fileName: string, languageVersion: ts.ScriptTarget, onError?: ( message: string ) => void ): ts.SourceFile {
@@ -66,13 +64,13 @@ export class BundleCompiler {
                 return bundleSourceFile;
             }
             // Use base class to get the source file
-            let sourceFile: TsCore.WatchedSourceFile = hostGetSourceFile( fileName, languageVersion, onError );
+            let sourceFile: TsCore.WatchedSourceFile = defaultGetSourceFile( fileName, languageVersion, onError );
 
             return sourceFile;
         }
 
         // Override the compileHost getSourceFile() function to get the bundle source file
-        hostGetSourceFile = this.compilerHost.getSourceFile;
+        defaultGetSourceFile = this.compilerHost.getSourceFile;
         this.compilerHost.getSourceFile = getSourceFile;
         this.compilerHost.writeFile = writeFile;
 
@@ -84,8 +82,15 @@ export class BundleCompiler {
             bundleFiles.push( file.fileName );
         });
 
+        // Allow bundle config to extent the project compilerOptions for declaration and source map emitted output
+        let compilerOptions = this.compilerOptions;
+        
+        compilerOptions.declaration = bundleConfig.declaration || this.compilerOptions.declaration;
+        compilerOptions.sourceMap = bundleConfig.sourceMap || this.compilerOptions.sourceMap;
+        compilerOptions.noEmit = false; // Always emit bundle output
+
         // Pass the current project build program to reuse program structure
-        var bundlerProgram = ts.createProgram( bundleFiles, this.compilerOptions, this.compilerHost );//CompilerHost, this.program );
+        var bundlerProgram = ts.createProgram( bundleFiles, compilerOptions, this.compilerHost );//CompilerHost, this.program );
 
         // Check for preEmit diagnostics
         var preEmitDiagnostics = ts.getPreEmitDiagnostics( bundlerProgram );
@@ -98,8 +103,9 @@ export class BundleCompiler {
         }
 
         this.emitTime = new Date().getTime();
-        var emitResult = bundlerProgram.emit();
-        //var emitResult = this.getBundleOutput( bundleSourceFile, bundlerProgram );
+
+        var emitResult = bundlerProgram.emit( bundleSourceFile );
+
         this.emitTime = new Date().getTime() - this.emitTime;
 
         // If the emitter didn't emit anything, then pass that value along.
@@ -115,8 +121,6 @@ export class BundleCompiler {
         }
 
         // Stream the bundle source file ts, and emitted files...
-        this.streamIoTime = new Date().getTime();
-
         Logger.info( "Streaming vinyl bundle source: ", bundleFile.path );
         var tsVinylFile = new TsVinylFile( {
             path: bundleFile.path,
@@ -167,7 +171,6 @@ export class BundleCompiler {
             this.outputStream.push( bundleMapVinylFile );
         }
 
-        this.streamIoTime = new Date().getTime() - this.streamIoTime;
         this.compileTime = new Date().getTime() - this.compileTime;
 
         if ( this.compilerOptions.diagnostics )
@@ -176,32 +179,11 @@ export class BundleCompiler {
         return new CompilerResult( ts.ExitStatus.Success );
     }
 
-    private getBundleOutput( bundleSourceFile: ts.SourceFile, program: ts.Program ): ts.EmitOutput {
-
-        let outputFiles: ts.OutputFile[] = [];
-
-        function writeFile( fileName: string, data: string, writeByteOrderMark: boolean ) {
-            outputFiles.push( {
-                name: fileName,
-                writeByteOrderMark: writeByteOrderMark,
-                text: data
-            });
-        }
-
-        let emitOutput = program.emit( bundleSourceFile, writeFile );
-
-        return {
-            outputFiles,
-            emitSkipped: emitOutput.emitSkipped
-        }
-    }
-
     private reportStatistics() {
         let statisticsReporter = new StatisticsReporter();
 
         statisticsReporter.reportTime( "Pre-emit time", this.preEmitTime );
         statisticsReporter.reportTime( "Emit time", this.emitTime );
-        statisticsReporter.reportTime( "Stream IO time", this.streamIoTime );
         statisticsReporter.reportTime( "Compile time", this.compileTime );
     }
 } 

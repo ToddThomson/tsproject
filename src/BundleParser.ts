@@ -6,6 +6,8 @@ import ts = require( "typescript" );
 import path = require( "path" );
 
 export interface BundleConfig {
+    sourceMap: boolean;
+    declaration: boolean;
     outDir: string;
 }
 
@@ -22,7 +24,7 @@ export interface ParsedBundlesResult {
 
 export class BundleParser {
     
-    parseConfigFile( json: any, basePath: string ): ParsedBundlesResult {
+    public parseConfigFile( json: any, basePath: string ): ParsedBundlesResult {
         var errors: ts.Diagnostic[] = [];
 
         return {
