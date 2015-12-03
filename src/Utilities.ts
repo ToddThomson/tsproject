@@ -14,6 +14,18 @@ export module Utils {
         return undefined;
     }
 
+    export function contains<T>( array: T[], value: T ): boolean {
+        if ( array ) {
+            for ( let v of array ) {
+                if ( v === value ) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
     let hasOwnProperty = Object.prototype.hasOwnProperty;
 
     export function hasProperty<T>( map: ts.Map<T>, key: string ): boolean {

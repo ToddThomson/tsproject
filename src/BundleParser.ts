@@ -2,11 +2,12 @@
 import { Utils } from "./Utilities";
 import { TsCore } from "./TsCore";
 
-//import _ = require( "lodash" );
 import ts = require( "typescript" );
 import path = require( "path" );
 
 export interface BundleConfig {
+    sourceMap: boolean;
+    declaration: boolean;
     outDir: string;
 }
 
@@ -23,7 +24,7 @@ export interface ParsedBundlesResult {
 
 export class BundleParser {
     
-    parseConfigFile( json: any, basePath: string ): ParsedBundlesResult {
+    public parseConfigFile( json: any, basePath: string ): ParsedBundlesResult {
         var errors: ts.Diagnostic[] = [];
 
         return {
@@ -67,7 +68,7 @@ export class BundleParser {
                         config = jsonBundle.config
                     }
 
-                    bundles.push( { name: bundleName, fileNames: fileNames, config: config });
+                    bundles.push( { name: bundleName, fileNames: fileNames, config: config } );
                 }
             }
 

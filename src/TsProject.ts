@@ -5,10 +5,10 @@ import { Logger } from "./Logger";
 import ts = require( "typescript" );
 import chalk = require( "chalk" );
 
-function src( configDirPath: string, settings?: any ) {
+function src( configFilePath: string, settings?: any ) {
 
-    if ( configDirPath === undefined && typeof configDirPath !== 'string' ) {
-        throw new Error( "Provide a valid directory path to the project tsconfig.json" );
+    if ( configFilePath === undefined && typeof configFilePath !== 'string' ) {
+        throw new Error( "Provide a valid directory or file path to the Typescript project configuration json file." );
     }
 
     settings = settings || {};
@@ -19,23 +19,8 @@ function src( configDirPath: string, settings?: any ) {
 
     var outputStream = new CompileStream();
 
-    var project = new Project( configDirPath, settings );
-    var buildStatus = project.build( outputStream );
-
-    // EOF the compilation output stream after build.
-    outputStream.push( null );
-
-    switch ( buildStatus ) {
-        case ts.ExitStatus.Success:
-            Logger.log( chalk.green( "Project build completed successfully." ) );
-            break;
-        case ts.ExitStatus.DiagnosticsPresent_OutputsSkipped:
-            Logger.log( chalk.red( "Build completed with errors." ) );
-            break;
-        case ts.ExitStatus.DiagnosticsPresent_OutputsGenerated:
-            Logger.log( chalk.red( "Build completed with errors. " + chalk.italic( "Outputs generated." ) ) );
-            break;
-    }
+    var project = new Project( configFilePath, settings );
+    project.build( outputStream );
 
     return outputStream;
 }
@@ -47,4 +32,4 @@ var tsproject = {
     // watch: watch
 }
 
-export = tsproject;
+module.exports = tsproject;

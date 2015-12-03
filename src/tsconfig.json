@@ -1,48 +1,50 @@
 {
-    "version": "1.6.2",
+    "version": "1.7.3",
     "compilerOptions": {
         "target": "es5",
         "module": "commonjs",
+        "moduleResolution": "node",
         "declaration": false,
-        "diagnostics": true,
-        "experimentalDecorators": true,
-        "emitDecoratorMetadata": true,
-        "isolatedModules": false,
-        "listFiles": true,
+        "diagnostics": false,
+        "listFiles": false,
         "noImplicitAny": false,
-        "noLib": false,
-        "noResolve": false,
         "preserveConstEnums": true,
         "removeComments": false,
-        "suppressImplicitAnyIndexErrors": true,
-        "sourceMap": true
+        "sourceMap": false,
+        "noEmit": true
     },
     "files": [
         "../typings/tsd.d.ts",
+        "./BundleBuilder.ts",
+        "./BundleCompiler.ts",
+        "./BundleParser.ts",
+        "./BundleResult.ts",
+        "./CachingCompilerHost.ts",
+        "./Compiler.ts",
+        "./CompilerError.ts",
+        "./CompilerResult.ts",
+        "./CompileStream.ts",
         "./DependencyBuilder.ts",
         "./DiagnosticsReporter.ts",
         "./EventEmitter.ts",
         "./Glob.ts",
         "./Logger.ts",
-        "./BundleParser.ts",
-        "./BundleCompiler.ts",
+        "./StatisticsReporter.ts",
         "./TsCore.ts",
         "./TsProject.ts",
         "./TsVinylFile.ts",
+        "./ProjectBuildContext",
+        "./ProjectConfig",
+        "./Project.ts",
         "./Utilities.ts",
-        "./Compiler.ts",
-        "./CompilerError.ts",
-        "./CompilerHost.ts",
-        "./CompilerReporter.ts",
-        "./CompilerResult.ts",
-        "./CompilerStatistics.ts",
-        "./CompileStream.ts",
-        "./Project.ts"
+        "./WatchCompilerHost.ts"
     ],
     "bundles": {
         "tsproject": {
-            "files": [ "../typings/tsd.d.ts", "./tsproject.ts" ],
+            "files": [ "../typings/tsd.d.ts", "./TsProject.ts" ],
             "config": {
+                "declaration": true,
+                "sourceMap": true,
                 "outDir": "./bundle"
             }
         }

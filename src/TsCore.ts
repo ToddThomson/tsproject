@@ -1,6 +1,32 @@
 ﻿import ts = require( "typescript" );
+import fs = require( "fs" );
 
 export module TsCore {
+
+    export interface WatchedSourceFile extends ts.SourceFile {
+        fileWatcher?: fs.FSWatcher;
+    }
+
+    export function fileExtensionIs( path: string, extension: string ): boolean {
+        let pathLen = path.length;
+        let extLen = extension.length;
+        return pathLen > extLen && path.substr( pathLen - extLen, extLen ) === extension;
+    }
+
+    export const supportedExtensions = [".ts", ".tsx", ".d.ts"];
+
+    export const moduleFileExtensions = supportedExtensions;
+
+    export function isSupportedSourceFileName( fileName: string ) {
+        if ( !fileName ) { return false; }
+
+        for ( let extension of supportedExtensions ) {
+            if ( fileExtensionIs( fileName, extension ) ) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     export function getExternalModuleName( node: ts.Node ): ts.Expression {
         if ( node.kind === ts.SyntaxKind.ImportDeclaration ) {

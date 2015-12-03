@@ -5,13 +5,16 @@ TsProject is a Typescript bundle compiler which utilizes the Typescript project 
 TsProject produces a compiled output stream of vinyl files for further processing in the gulp build pipeline.
 
 ## What's New
-TsProject 1.0.5 now provides file glob pattern matching for specifying "files" in the tsconfig.json project file.
 
-TsProject 1.0.5 is now used to build TsProject. TsProject is a bundled, single file node module using ES6 module imports.
+TsProject 1.1.0 provides project watch support for cache optimized, incremental builds.
 
-TsProject 1.0.1 now bundles React (.tsx) file types. TsProject on github contains a [React based TodoMVC sample](https://github.com/ToddThomson/tsproject/tree/master/ReactTodoMVC) to help you get started.
+TsProject 1.1.0 supports Typescript 1.7!
 
-The TsProject 1.0.0 now supports Typescript 1.6!
+TsProject 1.0.5 provides file glob pattern matching for specifying "files" in the tsconfig.json project file.
+
+TsProject 1.0.5 is used to build TsProject. TsProject is a bundled, single file node module using ES6 module imports.
+
+TsProject 1.0.1 bundles React (.tsx) file types. TsProject on github contains a [React based TodoMVC sample](https://github.com/ToddThomson/tsproject/tree/master/ReactTodoMVC) to help you get started.
 
 ## Why TsProject?
 
@@ -25,7 +28,7 @@ TsProject provides 2 new features:
 
 Additional details can be found on the TsProject [wiki](https://github.com/ToddThomson/tsproject/wiki).
 
-## Typescript External Module Bundles
+## Typescript ES6 External Module Bundles
 
 TsProject supports a "bundles" property within the tsconfig.json project file. The "bundles" property may contain a list of named bundles. Each bundle must provide an array of source files and may optionally specify bundle configuration settings. 
 The Typescript source file and its dependencies are packaged as a single Typescript file and output with the bundle name. The Typescript bundle is compiled to a single js javascript file and a single d.ts declaration file.
@@ -46,6 +49,7 @@ The following is a sample tsconfig.json showing the "bundles" property:
         "index.ts",
         "page.ts",
         "common.ts",
+		"plugin.ts"
     ],
     
     "bundles": {
@@ -57,7 +61,8 @@ The following is a sample tsconfig.json showing the "bundles" property:
                 "page.ts",
                 "plugin.ts"
             ],
-            "config": { 
+            "config": {
+			    "declaration": true,
                 "outDir": "./bundles"  
             }
         }

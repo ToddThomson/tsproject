@@ -4,21 +4,22 @@ import ts = require( "typescript" );
 import chalk = require( "chalk" );
 
 export class DiagnosticsReporter {
-    private errors: ts.Diagnostic[];
-
-    constructor( errors: ts.Diagnostic[] ) {
-        this.errors = errors;
-    }
-
-    public reportDiagnostics() {
-        var diagnostics = this.errors;
+    
+    public static reportDiagnostics( diagnostics: ts.Diagnostic[] ) {
+        if ( !diagnostics ) {
+            return;
+        }
 
         for ( var i = 0; i < diagnostics.length; i++ ) {
             this.reportDiagnostic( diagnostics[i] );
         }
     }
 
-    private reportDiagnostic( diagnostic: ts.Diagnostic ) {
+    public static reportDiagnostic( diagnostic: ts.Diagnostic ) {
+        if ( !diagnostic ) {
+            return;
+        }
+
         var output = "";
 
         if ( diagnostic.file ) {
@@ -27,8 +28,20 @@ export class DiagnosticsReporter {
             output += chalk.gray( `${ diagnostic.file.fileName }(${ loc.line + 1 },${ loc.character + 1 }): ` );
         }
 
-        var category = chalk.red( ts.DiagnosticCategory[diagnostic.category].toLowerCase() );
-        output += `${ category } TS${ chalk.red( diagnostic.code + '' ) }: ${ chalk.grey( ts.flattenDiagnosticMessageText( diagnostic.messageText, "\n" ) ) }`;
+        var category;
+
+        switch ( diagnostic.category ) {
+            case ts.DiagnosticCategory.Error:
+                category = chalk.red( ts.DiagnosticCategory[diagnostic.category].toLowerCase() );
+                break;
+            case ts.DiagnosticCategory.Warning:
+                category = chalk.yellow( ts.DiagnosticCategory[diagnostic.category].toLowerCase() );
+                break;
+            default:
+                category = chalk.green( ts.DiagnosticCategory[diagnostic.category].toLowerCase() );
+        }
+
+        output += `${category} TS${chalk.white( diagnostic.code + '' )}: ${chalk.grey( ts.flattenDiagnosticMessageText( diagnostic.messageText, "\n" ) )}`;
 
         Logger.log( output );
     }
