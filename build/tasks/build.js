@@ -1,7 +1,9 @@
 var gulp = require( 'gulp' );
 var runSequence = require( 'run-sequence' );
 var paths = require('../paths');
-var tsproject = require( 'tsproject' );
+//var tsproject = require('tsproject');
+//var tsproject = require('../../src/tsproject.js');
+var tsproject = require('../../tsproject.min.js');
 var tsd = require( 'gulp-tsd' );
 
 gulp.task( 'tsd', function( callback ) {
@@ -25,7 +27,7 @@ gulp.task( 'compile', ['tsd'], function() {
 
 gulp.task( 'build', function( callback ) {
   return runSequence(
-    'clean',
+    //'clean',
     'tsd',
     'compile',
     callback
