@@ -32,13 +32,12 @@ export module Utils {
         return hasOwnProperty.call( map, key );
     }
 
-    export function clone<T>( objectClone: T ): T {
-        // TJT: Fix after testing..
-        let resultClone: any = {};
-        for ( let id in objectClone ) {
-            resultClone[id] = ( <any>objectClone )[id];
+    export function clone<T>( object: T ): T {
+        let result: any = {};
+        for ( let id in object ) {
+            result[id] = ( <any>object )[id];
         }
-        return <T>resultClone;
+        return <T>result;
     }
 
     export function map<T, U>( array: T[], f: ( x: T ) => U ): U[] {

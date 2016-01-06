@@ -29,6 +29,7 @@
         "./Compiler/CompilerResult.ts",
         "./Compiler/CompileStream.ts",
         "./Compiler/WatchCompilerHost.ts",
+        "./Minifier/TestClass.ts",
         "./Minifier/BundleMinifier.ts",
         "./Minifier/ContainerContext.ts",
         "./Minifier/IdentifierSymbolInfo",

@@ -44,13 +44,14 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
     }
 
     public transform( bundleSourceFile: ts.SourceFile ): ts.SourceFile {
-     
+
         this.bundleSourceFile = bundleSourceFile;
 
         return this.processBundleIdentifiers( bundleSourceFile );
     }
 
     public removeWhitespace( jsContents: string ): string {
+
         this.whiteSpaceTime = new Date().getTime();
         this.whiteSpaceBefore = jsContents.length;
 
@@ -94,12 +95,13 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
         if ( this.compilerOptions.diagnostics )
             this.reportWhitespaceStatistics();
 
-        return output;
+        // TJT: Fixme - only for testing
+        return jsContents; //output;
     }
 
     protected visitNode( node: ts.Node ): void {
         if ( this.isNextContainer( node ) ) {
-            // Recursively vist container nodes to build identifier tree
+            // Recursively vist container nodes to build identifier info tree
             super.visitNode( node );
 
             this.restoreContainer();
@@ -108,13 +110,14 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
             switch ( node.kind ) {
                 case ts.SyntaxKind.Identifier:
                     let identifier: ts.Identifier = <ts.Identifier>node;
-                    let nodeFlags: ts.NodeFlags = identifier.flags; 
                     let identifierSymbol: ts.Symbol = this.checker.getSymbolAtLocation( identifier );
 
                     if ( identifierSymbol ) {
                         let symbolId: number = ( <any>identifierSymbol ).id;
 
                         if ( symbolId !== undefined ) {
+
+                            // Logger.log( "Identifier found: ", identifierSymbol.name, symbolId );
                             let uniqueIdentifierName = symbolId.toString();
 
                             // Check to see if we've seen this identifer symbol before
@@ -151,7 +154,7 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
                                 // shortened name due to the constraint that the names are changed in place
                                 let identifierName = identifierSymbol.getName();
                                 if ( identifierName.length === 1 ) {
-                                    identifierInfo.shortenedName = identifierName; 
+                                    identifierInfo.shortenedName = identifierName;
                                     this.currentContainer().namesExcluded[identifierSymbol.getName()] = true;
                                 }
 
@@ -170,7 +173,6 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
 
                 default:
                     //Logger.log( "Non identifier node: ", node.kind );
-
             }
 
             super.visitNode( node );
@@ -194,10 +196,13 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
     }
 
     private shortenContainerIdentifiers( container: ContainerContext ): void {
+        //Logger.log( "Shortening container identifiers" );
+        
         // For ES5 generated javascript we must guard against using block scoped variable as they cannot
-        // be handled by the Typescript compiler at this stage.
+        // be handled by the Typescript compiler without reparsing.
         if ( this.compilerOptions.target === ts.ScriptTarget.ES5 ) {
             if ( container.isFunctionScoped() ) {
+                //Logger.log( "Resetting name generator" );
                 this.nameGenerator.reset();
             }
         }
@@ -211,7 +216,7 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
 
         // Exclude all identifier names that were seen in parent containers or were 1 char in length
         for ( let excludedSymbolKey in container.excludedIdentifiers ) {
-             excludedSymbol = container.excludedIdentifiers[excludedSymbolKey];
+            excludedSymbol = container.excludedIdentifiers[excludedSymbolKey];
 
             if ( excludedSymbol.shortenedName ) {
                 //Logger.log( "Excluding identifier name for: ", excludedSymbol.getName(), excludedSymbol.shortenedName );
@@ -247,10 +252,6 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
         //    for ( let excludedSymbolKey in childContainer.excludedIdentifiers ) {
         //        let excludedSymbol = childContainer.excludedIdentifiers[excludedSymbolKey];
 
-        //        if ( excludedSymbol.getName() === "editText" ) {
-        //            Logger.log( "break" );
-        //        }
-
         //        if ( excludedSymbol.shortenedName ) {
         //            container.namesExcluded[excludedSymbol.shortenedName] = true;
         //        }
@@ -259,6 +260,33 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
         //        }
         //    }
         //}
+
+        // If this container has members ( is a Class | Interface | TypeLiteral | ObjectLiteral ), then we must process
+        // these first
+        
+        if ( container.hasMembers() ) {
+            let containerMembers = container.getMembers();
+
+            for ( let memberKey in containerMembers ) {
+                let memberSymbol = containerMembers[memberKey];
+
+                if ( memberSymbol && ( <any>memberSymbol ).id ) {
+                    let memberSymbolUId: string = ( <any>memberSymbol ).id.toString();
+
+                    if ( Utils.hasProperty( this.allIdentifierSymbols, memberSymbolUId ) ) {
+                        let memberIdentifierInfo = this.allIdentifierSymbols[memberSymbolUId];
+
+                        this.processIdentifierSymbolInfo( container, memberIdentifierInfo );
+                    }
+                    else {
+                        Debug.assert( true, "Member not found" );
+                    }
+                }
+                else {
+                    //Logger.log( "Container member does not have a symbol" );
+                }
+            }
+        } 
 
         // First process local container identifiers
         for ( let symbolKey in container.symbolTable ) {
@@ -276,12 +304,10 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
     }
 
     private processIdentifierSymbolInfo( container: ContainerContext, identifierInfo: IdentifierInfo ): void {
-
-        // Case 1: BlockScopedVariables
-
-        if ( identifierInfo.isBlockScopedVariable() ) {
+        if ( this.canShortenIdentifier( identifierInfo ) ) {
             let shortenedName = this.getShortenedIdentifierName( container, identifierInfo );
-            Logger.info( "Block scoped var renamed: ", identifierInfo.getName(), shortenedName );
+
+            //Logger.log( "Identifier renamed: ", identifierInfo.getName(), shortenedName );
 
             Utils.forEach( identifierInfo.refs, identifier => {
                 this.setIdentifierText( identifier, shortenedName );
@@ -290,9 +316,20 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
             return;
         }
 
-        // TODO: ...
+        Logger.info( "Identifier cannot be shortened: ", identifierInfo.getName() );
+    }
 
-        // Case 2: FunctionScopedVariables )
+    private canShortenIdentifier( identifierInfo: IdentifierInfo ): boolean {
+        if ( identifierInfo.isBlockScopedVariable() ||
+            identifierInfo.isFunctionScopedVariable() ||
+            identifierInfo.isPrivateMethod() ||
+            identifierInfo.isPrivateProperty() ||
+            identifierInfo.isParameter() ) {
+
+            return true;
+        }
+
+        return false;
     }
 
     private getShortenedIdentifierName( container: ContainerContext, identifierInfo: IdentifierInfo ): string {
@@ -323,6 +360,9 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
 
                 this.shortenedIdentifierCount++
             }
+        }
+        else {
+            Logger.info( "Identifier already has shortened name: ", identifierInfo.getName(), identifierInfo.shortenedName ); 
         }
         
         return identifierInfo.shortenedName;
@@ -400,8 +440,6 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
         let containerFlags: Ast.ContainerFlags = Ast.getContainerFlags( node );
 
         if ( containerFlags & ( Ast.ContainerFlags.IsContainer | Ast.ContainerFlags.IsBlockScopedContainer ) ) {
-            //Logger.log( "Next Container" );
-
             let nextContainer = new ContainerContext( node, containerFlags, this.currentContainer() )
 
             // Before changing the current container we must first add the new container to the children of the current container.
@@ -420,8 +458,6 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
 
             return true;
         }
-
-        //Logger.log( "Not a container node: ", node.kind );
 
         return false;
     }

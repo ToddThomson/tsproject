@@ -26,38 +26,80 @@ export class IdentifierInfo {
         return this.getId().toString();
     }
 
-    public isVariable(): boolean {
-        let variableDeclaration = this.getVariableDeclaration();
-        if ( variableDeclaration )
-            return true;
+    public getMembers(): ts.SymbolTable {
+        if ( this.symbol.flags & ts.SymbolFlags.HasMembers ) {
+            return this.symbol.members;
+        }
 
-        return false;
+        return undefined;
     }
 
-    public isFunction(): boolean {
-        let functionDeclaration = this.getFunctionDeclaration();
-        if ( functionDeclaration )
-            return true;
+    public isFunctionScopedVariable(): boolean {
+        if ( ( this.symbol.flags & ts.SymbolFlags.FunctionScopedVariable ) > 0 ) {
+            let variableDeclaration = this.getVariableDeclaration();
 
-        return false;
+            if ( variableDeclaration ) {
+                return true;
+            }
+        }
+
+        return false;        
     }
 
     public isBlockScopedVariable(): boolean {
-        let variableDeclaration = this.getVariableDeclaration();
+        if ( ( this.symbol.flags & ts.SymbolFlags.BlockScopedVariable ) > 0 ) {
+            let variableDeclaration = this.getVariableDeclaration();
 
-        if ( variableDeclaration ) {
-            return ( ( variableDeclaration.parent.flags & ts.NodeFlags.Let ) !== 0 ) ||
-                ( ( variableDeclaration.parent.flags & ts.NodeFlags.Const ) !== 0 );
+            if ( variableDeclaration ) {
+                return ( ( variableDeclaration.parent.flags & ts.NodeFlags.Let ) !== 0 ) ||
+                    ( ( variableDeclaration.parent.flags & ts.NodeFlags.Const ) !== 0 );
+            }
+        }
+
+        return false;
+    }
+
+    public isParameter(): boolean {
+        // Note: FunctionScopedVariable also indicates a parameter
+        if ( ( this.symbol.flags & ts.SymbolFlags.FunctionScopedVariable ) > 0 ) {
+
+            // A parameter has a value declaration
+            if ( this.symbol.valueDeclaration.kind === ts.SyntaxKind.Parameter ) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public isPrivateMethod(): boolean {
+        if ( ( this.symbol.flags & ts.SymbolFlags.Method ) > 0 ) {
+            
+            // A method has a value declaration
+            let flags = this.symbol.valueDeclaration.flags;
+
+            if ( ( flags & ts.NodeFlags.Private ) > 0 ) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public isPrivateProperty(): boolean {
+        if ( ( this.symbol.flags & ts.SymbolFlags.Property ) > 0 ) {
+            // A property has a value declaration
+            let flags = this.symbol.valueDeclaration.flags;
+
+            if ( ( flags & ts.NodeFlags.Private ) > 0 ) {
+                return true;
+            }
         }
 
         return false;
     }
 
     private getVariableDeclaration(): ts.VariableDeclaration {
-
-        if ( this.symbol.name === "pathLen" ) {
-            let logger =1;
-        }
 
         switch ( ( <ts.Node>this.identifier ).parent.kind ) {
             case ts.SyntaxKind.VariableDeclaration:
@@ -74,23 +116,4 @@ export class IdentifierInfo {
 
         return null;
     }
-
-    private getFunctionDeclaration(): ts.FunctionDeclaration {
-        let currentParent = ( <ts.Node>this.identifier ).parent;
-        // function parameter, no variable declaration
-
-        while ( currentParent.kind !== ts.SyntaxKind.FunctionDeclaration ) {
-            if ( currentParent.parent == null ) {
-                return null;
-            } else {
-                currentParent = currentParent.parent;
-            }
-        }
-        return <ts.FunctionDeclaration>currentParent;
-    }
-
-    private isVisible(): boolean {
-        return true;
-    }
-
 }

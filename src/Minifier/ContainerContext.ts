@@ -2,17 +2,20 @@
 import { Ast } from "../Ast/Ast";
 import { IdentifierInfo } from "./IdentifierSymbolInfo";
 
+import { Logger } from "../Reporting/Logger";
 
 // TJT: Rename to Container?
 export class ContainerContext {
 
     private container: ts.Node;
+    private blockScopeContainer: ts.Node;
+
     private parent: ContainerContext;
     private childContainers: ContainerContext[] = [];
 
     private containerFlags: Ast.ContainerFlags;
-    private blockScopeContainer: ts.Node;
-    public isBlockScope: boolean;
+    
+    private isBlockScope: boolean;
 
     // TJT: Review - do we need excluded symbols and names?
     public namesExcluded: ts.Map<boolean> = {};
@@ -29,12 +32,16 @@ export class ContainerContext {
             this.isBlockScope = false;
 
             this.parent = this;
+
+            //Logger.log( "New function scoped container: ", node.kind );
         }
         else if ( containerFlags & Ast.ContainerFlags.IsBlockScopedContainer ) {
             this.blockScopeContainer = node;
             this.isBlockScope = true;
 
             this.parent = parentContainer.getParent();
+
+            //Logger.log( "New block scoped container: ", node.kind );
         }
     }
 
@@ -61,6 +68,34 @@ export class ContainerContext {
             return ( <any>this.blockScopeContainer ).locals;
         else
             return ( <any>this.container ).locals;
+    }
+
+    public hasMembers(): boolean {
+        if ( this.container ) {
+            let containerSymbol: ts.Symbol = ( <any>this.container ).symbol;
+
+            if ( containerSymbol && ( containerSymbol.flags & ts.SymbolFlags.HasMembers ) ) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public getMembers(): ts.SymbolTable {
+        if ( this.container ) {
+            let containerSymbol: ts.Symbol = ( <any>this.container ).symbol;
+
+            if ( containerSymbol && ( containerSymbol.flags & ts.SymbolFlags.HasMembers ) ) {
+                return containerSymbol.members;
+            }
+        }
+
+        return undefined;
+    }
+
+    public isBlockScoped(): boolean {
+        return this.isBlockScope;
     }
 
     public isFunctionScoped(): boolean {
