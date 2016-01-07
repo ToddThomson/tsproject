@@ -1,11 +1,11 @@
 ﻿import ts = require( "typescript" );
 
-import { Compiler } from "./Compiler";
-import { ProjectConfig } from "./ProjectConfig";
-import { WatchCompilerHost }  from "./WatchCompilerHost";
-import { CompileStream }  from "./CompileStream";
-import { TsCore } from "./tsCore";
-import { Utils } from "./Utilities";
+import { Compiler } from "../Compiler/Compiler";
+import { ProjectConfig } from "../Project/ProjectConfig";
+import { WatchCompilerHost }  from "../Compiler/WatchCompilerHost";
+import { CompileStream }  from "../Compiler/CompileStream";
+import { TsCore } from "../Utils/tsCore";
+import { Utils } from "../Utils/Utilities";
 
 export class ProjectBuildContext {
 

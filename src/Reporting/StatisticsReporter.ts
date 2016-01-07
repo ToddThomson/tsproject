@@ -10,7 +10,7 @@ export class StatisticsReporter {
     }
 
     public reportValue( name: string, value: string ) {
-        Logger.log( this.padRight( name + ":", 18 ) + chalk.magenta( this.padLeft( value.toString(), 10 ) ) );
+        Logger.log( this.padRight( name + ":", 25 ) + chalk.magenta( this.padLeft( value.toString(), 10 ) ) );
     }
 
     public reportCount( name: string, count: number ) {
@@ -19,6 +19,10 @@ export class StatisticsReporter {
 
     public reportTime( name: string, time: number ) {
         this.reportValue( name, ( time / 1000 ).toFixed( 2 ) + "s" );
+    }
+
+    public reportPercentage( name: string, percentage: number ) {
+        this.reportValue( name, percentage.toFixed( 2 ) + "%" );
     }
 
     private padLeft( s: string, length: number ) {

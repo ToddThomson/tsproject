@@ -1,6 +1,6 @@
-﻿import { Logger } from "./Logger";
-import { Utils } from "./Utilities";
-import { TsCore } from "./TsCore";
+﻿import { Logger } from "../Reporting/Logger";
+import { Utils } from "../Utils/Utilities";
+import { TsCore } from "../Utils/TsCore";
 
 import ts = require( "typescript" );
 import path = require( "path" );
@@ -9,6 +9,7 @@ export interface BundleConfig {
     sourceMap: boolean;
     declaration: boolean;
     outDir: string;
+    minify: boolean;
 }
 
 export interface Bundle {

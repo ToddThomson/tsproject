@@ -3,6 +3,10 @@ import fs = require( "fs" );
 
 export module TsCore {
 
+    export interface MinifiedSymbol extends ts.Symbol {
+        minifiedName?: string;
+    }
+
     export interface WatchedSourceFile extends ts.SourceFile {
         fileWatcher?: fs.FSWatcher;
     }

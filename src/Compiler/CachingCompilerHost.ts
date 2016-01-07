@@ -3,9 +3,9 @@ import fs = require( "fs" );
 import path = require( "path" );
 import chokidar = require( "chokidar" );
 
-import { Logger } from "./Logger";
-import { TsCore } from "./tscore";
-import { Utils } from "./Utilities";
+import { Logger } from "../Reporting/Logger";
+import { TsCore } from "../Utils/tscore";
+import { Utils } from "../Utils/Utilities";
 
 /**
  * @description A typescript compiler host that supports incremental builds and optimizations for file reads and file exists functions. Emit output is saved to memory.

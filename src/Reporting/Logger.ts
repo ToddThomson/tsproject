@@ -11,8 +11,9 @@ export class Logger {
     private static logLevel: number = level.none;
     private static logName: string = "logger";
 
-    public static setLevel( level: number ) {
-        this.logLevel = level;
+    // TJT: Fixme after testing
+    public static setLevel( setLevelLevel: number ) {
+        this.logLevel = setLevelLevel;
     }
 
     public static setName( name: string ) {

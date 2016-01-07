@@ -1,16 +1,17 @@
-﻿import { CompilerResult } from "./CompilerResult";
-import { StatisticsReporter } from "./StatisticsReporter";
-import { WatchCompilerHost }  from "./WatchCompilerHost";
-import { CompileStream }  from "./CompileStream";
-import { Logger } from "./Logger";
-import { TsVinylFile } from "./TsVinylFile";
-import { BundleParser, Bundle, BundleConfig } from "./BundleParser";
-import { BundleResult, BundleFile } from "./BundleResult";
+﻿import { CompilerResult } from "../Compiler/CompilerResult";
+import { StatisticsReporter } from "../Reporting/StatisticsReporter";
+import { WatchCompilerHost }  from "../Compiler/WatchCompilerHost";
+import { CompileStream }  from "../Compiler/CompileStream";
+import { Logger } from "../Reporting/Logger";
+import { TsVinylFile } from "../Project/TsVinylFile";
+import { BundleParser, Bundle, BundleConfig } from "../Bundler/BundleParser";
+import { BundleResult, BundleFile } from "../Bundler/BundleResult";
+import { BundleMinifier } from "../Minifier/BundleMinifier";
 import { DependencyBuilder } from "./DependencyBuilder";
-import { Glob } from "./Glob";
+import { Glob } from "../Project/Glob";
 
-import { Utils } from "./Utilities";
-import { TsCore } from "./TsCore";
+import { Utils } from "../Utils/Utilities";
+import { TsCore } from "../Utils/TsCore";
 
 import ts = require( "typescript" );
 import fs = require( "fs" );
@@ -37,19 +38,43 @@ export class BundleCompiler {
     }
 
     public compile( bundleFile: BundleFile, bundleConfig: BundleConfig ): CompilerResult {
-        Logger.log( "Compiling bundle files..." );
+        Logger.log( "Compiling bundle..." );
 
         this.compileTime = this.preEmitTime = new Date().getTime();
+
+        // The list of bundle files to pass to program 
+        let bundleFiles: string[] = [];
+
+        // Bundle data
+        let bundleFileName: string;
+        let bundleFileText: string;
+        let bundleSourceFile: ts.SourceFile;
+
+        Utils.forEach( this.program.getSourceFiles(), file => {
+            bundleFiles.push( file.fileName );
+        });
 
         let outputText: ts.Map<string> = {};
         let defaultGetSourceFile: ( fileName: string, languageVersion: ts.ScriptTarget, onError?: ( message: string ) => void ) => ts.SourceFile;
 
-        let bundleFileName = bundleFile.path;
-        let bundleFileText = bundleFile.text;
-        
-        var bundleSourceFile = ts.createSourceFile( bundleFile.path, bundleFile.text, this.compilerOptions.target );
+        let minifyBundle = bundleConfig.minify || false;
+
+        if ( minifyBundle ) {
+            // Create the minified bundle fileName
+            let bundleDir = path.dirname( bundleFile.path );
+            let bundleName = path.basename( bundleFile.path, bundleFile.extension );
+
+            bundleFileName = TsCore.normalizeSlashes( path.join( bundleDir, bundleName + ".min.ts" ) );
+        }
+        else {
+            bundleFileName = bundleFile.path;
+        }
+
+        bundleFileText = bundleFile.text;
         this.bundleSourceFiles[ bundleFileName ] = bundleFileText;
-        
+        bundleSourceFile = ts.createSourceFile( bundleFileName, bundleFile.text, this.compilerOptions.target );
+        bundleFiles.push( bundleFileName );        
+
         // Reuse the project program source files
         Utils.forEach( this.program.getSourceFiles(), file => {
             this.bundleSourceFiles[ file.fileName ] = file.text;
@@ -63,6 +88,7 @@ export class BundleCompiler {
             if ( fileName === bundleFileName ) {
                 return bundleSourceFile;
             }
+
             // Use base class to get the source file
             let sourceFile: TsCore.WatchedSourceFile = defaultGetSourceFile( fileName, languageVersion, onError );
 
@@ -74,20 +100,16 @@ export class BundleCompiler {
         this.compilerHost.getSourceFile = getSourceFile;
         this.compilerHost.writeFile = writeFile;
 
-        // Get the list of bundle files to pass to program 
-        let bundleFiles: string[] = [];
-        bundleFiles.push( bundleFileName );
-
-        Utils.forEach( this.program.getSourceFiles(), file => {
-            bundleFiles.push( file.fileName );
-        });
-
         // Allow bundle config to extent the project compilerOptions for declaration and source map emitted output
         let compilerOptions = this.compilerOptions;
         
         compilerOptions.declaration = bundleConfig.declaration || this.compilerOptions.declaration;
         compilerOptions.sourceMap = bundleConfig.sourceMap || this.compilerOptions.sourceMap;
         compilerOptions.noEmit = false; // Always emit bundle output
+
+        if ( minifyBundle ) {
+            compilerOptions.removeComments = true;
+        }
 
         // Pass the current project build program to reuse program structure
         var bundlerProgram = ts.createProgram( bundleFiles, compilerOptions, this.compilerHost );//CompilerHost, this.program );
@@ -100,6 +122,12 @@ export class BundleCompiler {
         // Return if noEmitOnError flag is set, and we have errors
         if ( this.compilerOptions.noEmitOnError && preEmitDiagnostics.length > 0 ) {
             return new CompilerResult( ts.ExitStatus.DiagnosticsPresent_OutputsSkipped, preEmitDiagnostics );
+        }
+
+        if ( minifyBundle ) {
+            Logger.log( "Minifying bundle..." );
+            let minifier = new BundleMinifier( bundlerProgram, compilerOptions );
+            bundleSourceFile = minifier.transform( bundleSourceFile );
         }
 
         this.emitTime = new Date().getTime();
@@ -121,9 +149,9 @@ export class BundleCompiler {
         }
 
         // Stream the bundle source file ts, and emitted files...
-        Logger.info( "Streaming vinyl bundle source: ", bundleFile.path );
+        Logger.info( "Streaming vinyl bundle source: ", bundleFileName );
         var tsVinylFile = new TsVinylFile( {
-            path: bundleFile.path,
+            path: bundleFileName,
             contents: new Buffer( bundleFile.text )
         });
 
@@ -131,21 +159,30 @@ export class BundleCompiler {
             
         let bundleDir = path.dirname( bundleFile.path );
         let bundleName = path.basename( bundleFile.path, bundleFile.extension );
+        let bundlePrefixExt = minifyBundle ? ".min" : "";
 
-        let jsBundlePath = TsCore.normalizeSlashes( path.join( bundleDir, bundleName + ".js" ) );
+        let jsBundlePath = TsCore.normalizeSlashes( path.join( bundleDir, bundleName + bundlePrefixExt + ".js" ) );
 
         // js should have been generated, but just in case!
         if ( Utils.hasProperty( outputText, jsBundlePath ) ) {
+            let jsContents = outputText[ jsBundlePath ];
+            if ( minifyBundle ) {
+                // Whitespace removal cannot be performed in the AST minification transform, so
+                // we do it here for now
+                let minifier = new BundleMinifier( bundlerProgram, compilerOptions );
+                jsContents = minifier.removeWhitespace( jsContents );
+                
+            }
             Logger.info( "Streaming vinyl js: ", bundleName );
             var bundleJsVinylFile = new TsVinylFile( {
                 path: jsBundlePath,
-                contents: new Buffer( outputText[ jsBundlePath ] )
+                contents: new Buffer( jsContents )
             });
 
             this.outputStream.push( bundleJsVinylFile );
         }
 
-        let dtsBundlePath = TsCore.normalizeSlashes( path.join( bundleDir, bundleName + ".d.ts" ) );
+        let dtsBundlePath = TsCore.normalizeSlashes( path.join( bundleDir, bundleName + bundlePrefixExt + ".d.ts" ) );
         
         // d.ts is generated, if compiler option declaration is true
         if ( Utils.hasProperty( outputText, dtsBundlePath ) ) {
@@ -158,7 +195,7 @@ export class BundleCompiler {
             this.outputStream.push( bundleDtsVinylFile );
         }
 
-        let mapBundlePath = TsCore.normalizeSlashes( path.join( bundleDir, bundleName + ".js.map" ) );
+        let mapBundlePath = TsCore.normalizeSlashes( path.join( bundleDir, bundleName + bundlePrefixExt + ".js.map" ) );
         
         // js.map is generated, if compiler option sourceMap is true
         if ( Utils.hasProperty( outputText, mapBundlePath ) ) {
