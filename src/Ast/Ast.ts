@@ -108,41 +108,6 @@ export module Ast {
         return ContainerFlags.None;
     }
 
-<<<<<<< HEAD
-=======
-    export function isBlockScopedVariable( node: ts.VariableDeclaration | ts.VariableStatement ): boolean {
-        const parentNode = ( node.kind === ts.SyntaxKind.VariableDeclaration )
-            ? ( <ts.VariableDeclaration>node ).parent
-            : ( <ts.VariableStatement>node ).declarationList;
-
-        return isNodeFlagSet( parentNode, ts.NodeFlags.Let )
-            || isNodeFlagSet( parentNode, ts.NodeFlags.Const );
-    }
-
-    export function isBlockScopedBindingElement( node: ts.BindingElement ): boolean {
-        const variableDeclaration = getBindingElementVariableDeclaration( node );
-        // if no variable declaration, it must be a function param, which is block scoped
-        return ( variableDeclaration == null ) || isBlockScopedVariable( variableDeclaration );
-    }
-
-    export function getBindingElementVariableDeclaration( node: ts.BindingElement ): ts.VariableDeclaration {
-        let currentParent = node.parent;
-        while ( currentParent.kind !== ts.SyntaxKind.VariableDeclaration ) {
-            if ( currentParent.parent == null ) {
-                return null; // function parameter, no variable declaration
-            } else {
-                currentParent = currentParent.parent;
-            }
-        }
-        return <ts.VariableDeclaration>currentParent;
-    }
-
-
-    export function isNodeFlagSet( node: ts.Node, flagToCheck: ts.NodeFlags ): boolean {
-        return ( node.flags & flagToCheck ) !== 0;
-    }
-
->>>>>>> origin/master
     export function isKeyword( token: ts.SyntaxKind ): boolean {
         return ts.SyntaxKind.FirstKeyword <= token && token <= ts.SyntaxKind.LastKeyword;
     }

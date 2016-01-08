@@ -95,11 +95,7 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
         if ( this.compilerOptions.diagnostics )
             this.reportWhitespaceStatistics();
 
-<<<<<<< HEAD
         // TJT: Fixme - leave whitespace elimination out for testing in rc releases.
-=======
-        // TJT: Fixme - only for testing
->>>>>>> origin/master
         return jsContents; //output;
     }
 
@@ -120,10 +116,6 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
                         let symbolId: number = ( <any>identifierSymbol ).id;
 
                         if ( symbolId !== undefined ) {
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/master
                             // Logger.log( "Identifier found: ", identifierSymbol.name, symbolId );
                             let uniqueIdentifierName = symbolId.toString();
 
@@ -169,7 +161,6 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
                             }
                         }
                         else {
-<<<<<<< HEAD
                             // TJT: TODO..
                             // If an identifier symbol does not have an id then it has no references or is a transient.
                             // We can ignore transient, but unreferenced symbols may possibly be optimized.
@@ -179,9 +170,6 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
                                 //Logger.log( "Symbol does not have an id: ", identifierSymbol.name );
                                 //Ast.displaySymbolFlags( identifierSymbol.flags );
                             //}
-=======
-                            //Logger.log( "Symbol does not have an id: ", identifierSymbol.name );
->>>>>>> origin/master
                         }
                     }
                     else {
@@ -215,24 +203,7 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
     }
 
     private shortenContainerIdentifiers( container: ContainerContext ): void {
-<<<<<<< HEAD
         //Logger.log( "Shortening container identifiers.." );
-=======
-        //Logger.log( "Shortening container identifiers" );
-        
-        // For ES5 generated javascript we must guard against using block scoped variable as they cannot
-        // be handled by the Typescript compiler without reparsing.
-        if ( this.compilerOptions.target === ts.ScriptTarget.ES5 ) {
-            if ( container.isFunctionScoped() ) {
-                //Logger.log( "Resetting name generator" );
-                this.nameGenerator.reset();
-            }
-        }
-        else {
-            // ES6 additionally supports block scoped identifiers - reset name generator per container
-            this.nameGenerator.reset();
-        }
->>>>>>> origin/master
 
         // Determine identifier names which cannot be used..
         let excludedSymbol: IdentifierInfo;
@@ -267,30 +238,7 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
             }
         }
 
-<<<<<<< HEAD
         // If this container has members ( is a Class | Interface | TypeLiteral | ObjectLiteral ), then we must process these first
-=======
-        // TJT: This block is prob. not needed? Remove after determining.
-
-        //for ( let i = 0; i < containerChildren.length; i++ ) {
-        //    let childContainer = containerChildren[i];
-
-        //    for ( let excludedSymbolKey in childContainer.excludedIdentifiers ) {
-        //        let excludedSymbol = childContainer.excludedIdentifiers[excludedSymbolKey];
-
-        //        if ( excludedSymbol.shortenedName ) {
-        //            container.namesExcluded[excludedSymbol.shortenedName] = true;
-        //        }
-        //        else {
-        //            Logger.log( "Excluding symbol does not have a shortened name: ", excludedSymbol.getName() );
-        //        }
-        //    }
-        //}
-
-        // If this container has members ( is a Class | Interface | TypeLiteral | ObjectLiteral ), then we must process
-        // these first
-        
->>>>>>> origin/master
         if ( container.hasMembers() ) {
             let containerMembers = container.getMembers();
 
@@ -315,11 +263,7 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
             }
         } 
 
-<<<<<<< HEAD
         // Now process the containers local identifiers...
-=======
-        // First process local container identifiers
->>>>>>> origin/master
         for ( let symbolKey in container.symbolTable ) {
             let identifierSymbol = container.symbolTable[symbolKey];
 
@@ -338,11 +282,6 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
         if ( this.canShortenIdentifier( identifierInfo ) ) {
             let shortenedName = this.getShortenedIdentifierName( container, identifierInfo );
 
-<<<<<<< HEAD
-=======
-            //Logger.log( "Identifier renamed: ", identifierInfo.getName(), shortenedName );
-
->>>>>>> origin/master
             Utils.forEach( identifierInfo.refs, identifier => {
                 this.setIdentifierText( identifier, shortenedName );
             });
@@ -350,11 +289,7 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
             return;
         }
 
-<<<<<<< HEAD
         //Logger.log( "Identifier cannot be shortened: ", identifierInfo.getName() );
-=======
-        Logger.info( "Identifier cannot be shortened: ", identifierInfo.getName() );
->>>>>>> origin/master
     }
 
     private canShortenIdentifier( identifierInfo: IdentifierInfo ): boolean {
@@ -383,11 +318,7 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
                 // Loop until we have a valid shortened name
                 // The shortened name MUST be the same length or less
                 while ( true ) {
-<<<<<<< HEAD
                     let shortenedName = this.nameGenerator.getName( container.getNameIndex() );
-=======
-                    let shortenedName = this.nameGenerator.getName();
->>>>>>> origin/master
 
                     Debug.assert( shortenedName.length <= identifierName.length );
 
@@ -396,11 +327,7 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
                         break;
                     }
                     else {
-<<<<<<< HEAD
                         //Logger.log( "Generated name was excluded: ", shortenedName, identifierName );
-=======
-                        Logger.info( "Generated name was excluded: ", shortenedName, identifierName );
->>>>>>> origin/master
                     }
                 }
 
@@ -408,15 +335,10 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
             }
         }
         else {
-<<<<<<< HEAD
             //Logger.log( "Identifier already has shortened name: ", identifierInfo.getName(), identifierInfo.shortenedName ); 
         }
 
         //Logger.log( "Identifier shortened name: ", identifierInfo.getName(), identifierInfo.shortenedName ); 
-=======
-            Logger.info( "Identifier already has shortened name: ", identifierInfo.getName(), identifierInfo.shortenedName ); 
-        }
->>>>>>> origin/master
         
         return identifierInfo.shortenedName;
     }
@@ -434,55 +356,6 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
         }
     }
 
-<<<<<<< HEAD
-=======
-    private analyzeContainerIdentifiers(): void {
-
-        // Sort the symbolMap
-        var symbolTableKeys: string[] = Object.keys( this.currentContainer().symbolTable );
-
-        let identifierCount = symbolTableKeys.length;
-        Logger.log( "Identifier count: ", identifierCount );
-
-        // There can be up to 54 single character identifier names
-        // There can be up to 64 * 54 = 3456 double char identifier names
-        let singleLetterNames = identifierCount % 54;
-        let doubleLetterNames = identifierCount - singleLetterNames;
-        let averageRatio = ( ( 2 * doubleLetterNames ) + singleLetterNames ) / identifierCount;
-        
-        Logger.log( "Compression ratio: ", averageRatio );
-
-        let symbolTable = this.currentContainer().symbolTable;
-
-        symbolTableKeys.sort( function( a, b ) {
-            let bSpace = symbolTable[b].refs.length * ( symbolTable[b].getName().length - averageRatio );
-            let aSpace = symbolTable[a].refs.length * ( symbolTable[a].getName().length - averageRatio );
-
-            return ( bSpace - aSpace );
-        });
-        
-        let totalOriginalSpace = 0;
-        let totalCompressedSpace = 0;
-
-        let symbolIndex = 0;
-
-        symbolTableKeys.forEach( ( key ) => {
-            let symbolInfo: IdentifierInfo = this.currentContainer().symbolTable[key];
-            symbolInfo.shortenedName = this.nameGenerator.getName();
-
-            let originalSpace = ( symbolInfo.getName().length * symbolInfo.refs.length );
-            let compressedSpace = ( symbolInfo.shortenedName.length * symbolInfo.refs.length );
-
-            Logger.log( "Compression of symbol: ", symbolInfo.getName(), originalSpace, compressedSpace, originalSpace - compressedSpace );
-
-            totalOriginalSpace += originalSpace;
-            totalCompressedSpace += compressedSpace;
-        });
-
-        Logger.log( "Total Compression: ", totalOriginalSpace, totalCompressedSpace );
-    }
-
->>>>>>> origin/master
     private currentContainer(): ContainerContext {
         return this.containerStack[ this.containerStack.length - 1 ];
     }
