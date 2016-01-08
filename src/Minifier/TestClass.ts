@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ﻿// SourcFile Container: 248
 
 //import ts = require( "typescript" );
@@ -23,16 +24,33 @@ export class TestClass {
         for ( var filesKey in bundle.fileNames ) {
             let fileName = bundle.fileNames[filesKey];
         }
+=======
+﻿export class TestClass {
+
+    private gerb1: number = 1;
+    private gerb2: number = 2;
+    private gerb3: number = 3;
+    private gerb4: number = 4;
+
+    public fPublic(): number {
+        let result = this.f1();
+>>>>>>> origin/master
 
         return result;
     }
 
+<<<<<<< HEAD
     private f1(): number { // f1 -> e
         let result = this.f2( this.gerb1, this.gerb2 ) + this.f3( this.gerb3 );
+=======
+    private f1(): number {
+        let result = this.f2( 5, 2 ) + this.f3( 19 );
+>>>>>>> origin/master
 
         return result;
     }
 
+<<<<<<< HEAD
     private f2( parm1: number, parm2: number ): number { // f2 -> f
         var result = parm1 + parm2;
 
@@ -45,4 +63,18 @@ export class TestClass {
 
 var test = new TestClass(); // test -> a
 var t1 = test.fPublic(); // t1 -> b
+=======
+    private f2( parm1: number, parm2: number ): number {
+        let result = parm1 + parm2;
+
+        return result;
+    }
+    private f3( parm1: number ): number {
+        return parm1 + this.f2( 1, 2 );
+    }
+}
+
+var test = new TestClass();
+var t1 = test.fPublic();
+>>>>>>> origin/master
 console.log( t1 );

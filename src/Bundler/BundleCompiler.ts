@@ -167,7 +167,12 @@ export class BundleCompiler {
         if ( Utils.hasProperty( outputText, jsBundlePath ) ) {
             let jsContents = outputText[ jsBundlePath ];
             if ( minifyBundle ) {
+<<<<<<< HEAD:src/Bundler/BundleCompiler.ts
                 // Whitespace removal cannot be performed in the AST minification transform, so we do it here for now
+=======
+                // Whitespace removal cannot be performed in the AST minification transform, so
+                // we do it here for now
+>>>>>>> origin/master:src/Bundler/BundleCompiler.ts
                 let minifier = new BundleMinifier( bundlerProgram, compilerOptions );
                 jsContents = minifier.removeWhitespace( jsContents );
                 

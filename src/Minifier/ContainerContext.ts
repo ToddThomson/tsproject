@@ -17,8 +17,11 @@ export class ContainerContext {
     
     private isBlockScope: boolean;
 
+<<<<<<< HEAD
     private nameIndex: number;
 
+=======
+>>>>>>> origin/master
     // TJT: Review - do we need excluded symbols and names?
     public namesExcluded: ts.Map<boolean> = {};
     public excludedIdentifiers: ts.Map<IdentifierInfo> = {};
@@ -27,7 +30,10 @@ export class ContainerContext {
     public shortenedIdentifierCount = 0;
 
     constructor( node: ts.Node, containerFlags: Ast.ContainerFlags, parentContainer: ContainerContext ) {
+<<<<<<< HEAD
         //Logger.log( "Container creation: ", node.kind );
+=======
+>>>>>>> origin/master
         this.containerFlags = containerFlags;
 
         if ( containerFlags & Ast.ContainerFlags.IsContainer ) {
@@ -35,6 +41,7 @@ export class ContainerContext {
             this.isBlockScope = false;
 
             this.parent = this;
+<<<<<<< HEAD
             
             // The name generator index starts at 0 for containers 
             this.nameIndex = 0;
@@ -49,6 +56,18 @@ export class ContainerContext {
             else {
                 Logger.log( ">>>>> Not a container bug" );
             }
+=======
+
+            //Logger.log( "New function scoped container: ", node.kind );
+        }
+        else if ( containerFlags & Ast.ContainerFlags.IsBlockScopedContainer ) {
+            this.blockScopeContainer = node;
+            this.isBlockScope = true;
+
+            this.parent = parentContainer.getParent();
+
+            //Logger.log( "New block scoped container: ", node.kind );
+>>>>>>> origin/master
         }
     }
 
@@ -64,6 +83,7 @@ export class ContainerContext {
         return this.parent;
     }
 
+<<<<<<< HEAD
     // TJT: This logic needs to be reviewed for applicability to ES6 block scopes
     public getNameIndex(): number {
         if ( this.isBlockScope ) {
@@ -75,10 +95,24 @@ export class ContainerContext {
     }
 
     // TJT: Rename to getContainerNode()?
+=======
+    // TJT: Rename to getContainer()?
+>>>>>>> origin/master
     public getNode(): ts.Node {
         return this.isBlockScope ? this.blockScopeContainer : this.container;
     }
 
+<<<<<<< HEAD
+=======
+    // TJT: to be removed if not required
+    public getLocals(): ts.SymbolTable {
+        if ( this.isBlockScope )
+            return ( <any>this.blockScopeContainer ).locals;
+        else
+            return ( <any>this.container ).locals;
+    }
+
+>>>>>>> origin/master
     public hasMembers(): boolean {
         if ( this.container ) {
             let containerSymbol: ts.Symbol = ( <any>this.container ).symbol;

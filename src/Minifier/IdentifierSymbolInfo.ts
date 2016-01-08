@@ -26,6 +26,17 @@ export class IdentifierInfo {
         return this.getId().toString();
     }
 
+<<<<<<< HEAD
+=======
+    public getMembers(): ts.SymbolTable {
+        if ( this.symbol.flags & ts.SymbolFlags.HasMembers ) {
+            return this.symbol.members;
+        }
+
+        return undefined;
+    }
+
+>>>>>>> origin/master
     public isFunctionScopedVariable(): boolean {
         if ( ( this.symbol.flags & ts.SymbolFlags.FunctionScopedVariable ) > 0 ) {
             let variableDeclaration = this.getVariableDeclaration();

@@ -4,7 +4,16 @@ TsProject is a Typescript bundle compiler which utilizes the Typescript project 
 
 TsProject produces a compiled output stream of vinyl files for further processing in the gulp build pipeline.
 
+## Top Features
+
+* Bundling of ES6 external Typescript modules
+* Bundle minification with identifier shortening and whitespace removal
+* Cache optimized incremental project builds
+* File glob pattern matching for project files
+ 
 ## What's New
+
+TsProject 1.2.0 provides bundle minification by shortening identifiers and whitespace removal.
 
 TsProject 1.1.0 provides project watch support for cache optimized, incremental builds.
 
