@@ -1,16 +1,15 @@
-﻿import { CompilerResult } from "./CompilerResult";
-import { StatisticsReporter } from "./StatisticsReporter";
-import { WatchCompilerHost }  from "./WatchCompilerHost";
-import { CompileStream }  from "./CompileStream";
-import { Logger } from "./Logger";
-import { TsVinylFile } from "./TsVinylFile";
+﻿import { CompilerResult } from "../Compiler/CompilerResult";
+import { WatchCompilerHost }  from "../Compiler/WatchCompilerHost";
+import { CompileStream }  from "../Compiler/CompileStream";
+import { StatisticsReporter } from "../Reporting/StatisticsReporter";
+import { Logger } from "../Reporting/Logger";
+import { TsVinylFile } from "../Project/TsVinylFile";
+import { Glob } from "../Project/Glob";
 import { BundleParser, Bundle } from "./BundleParser";
 import { BundleResult } from "./BundleResult";
 import { DependencyBuilder } from "./DependencyBuilder";
-import { Glob } from "./Glob";
-
-import { Utils } from "./Utilities";
-import { TsCore } from "./TsCore";
+import { Utils } from "../Utils/Utilities";
+import { TsCore } from "../Utils/TsCore";
 
 import ts = require( "typescript" );
 import fs = require( "fs" );
@@ -261,11 +260,11 @@ export class BundleBuilder {
         ts.forEachChild( file, node => {
             if ( node.kind === ts.SyntaxKind.ImportDeclaration || node.kind === ts.SyntaxKind.ImportEqualsDeclaration || node.kind === ts.SyntaxKind.ExportDeclaration ) {
                 Logger.info( "processImportStatements() found import" );
-                let moduleNameExpr = TsCore.getExternalModuleName( node );
+                let moduleNameExpression = TsCore.getExternalModuleName( node );
 
-                if ( moduleNameExpr && moduleNameExpr.kind === ts.SyntaxKind.StringLiteral ) {
+                if ( moduleNameExpression && moduleNameExpression.kind === ts.SyntaxKind.StringLiteral ) {
 
-                    let moduleSymbol = this.program.getTypeChecker().getSymbolAtLocation( moduleNameExpr );
+                    let moduleSymbol = this.program.getTypeChecker().getSymbolAtLocation( moduleNameExpression );
 
                     if ( ( moduleSymbol ) && ( this.isCodeModule( moduleSymbol ) || this.isAmbientModule ) ) {
                         Logger.info( "processImportStatements() removing code module symbol" );

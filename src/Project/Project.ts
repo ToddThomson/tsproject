@@ -1,20 +1,20 @@
-﻿import { Compiler } from "./Compiler";
-import { CompilerResult } from "./CompilerResult";
-import { DiagnosticsReporter } from "./DiagnosticsReporter";
-import { WatchCompilerHost }  from "./WatchCompilerHost";
+﻿import { Compiler } from "../Compiler/Compiler";
+import { CompilerResult } from "../Compiler/CompilerResult";
+import { DiagnosticsReporter } from "../Reporting/DiagnosticsReporter";
+import { WatchCompilerHost }  from "../Compiler/WatchCompilerHost";
 import { ProjectBuildContext } from "./ProjectBuildContext";
-import { CompileStream }  from "./CompileStream";
-import { BundleBuilder } from "./BundleBuilder";
-import { BundleFile, BundleResult } from "./BundleResult";
-import { BundleCompiler } from "./BundleCompiler";
+import { CompileStream }  from "../Compiler/CompileStream";
+import { BundleBuilder } from "../Bundler/BundleBuilder";
+import { BundleFile, BundleResult } from "../Bundler/BundleResult";
+import { BundleCompiler } from "../Bundler/BundleCompiler";
 import { ProjectConfig } from "./ProjectConfig";
-import { StatisticsReporter } from "./StatisticsReporter";
-import { Logger } from "./Logger";
+import { StatisticsReporter } from "../Reporting/StatisticsReporter";
+import { Logger } from "../Reporting/Logger";
 import { TsVinylFile } from "./TsVinylFile";
-import { BundleParser, Bundle } from "./BundleParser";
+import { BundleParser, Bundle } from "../Bundler/BundleParser";
 import { Glob } from "./Glob";
-import { TsCore } from "./TsCore";
-import { Utils } from "./Utilities";
+import { TsCore } from "../Utils/TsCore";
+import { Utils } from "../Utils/Utilities";
 
 import ts = require( "typescript" );
 import _ = require( "lodash" );
@@ -183,6 +183,12 @@ export class Project {
 
                 return ts.ExitStatus.DiagnosticsPresent_OutputsSkipped;
             }
+            
+            //if ( .minify ) {
+            //    let minifier = new BundleMinifier( this.compilerOptions );
+            //    let minifiedBundleSourceFile = minifier.minify( bundleFile );
+            //    this.bundleSourceFiles[bundleFileName] = bundleFileText;
+            //}
 
             compileResult = bundleCompiler.compile( bundleResult.getBundleSource(), bundles[ i ].config );
 

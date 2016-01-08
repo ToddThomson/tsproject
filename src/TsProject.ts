@@ -1,6 +1,6 @@
-﻿import { Project } from "./Project";
-import { CompileStream } from "./CompileStream";
-import { Logger } from "./Logger";
+﻿import { Project } from "./Project/Project";
+import { CompileStream } from "./Compiler/CompileStream";
+import { Logger } from "./Reporting/Logger";
 
 import ts = require( "typescript" );
 import chalk = require( "chalk" );

@@ -4,9 +4,9 @@ import path = require( "path" );
 import chokidar = require( "chokidar" );
 
 import { CachingCompilerHost } from "./CachingCompilerHost";
-import { Logger } from "./Logger";
-import { TsCore } from "./tscore";
-import { Utils } from "./Utilities";
+import { Logger } from "../Reporting/Logger";
+import { TsCore } from "../Utils/tscore";
+import { Utils } from "../Utils/Utilities";
 
 /**
  * @description A typescript compiler host that supports watch incremental builds.

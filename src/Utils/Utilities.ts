@@ -53,6 +53,9 @@ export module Utils {
     }
 
     export function extend<T1, T2>( first: ts.Map<T1>, second: ts.Map<T2> ): ts.Map<T1 & T2> {
+
+        let sentinal = 1;
+
         let result: ts.Map<T1 & T2> = {};
         for ( let id in first ) {
             ( result as any )[id] = first[id];
@@ -63,5 +66,9 @@ export module Utils {
             }
         }
         return result;
+    }
+
+    export function replaceAt( str, index, character ) {
+        return str.substr( 0, index ) + character + str.substr( index + character.length );
     }
 }

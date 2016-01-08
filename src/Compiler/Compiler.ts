@@ -1,11 +1,11 @@
 ﻿import { CompilerResult } from "./CompilerResult";
 import { CachingCompilerHost }  from "./CachingCompilerHost";
 import { CompileStream }  from "./CompileStream";
-import { StatisticsReporter } from "./StatisticsReporter";
-import { Logger } from "./Logger";
-import { TsVinylFile } from "./TsVinylFile";
-import { Utils } from "./Utilities";
-import { TsCore } from "./TsCore";
+import { StatisticsReporter } from "../Reporting/StatisticsReporter";
+import { Logger } from "../Reporting/Logger";
+import { TsVinylFile } from "../Project/TsVinylFile";
+import { Utils } from "../Utils/Utilities";
+import { TsCore } from "../Utils/TsCore";
 
 import ts = require( "typescript" );
 import path = require( "path" );
