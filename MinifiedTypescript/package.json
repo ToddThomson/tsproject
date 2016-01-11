@@ -11,7 +11,7 @@
         "gulp-requirejs": "latest",
         "chalk": "~1.1.1",
         "typescript": "~1.7.5",
-        "tsproject": "~1.2.0-rc.2"
+        "tsproject": "~1.2.0-rc.3"
     },
     "author": "Todd Thomson <todd.thomson@me.com>",
     "license": "MIT"
