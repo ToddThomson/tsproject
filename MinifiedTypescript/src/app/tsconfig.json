@@ -1,0 +1,30 @@
+{
+    "version": "1.7.5",
+    "compilerOptions": {
+        "target": "es5",
+        "module": "amd",
+        "declaration": false,
+        "diagnostics": true,
+        "listFiles": false,
+        "noImplicitAny": false,
+        "preserveConstEnums": true,
+        "removeComments": false,
+        "sourceMap": false,
+        "noEmit": true
+    },
+    "files": [
+        "./greeter.ts",
+        "./app.ts"
+    ],
+    "bundles": {
+        "app": {
+            "files": [ "./app.ts" ],
+            "config": {
+                "declaration": true,
+                "sourceMap": false,
+                "outDir": "./bundles",
+                "minify": true
+            }
+        }
+    }
+}

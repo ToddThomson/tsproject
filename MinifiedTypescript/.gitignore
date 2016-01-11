@@ -5,7 +5,6 @@ dist
 node_modules/
 obj
 properties
-*.csproj
 *.csproj.user
 *.csproj.vspscc
 *.config
@@ -13,5 +12,4 @@ properties
 src/app/**/*.js
 src/app/**/*.js.map
 # ... except specific ones, which should be tracked
-!src/app/main.js
-
+!src/app
