@@ -17,7 +17,11 @@ export class ContainerContext {
     
     private isBlockScope: boolean;
 
+    private hasExtendsClause: boolean;
+
     private nameIndex: number;
+
+    //private id: number;
 
     // TJT: Review - do we need excluded symbols and names?
     public namesExcluded: ts.Map<boolean> = {};
@@ -30,11 +34,29 @@ export class ContainerContext {
         //Logger.log( "Container creation: ", node.kind );
         this.containerFlags = containerFlags;
 
+        //this.id = ( <any>node ).id;
+        //if ( !this.id ) {
+        //    Logger.log( "Container does not have an id" );
+        //}
+
+
+        this.hasExtendsClause = false;
+
         if ( containerFlags & Ast.ContainerFlags.IsContainer ) {
             this.container = this.blockScopeContainer = node;
             this.isBlockScope = false;
 
             this.parent = this;
+
+            // if this is a class like container then we must check to see if it extends a base class
+            let extendsClause = this.getExtendsHeritageClause();
+            if ( extendsClause ) {
+                Logger.log( "Container extends base class" );
+                // TJT: What happens if a child extends an existing method or property of the parent? Do they have the same symbol?
+                // TJT: The name index for both the parent and child properties and methods must not collide
+
+                this.hasExtendsClause = true;
+            }
             
             // The name generator index starts at 0 for containers 
             this.nameIndex = 0;
@@ -79,6 +101,10 @@ export class ContainerContext {
         return this.isBlockScope ? this.blockScopeContainer : this.container;
     }
 
+    public isExtends(): boolean {
+        return this.hasExtendsClause;
+    }
+
     public hasMembers(): boolean {
         if ( this.container ) {
             let containerSymbol: ts.Symbol = ( <any>this.container ).symbol;
@@ -113,5 +139,20 @@ export class ContainerContext {
         }
 
         return false;
+    }
+
+    public getExtendsHeritageClause(): ts.HeritageClause {
+        if ( this.container ) {
+            let heritageClauses = ( <ts.ClassLikeDeclaration>this.container ).heritageClauses;
+            if ( heritageClauses ) {
+                for ( const clause of heritageClauses ) {
+                    if ( clause.token === ts.SyntaxKind.ExtendsKeyword ) {
+                        return clause;
+                    }
+                }
+            }
+        }
+
+        return undefined;
     }
 }

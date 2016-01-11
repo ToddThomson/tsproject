@@ -19,7 +19,8 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
     private checker: ts.TypeChecker;
     private compilerOptions: ts.CompilerOptions;
 
-    private containerStack: ContainerContext[];
+    private containerStack: ContainerContext[] = [];
+    private classifiableContainers: ts.Map<ContainerContext> = {};
     private allIdentifierSymbols: ts.Map<IdentifierInfo> = {};
     private sourceFileContainer: ContainerContext;
     private nameGenerator: NameGenerator;
@@ -113,6 +114,11 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
                     let identifierSymbol: ts.Symbol = this.checker.getSymbolAtLocation( identifier );
 
                     if ( identifierSymbol ) {
+
+                        if ( identifierSymbol.getName() === "BaseClass" ) {
+                            Logger.log( "break BaseClass" );
+                        }
+
                         let symbolId: number = ( <any>identifierSymbol ).id;
 
                         if ( symbolId !== undefined ) {
@@ -238,7 +244,37 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
             }
         }
 
-        // If this container has members ( is a Class | Interface | TypeLiteral | ObjectLiteral ), then we must process these first
+        // If this container extends a base/parent class then we must make sure we have processed the base/parent class members
+        if ( container.isExtends() ) {
+            Logger.log( "Class like container is extending a base class" );
+            let extendsClause = container.getExtendsHeritageClause();
+            let node = extendsClause.types[0].expression;
+            const symbol = this.checker.getSymbolAtLocation( node );
+            let symbolUId: string = ( <any>symbol ).id.toString();
+
+            // We need to get the container context for the base class
+            let baseClassContainer = this.classifiableContainers[symbolUId];
+
+            this.processClassMembers( symbol.members, baseClassContainer );
+
+            // The base class members must be excluded from this subclass
+            for ( let memberKey in symbol.members ) {
+                let memberSymbol = symbol.members[memberKey];
+
+                if ( memberSymbol && ( <any>memberSymbol ).id ) {
+                    let memberSymbolUId: string = ( <any>memberSymbol ).id.toString();
+
+                    let excludedSymbol = this.allIdentifierSymbols[memberSymbolUId];
+
+                    if ( excludedSymbol && excludedSymbol.shortenedName ) {
+                        //Logger.log( "Excluding identifier name for: ", excludedSymbol.getName(), excludedSymbol.shortenedName );
+                        container.namesExcluded[excludedSymbol.shortenedName] = true;
+                    }
+                }
+            }
+        }
+
+        // If this container has members ( is a Class | Interface | TypeLiteral | ObjectLiteral ), then we must process these next
         if ( container.hasMembers() ) {
             let containerMembers = container.getMembers();
 
@@ -356,6 +392,28 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
         }
     }
 
+    private processClassMembers( members: ts.SymbolTable, container: ContainerContext ): void {
+        for ( let memberKey in members ) {
+            let memberSymbol = members[memberKey];
+
+            if ( memberSymbol && ( <any>memberSymbol ).id ) {
+                let memberSymbolUId: string = ( <any>memberSymbol ).id.toString();
+
+                if ( Utils.hasProperty( this.allIdentifierSymbols, memberSymbolUId ) ) {
+                    let memberIdentifierInfo = this.allIdentifierSymbols[memberSymbolUId];
+
+                    this.processIdentifierSymbolInfo( container, memberIdentifierInfo );
+                }
+                else {
+                    Debug.assert( true, "Member not found" );
+                }
+            }
+            else {
+                //Logger.log( "Container member does not have a symbol" );
+            }
+        }
+    }
+
     private currentContainer(): ContainerContext {
         return this.containerStack[ this.containerStack.length - 1 ];
     }
@@ -365,16 +423,27 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
         return this.containerStack.pop();
     }
 
+
     private isNextContainer( node: ts.Node ): boolean {
         let containerFlags: Ast.ContainerFlags = Ast.getContainerFlags( node );
 
         if ( containerFlags & ( Ast.ContainerFlags.IsContainer | Ast.ContainerFlags.IsBlockScopedContainer ) ) {
             let nextContainer = new ContainerContext( node, containerFlags, this.currentContainer() )
 
+            // Check if the container symbol is Classifiable. If so save it to speed up inheritance processing.
+            let containerSymbol: ts.Symbol = this.checker.getSymbolAtLocation( node );
+            if ( containerSymbol ) {
+                let containerSymbolUId: string = ( <any>containerSymbol ).id.toString();
+
+                if ( !Utils.hasProperty( this.classifiableContainers, containerSymbolUId ) ) {
+                    this.classifiableContainers[containerSymbolUId];
+                }
+            }
+
             // Before changing the current container we must first add the new container to the children of the current container.
             let currentContainer = this.currentContainer();
                         
-            // If we don't have a container yet then it is the source file container ( the first )
+            // If we don't have a container yet then it is the source file container ( the first ).
             if ( !currentContainer ) {
                 this.sourceFileContainer = nextContainer;
             }
@@ -384,6 +453,7 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
             }
 
             this.containerStack.push( nextContainer );
+
 
             return true;
         }

@@ -1,0 +1,18 @@
+{
+    "name": "MinifiedTypescript",
+    "version": "1.0.0",
+    "description": "Simple Minified Typescript app built with TsProject bundle optimizing compiler.",
+    "devDependencies": {
+        "gulp": "^3.9.0",
+        "gulp-concat": "~2.6.0",
+        "gulp-rimraf": "~0.2.0",
+        "gulp-replace": "~0.5.4",
+        "gulp-html-replace": "~1.5.5",
+        "gulp-requirejs": "latest",
+        "chalk": "~1.1.1",
+        "typescript": "~1.7.5",
+        "tsproject": "~1.2.0-rc.2"
+    },
+    "author": "Todd Thomson <todd.thomson@me.com>",
+    "license": "MIT"
+}
