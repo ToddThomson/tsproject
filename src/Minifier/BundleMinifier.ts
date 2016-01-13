@@ -52,42 +52,103 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
     }
 
     public removeWhitespace( jsContents: string ): string {
-
         this.whiteSpaceTime = new Date().getTime();
         this.whiteSpaceBefore = jsContents.length;
 
         let output = "";
-        let prevToken = ts.SyntaxKind.Unknown;
+        let lastNonTriviaToken = ts.SyntaxKind.Unknown;
+        let isTrivia = false;
         let token: ts.SyntaxKind;
 
         const scanner = ts.createScanner( ts.ScriptTarget.ES5, /* skipTrivia */ false, ts.LanguageVariant.Standard, jsContents );
 
         while ( ( token = scanner.scan() ) !== ts.SyntaxKind.EndOfFileToken ) {
-            switch ( token ) {
-                case ts.SyntaxKind.WhitespaceTrivia:
-                    // Remove whitespace when appropriate
-                    if ( Ast.isKeyword( prevToken ) ) {
-                        let tokenText = scanner.getTokenText();
-                        output += tokenText;
-                    }
+            isTrivia = false;
 
-                    break;
-
-                case ts.SyntaxKind.NewLineTrivia:
-                    // Remove newline ( don't output )
-                    break;
-
-                default:
-                    if ( Ast.isKeyword( token ) && ( prevToken === ts.SyntaxKind.WhitespaceTrivia ) ) {
-                        // A keyword must have a leading space
-                        output += " ";
-                    }
-
-                    output += scanner.getTokenText();
-                    break;
+            if ( Ast.isTrivia( token ) ) {
+                // TJT: Remove after testing
+                //if ( token === ts.SyntaxKind.NewLineTrivia ) {
+                //    output += scanner.getTokenText();
+                //}
+                isTrivia = true;
             }
 
-            prevToken = token;
+            if ( !isTrivia ) {
+                // Process the last non trivia token
+                switch ( lastNonTriviaToken ) {
+                    case ts.SyntaxKind.FunctionKeyword:
+                    case ts.SyntaxKind.BreakKeyword:
+                        // Space required after function, break keywords if next token is an identifier
+                        if ( token === ts.SyntaxKind.Identifier ) {
+                            output += " ";
+                        }
+                        break;
+
+                    case ts.SyntaxKind.ReturnKeyword:
+                        // case ts.SyntaxKind.ReturnKeyword: space not required after return keyword if the current token is a semicolon
+                        if ( token !== ts.SyntaxKind.SemicolonToken ) {
+                            output += " ";
+                        }
+                        break;
+
+                    case ts.SyntaxKind.ElseKeyword:
+                        // case ts.SyntaxKind.ElseKeyword: space not required after return keyword if the current token is a punctuation
+                        if ( token !== ts.SyntaxKind.OpenBraceToken ) {
+                            output += " ";
+                        }
+                        break;
+                }
+
+                // Process the current token..
+                switch ( token ) {
+                    // Keywords that require a trailing space
+                    case ts.SyntaxKind.VarKeyword:
+                    case ts.SyntaxKind.LetKeyword:
+                    case ts.SyntaxKind.ConstKeyword:
+                    case ts.SyntaxKind.CaseKeyword:
+                    case ts.SyntaxKind.InstanceOfKeyword:
+                    case ts.SyntaxKind.DeleteKeyword:
+                    case ts.SyntaxKind.ThrowKeyword:
+                    case ts.SyntaxKind.NewKeyword:
+                    case ts.SyntaxKind.TypeOfKeyword:
+                        output += scanner.getTokenText() + " ";
+                        break;
+
+                    // Keywords that require space left and right..
+                    case ts.SyntaxKind.InKeyword:
+                        output += " " + scanner.getTokenText() + " ";
+                        break;
+
+                    // Avoid concatenations of ++, + and --, - operators
+                    case ts.SyntaxKind.PlusToken:
+                    case ts.SyntaxKind.PlusPlusToken:
+                        if ( ( lastNonTriviaToken === ts.SyntaxKind.PlusToken ) ||
+                            ( lastNonTriviaToken === ts.SyntaxKind.PlusPlusToken ) ) {
+                            output += " ";
+                        }
+                        output += scanner.getTokenText();
+                        break;
+
+                    case ts.SyntaxKind.MinusToken:
+                    case ts.SyntaxKind.MinusMinusToken:
+                        if ( ( lastNonTriviaToken === ts.SyntaxKind.MinusToken ) ||
+                            ( lastNonTriviaToken === ts.SyntaxKind.MinusMinusToken ) ) {
+                            output += " ";
+                        }
+
+                        output += scanner.getTokenText();
+                        break;
+
+                    default:
+                        // All other tokens can be output
+                        output += scanner.getTokenText();
+                        break;
+                }
+            }
+
+            if ( !isTrivia ) {
+                lastNonTriviaToken = token;
+            }
         }
 
         this.whiteSpaceAfter = output.length;
@@ -96,8 +157,7 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
         if ( this.compilerOptions.diagnostics )
             this.reportWhitespaceStatistics();
 
-        // TJT: Fixme - leave whitespace elimination out for testing in rc releases.
-        return jsContents; //output;
+        return output;
     }
 
     protected visitNode( node: ts.Node ): void {
@@ -114,11 +174,6 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
                     let identifierSymbol: ts.Symbol = this.checker.getSymbolAtLocation( identifier );
 
                     if ( identifierSymbol ) {
-
-                        if ( identifierSymbol.getName() === "BaseClass" ) {
-                            Logger.log( "break BaseClass" );
-                        }
-
                         let symbolId: number = ( <any>identifierSymbol ).id;
 
                         if ( symbolId !== undefined ) {
@@ -209,8 +264,6 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
     }
 
     private shortenContainerIdentifiers( container: ContainerContext ): void {
-        //Logger.log( "Shortening container identifiers.." );
-
         // Determine identifier names which cannot be used..
         let excludedSymbol: IdentifierInfo;
 
@@ -219,7 +272,6 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
             excludedSymbol = container.excludedIdentifiers[excludedSymbolKey];
 
             if ( excludedSymbol.shortenedName ) {
-                //Logger.log( "Excluding identifier name for: ", excludedSymbol.getName(), excludedSymbol.shortenedName );
                 container.namesExcluded[excludedSymbol.shortenedName] = true;
             }
             else {
@@ -246,8 +298,7 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
 
         // If this container extends a base/parent class then we must make sure we have processed the base/parent class members
         if ( container.isExtends() ) {
-            Logger.log( "Class like container is extending a base class" );
-            let extendsClause = container.getExtendsHeritageClause();
+            let extendsClause = container.getExtendsClause();
             let node = extendsClause.types[0].expression;
             const symbol = this.checker.getSymbolAtLocation( node );
             let symbolUId: string = ( <any>symbol ).id.toString();
@@ -324,8 +375,6 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
 
             return;
         }
-
-        //Logger.log( "Identifier cannot be shortened: ", identifierInfo.getName() );
     }
 
     private canShortenIdentifier( identifierInfo: IdentifierInfo ): boolean {
@@ -419,10 +468,8 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
     }
 
     private restoreContainer(): ContainerContext {
-        //Logger.log( "Restoring container" );
         return this.containerStack.pop();
     }
-
 
     private isNextContainer( node: ts.Node ): boolean {
         let containerFlags: Ast.ContainerFlags = Ast.getContainerFlags( node );

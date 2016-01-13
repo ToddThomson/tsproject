@@ -4,7 +4,6 @@ import { IdentifierInfo } from "./IdentifierSymbolInfo";
 
 import { Logger } from "../Reporting/Logger";
 
-// TJT: Rename to Container?
 export class ContainerContext {
 
     private container: ts.Node;
@@ -16,12 +15,8 @@ export class ContainerContext {
     private containerFlags: Ast.ContainerFlags;
     
     private isBlockScope: boolean;
-
     private hasExtendsClause: boolean;
-
     private nameIndex: number;
-
-    //private id: number;
 
     // TJT: Review - do we need excluded symbols and names?
     public namesExcluded: ts.Map<boolean> = {};
@@ -31,30 +26,20 @@ export class ContainerContext {
     public shortenedIdentifierCount = 0;
 
     constructor( node: ts.Node, containerFlags: Ast.ContainerFlags, parentContainer: ContainerContext ) {
-        //Logger.log( "Container creation: ", node.kind );
         this.containerFlags = containerFlags;
-
-        //this.id = ( <any>node ).id;
-        //if ( !this.id ) {
-        //    Logger.log( "Container does not have an id" );
-        //}
-
-
         this.hasExtendsClause = false;
 
         if ( containerFlags & Ast.ContainerFlags.IsContainer ) {
             this.container = this.blockScopeContainer = node;
             this.isBlockScope = false;
-
             this.parent = this;
 
-            // if this is a class like container then we must check to see if it extends a base class
-            let extendsClause = this.getExtendsHeritageClause();
-            if ( extendsClause ) {
-                Logger.log( "Container extends base class" );
-                // TJT: What happens if a child extends an existing method or property of the parent? Do they have the same symbol?
-                // TJT: The name index for both the parent and child properties and methods must not collide
+            // TJT: Review - this code block does not need to happen in the constructor
 
+            // if this is a class like container then we must check to see if it extends a base class
+            let extendsClause = this.getExtendsClause();
+            if ( extendsClause ) {
+                // TJT: What happens if a child extends an existing method or property of the parent? Do they have the same symbol?
                 this.hasExtendsClause = true;
             }
             
@@ -62,14 +47,11 @@ export class ContainerContext {
             this.nameIndex = 0;
         }
         else {
+            // TJT: Review - nameIndex starting value for block scoped containers?
             if ( containerFlags & Ast.ContainerFlags.IsBlockScopedContainer ) {
                 this.blockScopeContainer = node;
                 this.isBlockScope = true;
-
                 this.parent = parentContainer.getParent();
-            }
-            else {
-                Logger.log( ">>>>> Not a container bug" );
             }
         }
     }
@@ -99,10 +81,6 @@ export class ContainerContext {
     // TJT: Rename to getContainerNode()?
     public getNode(): ts.Node {
         return this.isBlockScope ? this.blockScopeContainer : this.container;
-    }
-
-    public isExtends(): boolean {
-        return this.hasExtendsClause;
     }
 
     public hasMembers(): boolean {
@@ -141,7 +119,12 @@ export class ContainerContext {
         return false;
     }
 
-    public getExtendsHeritageClause(): ts.HeritageClause {
+    public isExtends(): boolean {
+        return this.hasExtendsClause;
+    }
+
+    // TJT: It is sufficient to just have this method. IsExtends() can be removed.
+    public getExtendsClause(): ts.HeritageClause {
         if ( this.container ) {
             let heritageClauses = ( <ts.ClassLikeDeclaration>this.container ).heritageClauses;
             if ( heritageClauses ) {

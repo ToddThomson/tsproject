@@ -11,7 +11,7 @@
         "preserveConstEnums": true,
         "removeComments": false,
         "sourceMap": false,
-        "noEmit": false
+        "noEmit": true
     },
     "files": [
         "../typings/tsd.d.ts",
@@ -55,7 +55,7 @@
                 "declaration": true,
                 "sourceMap": false,
                 "outDir": "./bundle",
-                "minify": true
+                "minify": false
             }
         }
     }

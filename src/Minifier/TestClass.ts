@@ -18,6 +18,17 @@ export class TestClass {
     private gerb4: number = 4;
     public gerb5: number = 5;
 
+    private someMethod(): void {
+        var a = 1;
+        var c = 3;
+        var g = a+ +c;
+        var i = a+ ++c;
+        var f = a++ +c;
+        var d = a - -a;
+        var e = a - --a;
+
+        var a = 1, c = 3, g = a + ++c, i = a + ++c, h = a + ++c, f = a + +c, d = a - -a, e = a - --a;
+    }
     // Method container
     public fPublic(): number {
         let bundle: any = { name: "gerb", fileNames: ["string"], config: undefined };
@@ -29,6 +40,16 @@ export class TestClass {
         }
 
         return result;
+    }
+
+    private testMethod(): boolean {
+        let a: any = { gerb: 6 };
+        return a instanceof TestClass;
+    }
+    private testMethod2(): boolean {
+        let a: any = { gerb: 6 };
+        let tc = new TestClass();
+        return true; //delete tc;
     }
 
     private f1(): number {

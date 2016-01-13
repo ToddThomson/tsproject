@@ -112,6 +112,10 @@ export module Ast {
         return ts.SyntaxKind.FirstKeyword <= token && token <= ts.SyntaxKind.LastKeyword;
     }
 
+    export function isPuncuation( token: ts.SyntaxKind ): boolean {
+        return ts.SyntaxKind.FirstPunctuation <= token && token <= ts.SyntaxKind.LastPunctuation;
+    }
+
     export function isTrivia( token: ts.SyntaxKind ) {
         return ts.SyntaxKind.FirstTriviaToken <= token && token <= ts.SyntaxKind.LastTriviaToken;
     }
