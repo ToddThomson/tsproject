@@ -266,6 +266,18 @@ export namespace Ast {
         
         return false;
     }
+
+    export function isAmbientProperty( propertySymbol: ts.Symbol ): boolean {
+        let node: ts.Node = propertySymbol.valueDeclaration;
+        while ( node ) {
+            if ( node.flags & ts.NodeFlags.Ambient ) {
+                return true;
+            }
+            node = node.parent;
+        }
+        
+        return false;
+    }
     
     export function displaySymbolFlags( flags: ts.SymbolFlags ): void {
         if( flags & ts.SymbolFlags.FunctionScopedVariable ) {

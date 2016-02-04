@@ -192,7 +192,7 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
         if ( this.compilerOptions.diagnostics )
             this.reportWhitespaceStatistics();
 
-        return output;
+        return jsContents; //output;
     }
 
     protected visitNode( node: ts.Node ): void {
@@ -213,6 +213,10 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
                    
                     if ( identifierSymbol ) {
                         let identifierUID = Ast.getIdentifierUID( identifierSymbol );
+
+                        if (identifierSymbol.name === "setInterval" ) {
+                            Logger.log( "break" );
+                        }
 
                         if ( identifierUID === undefined ) {
                             if ( identifierSymbol.flags & ts.SymbolFlags.Transient ) {
@@ -401,6 +405,11 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
     }
 
     private processIdentifierInfo(  identifierInfo: IdentifierInfo, container: Container ): void {
+
+        if (identifierInfo.getSymbol().name === "setInterval" ) {
+            Logger.log( "break" );
+        }
+
         if ( this.canShortenIdentifier( identifierInfo ) ) {
             let shortenedName = this.getShortenedIdentifierName( container, identifierInfo );
 

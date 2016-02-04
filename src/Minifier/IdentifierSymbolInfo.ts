@@ -103,8 +103,8 @@ export class IdentifierInfo {
             if ( this.symbol.valueDeclaration.kind === ts.SyntaxKind.FunctionDeclaration ) {
                 let flags = this.symbol.valueDeclaration.flags;
 
-                // The function is from an extern API
-                if ( Ast.isExportProperty( this.symbol ) ) {
+                // If The function is from an extern API or ambient then it cannot be considered internal.
+                if ( Ast.isExportProperty( this.symbol ) || Ast.isAmbientProperty( this.symbol ) ) {
                     return false;
                 }
 
