@@ -1,7 +1,7 @@
-﻿import ts = require( "typescript" );
-import fs = require( "fs" );
+﻿import * as ts from "typescript";
+import * as fs from "fs";
 
-export module TsCore {
+export namespace TsCore {
 
     export interface WatchedSourceFile extends ts.SourceFile {
         fileWatcher?: fs.FSWatcher;

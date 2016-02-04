@@ -1,5 +1,4 @@
 {
-    "version": "1.7.3",
     "compilerOptions": {
         "target": "es5",
         "module": "commonjs",
@@ -20,6 +19,7 @@
         "./Ast/NodeWalker.ts",
         "./Bundler/BundleBuilder.ts",
         "./Bundler/BundleCompiler.ts",
+        "./Bundler/BundlePackage.ts",
         "./Bundler/BundleParser.ts",
         "./Bundler/BundleResult.ts",
         "./Bundler/DependencyBuilder.ts",
@@ -29,7 +29,6 @@
         "./Compiler/CompilerResult.ts",
         "./Compiler/CompileStream.ts",
         "./Compiler/WatchCompilerHost.ts",
-        "./Minifier/TestClass.ts",
         "./Minifier/BundleMinifier.ts",
         "./Minifier/ContainerContext.ts",
         "./Minifier/IdentifierSymbolInfo",
@@ -52,10 +51,12 @@
         "tsproject": {
             "files": [ "../typings/tsd.d.ts", "./TsProject.ts" ],
             "config": {
-                "declaration": true,
+                "package": "component",
+                "packageNamespace": "TsProject",
+                "declaration": false,
                 "sourceMap": false,
                 "outDir": "./bundle",
-                "minify": false
+                "minify": true
             }
         }
     }

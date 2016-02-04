@@ -1,4 +1,4 @@
-﻿import ts = require( "typescript" );
+﻿import * as ts from "typescript";
 import File = require( "vinyl" );
 
 export class TsVinylFile extends File {

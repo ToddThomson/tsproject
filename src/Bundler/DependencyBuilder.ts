@@ -2,9 +2,9 @@
 import { Utils } from "../Utils/Utilities";
 import { TsCore } from "../Utils/TsCore";
 
-import ts = require( "typescript" );
-import fs = require( "fs" );
-import path = require( "path" );
+import * as ts from "typescript";
+import * as fs from "fs";
+import * as path from "path";
 
 export class DependencyBuilder {
     private host: ts.CompilerHost;

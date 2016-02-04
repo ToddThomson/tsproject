@@ -1,10 +1,11 @@
-﻿import chalk = require( "chalk" );
+﻿import * as chalk from "chalk";
 
 export var level = {
     none: 0,
-    info: 1,
+    error: 1,
     warn: 2,
-    error: 3
+    trace: 3,
+    info: 4
 };
 
 export class Logger {
@@ -45,5 +46,14 @@ export class Logger {
         }
 
         console.log( `[${this.logName}]` + chalk.red( " ERROR: " ), ...args );
+    }
+
+    public static trace( ...args: any[] ) {
+        if ( this.logLevel < level.error ) {
+            return;
+        }
+
+        console.log( `[${this.logName}]` + chalk.gray( " TRACE: " ), ...args );
+
     }
 }  

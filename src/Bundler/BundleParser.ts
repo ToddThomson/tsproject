@@ -1,15 +1,19 @@
-﻿import { Logger } from "../Reporting/Logger";
+﻿import { BundlePackage, BundlePackageType } from "./BundlePackage";
+import { Logger } from "../Reporting/Logger";
 import { Utils } from "../Utils/Utilities";
 import { TsCore } from "../Utils/TsCore";
 
-import ts = require( "typescript" );
-import path = require( "path" );
+import * as ts from "typescript";
+import * as path from "path";
+
+
 
 export interface BundleConfig {
-    sourceMap: boolean;
-    declaration: boolean;
-    outDir: string;
-    minify: boolean;
+    sourceMap?: boolean;
+    declaration?: boolean;
+    outDir?: string;
+    minify?: boolean;
+    package?: BundlePackage;
 }
 
 export interface Bundle {
@@ -66,14 +70,50 @@ export class BundleParser {
 
                     // Config..
                     if ( Utils.hasProperty( jsonBundle, "config" ) ) {
-                        config = jsonBundle.config
+                        config = jsonBundle.config;
                     }
+
+                    config.package = parsePackageConfig( config );
 
                     bundles.push( { name: bundleName, fileNames: fileNames, config: config } );
                 }
             }
 
             return bundles;
+        }
+
+        function parsePackageConfig( config: any ): BundlePackage {
+
+            // TODO: Add diagnostics for input errors..
+
+            let bundlePackageType: BundlePackageType = BundlePackageType.None;
+            let bundlePackageNamespace: string = undefined;
+
+            let packageTypeMap: ts.Map<BundlePackageType> = {
+                "none": BundlePackageType.None,
+                "library": BundlePackageType.Library,
+                "component": BundlePackageType.Component
+            };
+
+            if ( Utils.hasProperty( config, "package" ) ) {
+                let packageType: string = config[ "package" ];
+
+                if ( typeof( packageType ) === "string" ) {
+                    if ( Utils.hasProperty( packageTypeMap, packageType.toLowerCase() ) ) {
+                        bundlePackageType = packageTypeMap[ packageType.toLowerCase() ]
+                    }
+                }
+            }
+
+            if ( Utils.hasProperty( config, "packageNamespace" ) ) {
+                let packageNamespace = config[ "packageNamespace" ];
+                    
+                if ( typeof( packageNamespace ) === "string" ) {
+                    bundlePackageNamespace = packageNamespace;
+                }
+            }
+
+            return new BundlePackage( bundlePackageType, bundlePackageNamespace );
         }
     }
 }

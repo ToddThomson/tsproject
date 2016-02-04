@@ -1,6 +1,6 @@
 ﻿import ts = require( "typescript" );
 
-export module Utils {
+export namespace Utils {
 
     export function forEach<T, U>( array: T[], callback: ( element: T, index: number ) => U ): U {
         if ( array ) {

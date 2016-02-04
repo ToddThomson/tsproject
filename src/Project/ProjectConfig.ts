@@ -1,5 +1,4 @@
-﻿import ts = require( "typescript" );
-
+﻿import * as ts from "typescript";
 import { Bundle } from "../Bundler/BundleParser";
 
 export interface ProjectConfig {

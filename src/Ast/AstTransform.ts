@@ -1,4 +1,4 @@
-﻿import ts = require( "typescript" );
+﻿import * as ts from "typescript";
 
 export interface AstTransform {
     transform( node: ts.Node ): ts.Node;

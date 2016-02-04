@@ -1,75 +1,87 @@
-﻿import ts = require( "typescript" );
+﻿import * as ts from "typescript";
 import { Ast } from "../Ast/Ast";
 import { IdentifierInfo } from "./IdentifierSymbolInfo";
-
 import { Logger } from "../Reporting/Logger";
+import { Utils } from "../Utils/Utilities";
 
-export class ContainerContext {
+class ContainerIdGenerator {
+    static nextId = 1;
 
+    static getNextId(): number {
+        return this.nextId++;
+    }
+}
+
+export class Container {
+
+    private id: number;
     private container: ts.Node;
     private blockScopeContainer: ts.Node;
-
-    private parent: ContainerContext;
-    private childContainers: ContainerContext[] = [];
-
     private containerFlags: Ast.ContainerFlags;
-    
-    private isBlockScope: boolean;
-    private hasExtendsClause: boolean;
-    private nameIndex: number;
 
-    // TJT: Review - do we need excluded symbols and names?
+    private parent: Container;
+    private childContainers: Container[] = [];
+
+    private isBlockScope: boolean;
+
+    // The base class cannot be determined by the checker if the base class name has been shortened
+    // so we use get and set for the baseClass property
+    private baseClass: ts.Symbol = undefined;
+    
+    private nameIndex: number;
     public namesExcluded: ts.Map<boolean> = {};
+
+    public localIdentifiers: ts.Map<IdentifierInfo> = {};
+    public classifiableSymbols: ts.Map<ts.Symbol> = {};
+
     public excludedIdentifiers: ts.Map<IdentifierInfo> = {};
-    public symbolTable: ts.Map<IdentifierInfo> = {};
+    public excludedProperties: ts.Symbol[] = [];
 
     public shortenedIdentifierCount = 0;
 
-    constructor( node: ts.Node, containerFlags: Ast.ContainerFlags, parentContainer: ContainerContext ) {
+    constructor( node: ts.Node, containerFlags: Ast.ContainerFlags, parentContainer: Container ) {
+        this.id = ContainerIdGenerator.getNextId();
         this.containerFlags = containerFlags;
-        this.hasExtendsClause = false;
 
-        if ( containerFlags & Ast.ContainerFlags.IsContainer ) {
+        if ( containerFlags & Ast.ContainerFlags.IsBlockScopedContainer ) {
+            Logger.trace( "Container is BlockScoped" );
+            this.blockScopeContainer = node;
+            this.isBlockScope = true;
+
+            // A block scoped container's parent is the parent function scope container.
+            this.parent = parentContainer.getParent();
+        }
+        else {
+            Logger.trace( "Container is FunctionScoped" );
             this.container = this.blockScopeContainer = node;
             this.isBlockScope = false;
+
+            // A function scoped container is it's own parent
             this.parent = this;
 
-            // TJT: Review - this code block does not need to happen in the constructor
-
-            // if this is a class like container then we must check to see if it extends a base class
-            let extendsClause = this.getExtendsClause();
-            if ( extendsClause ) {
-                // TJT: What happens if a child extends an existing method or property of the parent? Do they have the same symbol?
-                this.hasExtendsClause = true;
-            }
-            
             // The name generator index starts at 0 for containers 
             this.nameIndex = 0;
         }
-        else {
-            // TJT: Review - nameIndex starting value for block scoped containers?
-            if ( containerFlags & Ast.ContainerFlags.IsBlockScopedContainer ) {
-                this.blockScopeContainer = node;
-                this.isBlockScope = true;
-                this.parent = parentContainer.getParent();
-            }
-        }
     }
 
-    public addChildContainer( container: ContainerContext ): void {
+    public getId(): number {
+        return this.id;
+    }
+
+    public addChildContainer( container: Container ): void {
         this.childContainers.push( container );
     }
 
-    public getChildren(): ContainerContext[] {
+    public getChildren(): Container[] {
         return this.childContainers;
     }
 
-    public getParent(): ContainerContext {
+    public getParent(): Container {
         return this.parent;
     }
 
-    // TJT: This logic needs to be reviewed for applicability to ES6 block scopes
     public getNameIndex(): number {
+        // TJT: This logic needs to be reviewed for applicability to ES6 block scopes
         if ( this.isBlockScope ) {
             // The name generator index for block scoped containers is obtained from the parent container
             return this.parent.getNameIndex();
@@ -78,29 +90,34 @@ export class ContainerContext {
         return this.nameIndex++;
     }
 
-    // TJT: Rename to getContainerNode()?
     public getNode(): ts.Node {
         return this.isBlockScope ? this.blockScopeContainer : this.container;
     }
 
-    public hasMembers(): boolean {
+    public getMembers(): ts.NodeArray<ts.Declaration> {
         if ( this.container ) {
-            let containerSymbol: ts.Symbol = ( <any>this.container ).symbol;
+            switch ( this.container.kind ) {
+                case ts.SyntaxKind.ClassDeclaration:
+                    return (<ts.ClassDeclaration>this.container).members;
 
-            if ( containerSymbol && ( containerSymbol.flags & ts.SymbolFlags.HasMembers ) ) {
-                return true;
+                case ts.SyntaxKind.EnumDeclaration:
+                    return (<ts.EnumDeclaration>this.container).members;
+
+                default:
+                    Logger.trace( "Container::getMembers() unprocessed container kind: ", this.container.kind );
             }
         }
 
-        return false;
+        return undefined;
     }
 
-    public getMembers(): ts.SymbolTable {
-        if ( this.container ) {
-            let containerSymbol: ts.Symbol = ( <any>this.container ).symbol;
-
-            if ( containerSymbol && ( containerSymbol.flags & ts.SymbolFlags.HasMembers ) ) {
-                return containerSymbol.members;
+    public getLocals(): ts.SymbolTable {
+         if ( this.container && this.containerFlags & Ast.ContainerFlags.HasLocals ) {
+            switch ( this.container.kind ) {
+                case ts.SyntaxKind.ModuleDeclaration:
+                    return (<any>this.container).locals;
+                default:
+                    Logger.warn( "Container::getLocals() unprocessed container kind: ", this.container.kind );
             }
         }
 
@@ -119,23 +136,22 @@ export class ContainerContext {
         return false;
     }
 
-    public isExtends(): boolean {
-        return this.hasExtendsClause;
+    public setBaseClass( baseClass: ts.Symbol ): void {
+        if ( baseClass.flags & ts.SymbolFlags.Class ) {
+            this.baseClass = baseClass;
+        }
     }
 
-    // TJT: It is sufficient to just have this method. IsExtends() can be removed.
-    public getExtendsClause(): ts.HeritageClause {
-        if ( this.container ) {
-            let heritageClauses = ( <ts.ClassLikeDeclaration>this.container ).heritageClauses;
-            if ( heritageClauses ) {
-                for ( const clause of heritageClauses ) {
-                    if ( clause.token === ts.SyntaxKind.ExtendsKeyword ) {
-                        return clause;
-                    }
-                }
-            }
+    public getBaseClass(): ts.Symbol {
+        return this.baseClass;
+    }
+
+    public hasChild( container: Container ): boolean {
+        for ( let i = 0; i < this.childContainers.length; i++ ) {
+            if ( container.getId() === this.childContainers[ i ].getId() )
+                return true;
         }
 
-        return undefined;
+        return false;
     }
 }

@@ -1,7 +1,7 @@
-﻿import ts = require( "typescript" );
-import fs = require( "fs" );
-import path = require( "path" );
-import chokidar = require( "chokidar" );
+﻿import * as ts from "typescript";
+import * as fs from "fs";
+import * as path from "path";
+import * as chokidar from "chokidar";
 
 import { Logger } from "../Reporting/Logger";
 import { TsCore } from "../Utils/tscore";
@@ -35,7 +35,7 @@ export class CachingCompilerHost implements ts.CompilerHost {
     public getSourceFileImpl( fileName: string, languageVersion: ts.ScriptTarget, onError?: ( message: string ) => void ): ts.SourceFile {
 
         // Use baseHost to get the source file
-        //Logger.log( "getSourceFile() reading source file from fs: ", fileName );
+        //Logger.trace( "getSourceFile() reading source file from fs: ", fileName );
         return this.baseHost.getSourceFile( fileName, languageVersion, onError );
     }
 
@@ -54,22 +54,22 @@ export class CachingCompilerHost implements ts.CompilerHost {
         }
 
         if ( Utils.hasProperty( this.fileExistsCache, fileName ) ) {
-            //Logger.log( "fileExists() Cache hit: ", fileName, this.fileExistsCache[ fileName ] );
+            //Logger.trace( "fileExists() Cache hit: ", fileName, this.fileExistsCache[ fileName ] );
             return this.fileExistsCache[fileName];
         }
         this.fileExistsCacheSize++;
 
-        //Logger.log( "fileExists() Adding to cache: ", fileName, this.baseHost.fileExists( fileName ), this.fileExistsCacheSize );
+        //Logger.trace( "fileExists() Adding to cache: ", fileName, this.baseHost.fileExists( fileName ), this.fileExistsCacheSize );
         return this.fileExistsCache[fileName] = this.baseHost.fileExists( fileName );
     }
 
     public readFile( fileName ): string {
         if ( Utils.hasProperty( this.fileReadCache, fileName ) ) {
-            //Logger.log( "readFile() cache hit: ", fileName );
+            //Logger.trace( "readFile() cache hit: ", fileName );
             return this.fileReadCache[fileName];
         }
 
-        //Logger.log( "readFile() Adding to cache: ", fileName );
+        //Logger.trace( "readFile() Adding to cache: ", fileName );
         return this.fileReadCache[fileName] = this.baseHost.readFile( fileName );
     }
 
@@ -97,12 +97,12 @@ export class CachingCompilerHost implements ts.CompilerHost {
 
     public dirExists( directoryPath: string ): boolean {
         if ( Utils.hasProperty( this.dirExistsCache, directoryPath ) ) {
-            //Logger.log( "dirExists() hit", directoryPath, this.dirExistsCache[ directoryPath ] );
+            //Logger.trace( "dirExists() hit", directoryPath, this.dirExistsCache[ directoryPath ] );
             return this.dirExistsCache[directoryPath];
         }
         this.dirExistsCacheSize++;
 
-        //Logger.log( "dirExists Adding: ", directoryPath, ts.sys.directoryExists( directoryPath ), this.dirExistsCacheSize );
+        //Logger.trace( "dirExists Adding: ", directoryPath, ts.sys.directoryExists( directoryPath ), this.dirExistsCacheSize );
         return this.dirExistsCache[directoryPath] = ts.sys.directoryExists( directoryPath );
     }
 }

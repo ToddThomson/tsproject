@@ -16,12 +16,12 @@ import { Glob } from "./Glob";
 import { TsCore } from "../Utils/TsCore";
 import { Utils } from "../Utils/Utilities";
 
-import ts = require( "typescript" );
-import _ = require( "lodash" );
-import fs = require( "fs" );
-import path = require( "path" );
-import chalk = require( "chalk" );
-import chokidar = require( "chokidar" );
+import * as ts from "typescript";
+import * as _ from "lodash";
+import * as fs from "fs";
+import * as path from "path";
+import * as chalk from "chalk";
+import * as chokidar from "chokidar";
 
 export class Project {
 
@@ -183,12 +183,6 @@ export class Project {
 
                 return ts.ExitStatus.DiagnosticsPresent_OutputsSkipped;
             }
-            
-            //if ( .minify ) {
-            //    let minifier = new BundleMinifier( this.compilerOptions );
-            //    let minifiedBundleSourceFile = minifier.minify( bundleFile );
-            //    this.bundleSourceFiles[bundleFileName] = bundleFileText;
-            //}
 
             compileResult = bundleCompiler.compile( bundleResult.getBundleSource(), bundles[ i ].config );
 

@@ -6,16 +6,19 @@ import { Logger } from "../Reporting/Logger";
 import { TsVinylFile } from "../Project/TsVinylFile";
 import { Glob } from "../Project/Glob";
 import { BundleParser, Bundle } from "./BundleParser";
+import { BundlePackage, BundlePackageType } from "./BundlePackage";
 import { BundleResult } from "./BundleResult";
 import { DependencyBuilder } from "./DependencyBuilder";
 import { Utils } from "../Utils/Utilities";
 import { TsCore } from "../Utils/TsCore";
 
-import ts = require( "typescript" );
-import fs = require( "fs" );
-import path = require( 'path' );
+import * as ts from "typescript";
+import * as fs from "fs";
+import * as path from "path";
 
 export class BundleBuilder {
+
+    private bundle: Bundle;
 
     private compilerHost: WatchCompilerHost;
     private program: ts.Program;
@@ -25,7 +28,9 @@ export class BundleBuilder {
     private emitTime = 0;
     private buildTime = 0;
 
-    private bundleText: string = "";
+    private bundleCodeText: string = "";
+    private bundleImportText: string = "";
+
     private bundleImportedFiles: ts.Map<string> = {};
     private bundleModuleImports: ts.Map<ts.Map<string>> = {};
     private bundleSourceFiles: ts.Map<string> = {};
@@ -36,6 +41,7 @@ export class BundleBuilder {
     }
 
     public build( bundle: Bundle ): BundleResult {
+        this.bundle = bundle;
         this.buildTime = new Date().getTime();
 
         let dependencyBuilder = new DependencyBuilder( this.compilerHost, this.program );
@@ -50,7 +56,9 @@ export class BundleBuilder {
         let bundleFilePath = path.join( bundleBaseDir, path.basename( bundle.name ) );
         bundleFilePath = TsCore.normalizeSlashes( bundleFilePath );
 
-        this.bundleText = "";
+        this.bundleCodeText = "";
+        this.bundleImportText = "";
+
         this.bundleImportedFiles = {};
         this.bundleModuleImports = {};
         this.bundleSourceFiles = {};
@@ -97,8 +105,8 @@ export class BundleBuilder {
             }
 
             startTime = new Date().getTime();
-
-            Logger.info( "traversing source dependencies for: ", bundleSourceFile.fileName );
+            
+            Logger.info( "Traversing source dependencies for: ", bundleSourceFile.fileName );
             for ( var depKey in sourceDependencies ) {
                 // Add module dependencies first..
                 sourceDependencies[depKey].forEach( importNode => {
@@ -140,8 +148,21 @@ export class BundleBuilder {
             this.dependencyWalkTime += new Date().getTime() - startTime;
         }
 
+        // The text for our bundle is the concatenation of import statements and source code
+        let bundleText = this.bundleImportText;
+
+        if ( bundle.config.package.getPackageType() === BundlePackageType.Library ) {
+            // Wrap the bundle in an exported namespace with the bundle name
+            bundleText += "export namespace " + bundle.config.package.getPackageNamespace() + " {\r\n";
+            bundleText += this.bundleCodeText;
+            bundleText += " \r\n}";
+        }
+        else {
+            bundleText += this.bundleCodeText;
+        }
+
         var bundleExtension = isBundleTsx ? ".tsx" : ".ts";
-        var bundleSourceFile = { path: bundleFilePath + bundleExtension, extension: bundleExtension, text: this.bundleText };
+        var bundleFile = { path: bundleFilePath + bundleExtension, extension: bundleExtension, text: bundleText };
 
         this.buildTime = new Date().getTime() - this.buildTime;
 
@@ -149,7 +170,7 @@ export class BundleBuilder {
             this.reportStatistics();
         }
 
-        return new BundleResult( ts.ExitStatus.Success, undefined, bundleSourceFile );
+        return new BundleResult( ts.ExitStatus.Success, undefined, bundleFile );
     }
 
     private getImportModuleName( node: ts.ImportEqualsDeclaration ): string {
@@ -253,8 +274,8 @@ export class BundleBuilder {
         }
     }
 
-    private processImportStatements( file: ts.SourceFile ): string {
-        Logger.info( "Processing import statements in file: ", file.fileName );
+    private processImportExports( file: ts.SourceFile ): string {
+        Logger.info( "Processing import statements and export declarations in file: ", file.fileName );
         let editText = file.text;
 
         ts.forEachChild( file, node => {
@@ -267,23 +288,31 @@ export class BundleBuilder {
                     let moduleSymbol = this.program.getTypeChecker().getSymbolAtLocation( moduleNameExpression );
 
                     if ( ( moduleSymbol ) && ( this.isCodeModule( moduleSymbol ) || this.isAmbientModule ) ) {
-                        Logger.info( "processImportStatements() removing code module symbol" );
-                        let pos = node.pos;
-                        let end = node.end;
+                        Logger.info( "processImportStatements() removing code module symbol." );
+                        editText = this.whiteOut( node.pos, node.end, editText );
+                    }
+                }
+            }
+            else {
+                if ( this.bundle.config.package.getPackageType() === BundlePackageType.Component ) {
+                    if ( node.kind === ts.SyntaxKind.ModuleDeclaration ) {
 
-                        // White out import statement. 
-                        // NOTE: Length needs to stay the same as original import statement
-                        let length = end - pos;
-                        let middle = "";
+                        let module = <ts.ModuleDeclaration>node;
 
-                        for ( var i = 0; i < length; i++ ) {
-                            middle += " ";
+                        if ( module.name.getText() !== this.bundle.config.package.getPackageNamespace() ) {
+                            if ( module.flags & ts.NodeFlags.Export ) {
+                                Logger.info( "Component namespace not package namespace. Removing export modifier." );
+                                let nodeModifier = module.modifiers[0];
+                                editText = this.whiteOut( nodeModifier.pos, nodeModifier.end, editText );
+                            }
                         }
+                    }
+                    else {
+                        if ( node.flags & ts.NodeFlags.Export ) {
+                            let exportModifier = node.modifiers[0];
 
-                        var prefix = editText.substring( 0, pos );
-                        var suffix = editText.substring( end );
-
-                        editText = prefix + middle + suffix;
+                            editText = this.whiteOut( exportModifier.pos, exportModifier.end, editText );
+                        }
                     }
                 }
             }
@@ -292,20 +321,35 @@ export class BundleBuilder {
         return editText;
     }
 
+    private whiteOut( pos: number, end: number, text: string ): string {
+        let length = end - pos;
+        let whiteSpace = "";
+
+        for ( var i = 0; i < length; i++ ) {
+            whiteSpace += " ";
+        }
+
+        var prefix = text.substring( 0, pos );
+        var suffix = text.substring( end );
+
+        return prefix + whiteSpace + suffix;
+    }
+
     private emitModuleImportDeclaration( moduleBlockText: string ) {
         Logger.info( "Entering emitModuleImportDeclaration()" );
 
-        this.bundleText += moduleBlockText + "\n";
+        this.bundleImportText += moduleBlockText + "\n";
     }
 
     private addSourceFile( file: ts.SourceFile ) {
         Logger.info( "Entering addSourceFile() with: ", file.fileName );
 
         if ( this.isCodeSourceFile( file ) ) {
-            // Before adding the source text, we must white out import statement(s)
-            let editText = this.processImportStatements( file );
+            // Before adding the source text, we must white out non-external import statements and
+            // white out export modifiers where applicable
+            let editText = this.processImportExports( file );
 
-            this.bundleText += editText + "\n";
+            this.bundleCodeText += editText + "\n";
             this.bundleImportedFiles[file.fileName] = file.fileName;
         }
         else {

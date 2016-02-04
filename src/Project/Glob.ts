@@ -4,10 +4,10 @@
  * https://github.com/gruntjs/grunt/blob/master/LICENSE-MIT
  */
 
-import _ = require( "lodash" );
-import fileGlob = require( "glob" );
-import fs = require( "fs" );
-import path = require( "path" );
+import * as _ from "lodash";
+import * as fileGlob from "glob";
+import * as fs from "fs";
+import * as path from "path";
 
 export class Glob {
 

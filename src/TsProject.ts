@@ -2,34 +2,31 @@
 import { CompileStream } from "./Compiler/CompileStream";
 import { Logger } from "./Reporting/Logger";
 
-import ts = require( "typescript" );
-import chalk = require( "chalk" );
+import * as ts from "typescript";
+import * as stream from "stream";
 
-function src( configFilePath: string, settings?: any ) {
+export namespace TsProject {
 
-    if ( configFilePath === undefined && typeof configFilePath !== 'string' ) {
-        throw new Error( "Provide a valid directory or file path to the Typescript project configuration json file." );
+    export function src( configFilePath: string, settings?: any ): stream.Readable {
+
+        if ( configFilePath === undefined && typeof configFilePath !== 'string' ) {
+            throw new Error( "Provide a valid directory or file path to the Typescript project configuration json file." );
+        }
+
+        settings = settings || {};
+        settings.logLevel = settings.logLevel || 0;
+
+        Logger.setLevel( settings.logLevel );
+        Logger.setName( "TsProject" );
+
+        var outputStream = new CompileStream();
+
+        var project = new Project( configFilePath, settings );
+        project.build( outputStream );
+
+        return outputStream;
     }
-
-    settings = settings || {};
-    settings.logLevel = settings.logLevel || 0;
-
-    Logger.setLevel( settings.logLevel );
-    Logger.setName( "TsProject" );
-
-    var outputStream = new CompileStream();
-
-    var project = new Project( configFilePath, settings );
-    project.build( outputStream );
-
-    return outputStream;
 }
 
-var tsproject = {
-    src: src
-    // FUTURE: to meet full vinyl adapter requirements
-    // dest: dest,
-    // watch: watch
-}
-
-module.exports = tsproject;
+// Nodejs module exports
+module.exports = TsProject;

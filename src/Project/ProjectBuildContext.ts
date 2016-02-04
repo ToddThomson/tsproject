@@ -1,4 +1,4 @@
-﻿import ts = require( "typescript" );
+﻿import * as ts from "typescript";
 
 import { Compiler } from "../Compiler/Compiler";
 import { ProjectConfig } from "../Project/ProjectConfig";

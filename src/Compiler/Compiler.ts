@@ -7,8 +7,8 @@ import { TsVinylFile } from "../Project/TsVinylFile";
 import { Utils } from "../Utils/Utilities";
 import { TsCore } from "../Utils/TsCore";
 
-import ts = require( "typescript" );
-import path = require( "path" );
+import * as ts from "typescript";
+import * as path from "path";
 
 export class Compiler {
 

@@ -72,7 +72,8 @@ The following is a sample tsconfig.json showing the "bundles" property:
             ],
             "config": {
 			    "declaration": true,
-                "outDir": "./bundles"  
+                "outDir": "./bundles",
+				"minify": true  
             }
         }
     }

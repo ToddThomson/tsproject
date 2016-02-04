@@ -1,6 +1,6 @@
-﻿import ts = require( "typescript" );
+﻿import * as ts from "typescript";
 
-export module Ast {
+export namespace Ast {
 
     export const enum ContainerFlags {
         // The current node is not a container, and no container manipulation should happen before
@@ -21,7 +21,7 @@ export module Ast {
 
         HasLocals = 1 << 2,
 
-        // If the current node is a container that also container that also contains locals.  Examples:
+        // If the current node is a container that also contains locals.  Examples:
         //
         //      Functions, Methods, Modules, Source-files.
         IsContainerWithLocals = IsContainer | HasLocals
@@ -48,6 +48,109 @@ export module Ast {
         }
 
         return false;
+    }
+
+    export function isClassInternal( symbol: ts.Symbol ): boolean {
+        if ( symbol && ( symbol.flags & ts.SymbolFlags.Class ) ) {
+            // A class always has a value declaration
+            let flags = symbol.valueDeclaration.flags;
+
+            // By convention, "Internal" classes are ones that are not exported.
+            if ( !( flags & ts.NodeFlags.Export ) ) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    export function isClassAbstract( classSymbol: ts.Symbol ): boolean {
+        if ( classSymbol && classSymbol.valueDeclaration ) {
+            if ( classSymbol.valueDeclaration.flags & ts.NodeFlags.Abstract ) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    export function getClassExportProperties( classNode: ts.Node, checker: ts.TypeChecker ): ts.Symbol[] {
+        let classExportProperties: ts.Symbol[] = [];
+        
+        function getHeritageExportProperties( heritageClause: ts.HeritageClause, checker: ts.TypeChecker ): void {
+            const inheritedTypeNodes = heritageClause.types;
+
+            if ( inheritedTypeNodes ) {
+                for ( const typeRefNode of inheritedTypeNodes ) {
+                    // The "properties" of inheritedType includes all the base class properties
+                    const inheritedType: ts.Type = checker.getTypeAtLocation( typeRefNode );
+
+                    let inheritedTypeDeclaration = inheritedType.symbol.valueDeclaration;
+                    if ( inheritedTypeDeclaration ) {
+                        let inheritedTypeHeritageClauses = (<ts.ClassLikeDeclaration>inheritedTypeDeclaration).heritageClauses;
+        
+                        if ( inheritedTypeHeritageClauses ) {
+                            for ( const inheritedTypeHeritageClause of inheritedTypeHeritageClauses ) {
+                                getHeritageExportProperties( inheritedTypeHeritageClause, checker );
+                            }
+                        }
+                    }
+
+                    const inheritedTypeProperties: ts.Symbol[] = inheritedType.getProperties();
+
+                    for ( const propertySymbol of inheritedTypeProperties ) {
+                        if ( Ast.isExportProperty( propertySymbol ) ) {
+                            classExportProperties.push( propertySymbol );
+                        }
+                    }
+                }
+            }
+        }
+
+        let heritageClauses = (<ts.ClassLikeDeclaration>classNode).heritageClauses;
+        
+        if ( heritageClauses ) {
+            for ( const heritageClause of heritageClauses ) {
+                getHeritageExportProperties( heritageClause, checker );
+            } 
+        }
+
+        return classExportProperties;
+    }
+
+    export function getAbstractClassProperties( extendsClause: ts.HeritageClause, checker: ts.TypeChecker ): ts.Symbol[] {
+        let abstractProperties: ts.Symbol[] = [];
+        
+        const abstractTypeNodes = extendsClause.types;
+        const abstractType: ts.Type = checker.getTypeAtLocation( abstractTypeNodes[0] );
+        let abstractTypeSymbol = abstractType.getSymbol();
+       
+        if ( abstractTypeSymbol.valueDeclaration ) {
+            if ( abstractTypeSymbol.valueDeclaration.flags & ts.NodeFlags.Abstract ) {
+                const props: ts.Symbol[] = abstractType.getProperties();
+
+                for ( const prop of props ) {
+                    abstractProperties.push( prop );
+                }
+            }
+        }
+        
+        return abstractProperties;
+    }
+
+    export function getIdentifierUID( symbol: ts.Symbol ): string {
+        if ( !symbol ) {
+            return undefined;
+        }
+
+        let id = ( <any>symbol ).id;
+
+        // Try to get the symbol id from the identifier value declaration
+        if ( id === undefined && symbol.valueDeclaration ) {
+            id = ( <any>symbol.valueDeclaration ).symbol.id;
+        }
+
+        return id ? id.toString() : undefined;
     }
 
     export function getContainerFlags( node: ts.Node ): ContainerFlags {
@@ -108,6 +211,38 @@ export module Ast {
         return ContainerFlags.None;
     }
 
+    export function getImplementsClause( node: ts.Node ): ts.HeritageClause {
+        if ( node ) {
+            let heritageClauses = (<ts.ClassLikeDeclaration>node).heritageClauses;
+            
+            if ( heritageClauses ) {
+                for ( const clause of heritageClauses ) {
+                    if ( clause.token === ts.SyntaxKind.ImplementsKeyword ) {
+                        return clause;
+                    }
+                }
+            }
+        }
+
+        return undefined;
+    }
+
+    export function getExtendsClause( node: ts.Node ): ts.HeritageClause {
+        if ( node ) {
+            let heritageClauses = (<ts.ClassLikeDeclaration>node).heritageClauses;
+            
+            if ( heritageClauses ) {
+                for ( const clause of heritageClauses ) {
+                    if ( clause.token === ts.SyntaxKind.ExtendsKeyword ) {
+                        return clause;
+                    }
+                }
+            }
+        }
+
+        return undefined;
+    }
+
     export function isKeyword( token: ts.SyntaxKind ): boolean {
         return ts.SyntaxKind.FirstKeyword <= token && token <= ts.SyntaxKind.LastKeyword;
     }
@@ -120,6 +255,18 @@ export module Ast {
         return ts.SyntaxKind.FirstTriviaToken <= token && token <= ts.SyntaxKind.LastTriviaToken;
     }
 
+    export function isExportProperty( propertySymbol: ts.Symbol ): boolean {
+        let node: ts.Node = propertySymbol.valueDeclaration;
+        while ( node ) {
+            if ( node.flags & ts.NodeFlags.ExportContext ) {
+                return true;
+            }
+            node = node.parent;
+        }
+        
+        return false;
+    }
+    
     export function displaySymbolFlags( flags: ts.SymbolFlags ): void {
         if( flags & ts.SymbolFlags.FunctionScopedVariable ) {
             console.log( "Symbol flag: FunctionScopedVariable" );

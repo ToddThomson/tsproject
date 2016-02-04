@@ -13,9 +13,9 @@ import { Glob } from "../Project/Glob";
 import { Utils } from "../Utils/Utilities";
 import { TsCore } from "../Utils/TsCore";
 
-import ts = require( "typescript" );
-import fs = require( "fs" );
-import path = require( 'path' );
+import * as ts from "typescript";
+import * as fs from "fs";
+import * as path from "path";
 
 export class BundleCompiler {
 
@@ -42,13 +42,15 @@ export class BundleCompiler {
 
         this.compileTime = this.preEmitTime = new Date().getTime();
 
-        // The list of bundle files to pass to program 
-        let bundleFiles: string[] = [];
-
         // Bundle data
         let bundleFileName: string;
         let bundleFileText: string;
         let bundleSourceFile: ts.SourceFile;
+
+        // The list of bundle files to pass to program 
+        let bundleFiles: string[] = [];
+
+        // TJT: Bug - How to resolve duplicate identifier error
 
         Utils.forEach( this.program.getSourceFiles(), file => {
             bundleFiles.push( file.fileName );
@@ -89,7 +91,7 @@ export class BundleCompiler {
                 return bundleSourceFile;
             }
 
-            // Use base class to get the source file
+            // Use base class to get the all source files other than the bundle
             let sourceFile: TsCore.WatchedSourceFile = defaultGetSourceFile( fileName, languageVersion, onError );
 
             return sourceFile;
@@ -112,7 +114,7 @@ export class BundleCompiler {
         }
 
         // Pass the current project build program to reuse program structure
-        var bundlerProgram = ts.createProgram( bundleFiles, compilerOptions, this.compilerHost );//CompilerHost, this.program );
+        var bundlerProgram = ts.createProgram( bundleFiles, compilerOptions, this.compilerHost );
 
         // Check for preEmit diagnostics
         var preEmitDiagnostics = ts.getPreEmitDiagnostics( bundlerProgram );
@@ -126,7 +128,7 @@ export class BundleCompiler {
 
         if ( minifyBundle ) {
             Logger.log( "Minifying bundle..." );
-            let minifier = new BundleMinifier( bundlerProgram, compilerOptions );
+            let minifier = new BundleMinifier( bundlerProgram, compilerOptions, bundleConfig );
             bundleSourceFile = minifier.transform( bundleSourceFile );
         }
 
@@ -136,6 +138,15 @@ export class BundleCompiler {
 
         this.emitTime = new Date().getTime() - this.emitTime;
 
+        // Always stream the bundle source file ts
+        Logger.info( "Streaming vinyl bundle source: ", bundleFileName );
+        var tsVinylFile = new TsVinylFile( {
+            path: bundleFileName,
+            contents: new Buffer( bundleFile.text )
+        });
+
+        this.outputStream.push( tsVinylFile );
+
         // If the emitter didn't emit anything, then pass that value along.
         if ( emitResult.emitSkipped ) {
             return new CompilerResult( ts.ExitStatus.DiagnosticsPresent_OutputsSkipped );//, emitResult.diagnostics );
@@ -144,19 +155,13 @@ export class BundleCompiler {
         let allDiagnostics = preEmitDiagnostics.concat( emitResult.diagnostics );
 
         // The emitter emitted something, inform the caller if that happened in the presence of diagnostics.
-        if ( allDiagnostics.length > 0 ) {
+        if ( this.compilerOptions.noEmitOnError && allDiagnostics.length > 0 ) {
             return new CompilerResult( ts.ExitStatus.DiagnosticsPresent_OutputsGenerated, allDiagnostics );
         }
 
-        // Stream the bundle source file ts, and emitted files...
-        Logger.info( "Streaming vinyl bundle source: ", bundleFileName );
-        var tsVinylFile = new TsVinylFile( {
-            path: bundleFileName,
-            contents: new Buffer( bundleFile.text )
-        });
+        // Emit the output files even if errors if the noEmitOnError is false..
 
-        this.outputStream.push( tsVinylFile );
-            
+        // Stream the emitted files...
         let bundleDir = path.dirname( bundleFile.path );
         let bundleName = path.basename( bundleFile.path, bundleFile.extension );
         let bundlePrefixExt = minifyBundle ? ".min" : "";
@@ -168,7 +173,7 @@ export class BundleCompiler {
             let jsContents = outputText[ jsBundlePath ];
             if ( minifyBundle ) {
                 // Whitespace removal cannot be performed in the AST minification transform, so we do it here for now
-                let minifier = new BundleMinifier( bundlerProgram, compilerOptions );
+                let minifier = new BundleMinifier( bundlerProgram, compilerOptions, bundleConfig );
                 jsContents = minifier.removeWhitespace( jsContents );
                 
             }
@@ -212,7 +217,12 @@ export class BundleCompiler {
         if ( this.compilerOptions.diagnostics )
             this.reportStatistics();
 
-        return new CompilerResult( ts.ExitStatus.Success );
+        if ( allDiagnostics.length > 0 ) {
+            return new CompilerResult( ts.ExitStatus.DiagnosticsPresent_OutputsGenerated, allDiagnostics );
+        }
+        else {
+            return new CompilerResult( ts.ExitStatus.Success );
+        }
     }
 
     private reportStatistics() {
