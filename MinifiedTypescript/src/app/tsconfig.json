@@ -1,5 +1,4 @@
 {
-    "version": "1.7.5",
     "compilerOptions": {
         "target": "es5",
         "module": "amd",
@@ -20,8 +19,8 @@
         "app": {
             "files": [ "./app.ts" ],
             "config": {
-                "declaration": true,
-                "sourceMap": false,
+                "package": "component",
+                "packageNamespace": "MyApp",
                 "outDir": "./bundles",
                 "minify": true
             }

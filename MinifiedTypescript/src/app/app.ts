@@ -1,5 +1,9 @@
 ﻿import { Greeter } from "./Greeter";
 
-var el = document.getElementById( 'content' );
-var greeter = new Greeter( el );
-greeter.start();
+export namespace MyApp {
+
+    var el = document.getElementById( 'content' );
+    export var greeter = new Greeter( el );
+}
+
+MyApp.greeter.start();
