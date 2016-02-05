@@ -44,7 +44,6 @@ export class Container {
         this.containerFlags = containerFlags;
 
         if ( containerFlags & Ast.ContainerFlags.IsBlockScopedContainer ) {
-            Logger.trace( "Container is BlockScoped" );
             this.blockScopeContainer = node;
             this.isBlockScope = true;
 
@@ -52,7 +51,6 @@ export class Container {
             this.parent = parentContainer.getParent();
         }
         else {
-            Logger.trace( "Container is FunctionScoped" );
             this.container = this.blockScopeContainer = node;
             this.isBlockScope = false;
 

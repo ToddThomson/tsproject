@@ -53,8 +53,6 @@
             "config": {
                 "package": "component",
                 "packageNamespace": "TsProject",
-                "declaration": false,
-                "sourceMap": false,
                 "outDir": "./bundle",
                 "minify": true
             }

@@ -192,17 +192,14 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
         if ( this.compilerOptions.diagnostics )
             this.reportWhitespaceStatistics();
 
-        return jsContents; //output;
+        return output;
     }
 
     protected visitNode( node: ts.Node ): void {
         // Traverse nodes to build containers and process all identifiers nodes.
         if ( this.isNextContainer( node ) ) {
-            Logger.trace( ">>> Scanning container for identifiers: ", this.currentContainer().getId() );
-            
             super.visitNode( node );
 
-            Logger.trace( "<<< Done. Scanning container for identifiers: ", this.currentContainer().getId() );
             this.restoreContainer();
         }
         else {
@@ -213,10 +210,6 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
                    
                     if ( identifierSymbol ) {
                         let identifierUID = Ast.getIdentifierUID( identifierSymbol );
-
-                        if (identifierSymbol.name === "setInterval" ) {
-                            Logger.log( "break" );
-                        }
 
                         if ( identifierUID === undefined ) {
                             if ( identifierSymbol.flags & ts.SymbolFlags.Transient ) {
@@ -230,11 +223,8 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
                             }
                         }
 
-                        Logger.trace( "Identifier found: ", identifierSymbol.name, identifierUID );
-
                         // Check to see if we've seen this identifer symbol before
                         if ( Utils.hasProperty( this.allIdentifierInfos, identifierUID ) ) {
-                            Logger.trace( "Identifier has already been added: ", identifierSymbol.name );
                             // If we have, then add it to the identifier info references 
                             let prevAddedIdentifier = this.allIdentifierInfos[ identifierUID ];
                             this.allIdentifierInfos[ identifierUID ].addRef( identifier, this.currentContainer() );
@@ -246,7 +236,6 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
                             }
                         }
                         else {
-                            Logger.trace( "Adding new identifier symbol." );
                             let identifierInfo = new IdentifierInfo( identifier, identifierSymbol, this.currentContainer() );
 
                             // Add the new identifier info to both the container and the all list
@@ -271,10 +260,6 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
                     }
 
                     break;
-
-                //default:
-                //    // TJT: Remove after testing
-                //    Logger.trace( "Non identifier node: ", node.kind );
             }
 
             super.visitNode( node );
@@ -331,13 +316,10 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
     }
 
     private shortenContainerIdentifiers( container: Container ): void {
-        Logger.trace( ">>> shortenContainerIdentifiers(): ", container.getId() );
-
         // If this container extends a base/parent class then we must make sure we have processed the base/parent class members
         let baseClass = container.getBaseClass();
 
         if ( baseClass ) {
-            Logger.trace( ">>> Processing inherited base class members..." );
             // We need to get the container for the parent/base class
             let baseClassContainer = this.classifiableContainers[ baseClass.name ];
 
@@ -347,31 +329,25 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
                     this.processClassMembers( baseClassMembers, baseClassContainer );
                 }
             }
-            Logger.trace( "<<< Done. Processing inherited base class members" );
         }
         
-        Logger.trace( ">>> Determining container excluded names..." );
+
+        // Determine the names which cannot be used as shortened names in this container.
         this.excludeNames( container );
-        Logger.trace( "<<< Done. Determining container excluded names" );
 
         // Process container members..
         let containerClassMembers = container.getMembers();
         if ( containerClassMembers ) {
-            Logger.trace( ">>> Processing container class members..." );
             this.processClassMembers( containerClassMembers, container );
-            Logger.trace( "<<< Done. Processing inherited base class members" );
         }
 
         // Process container locals..
         let containerLocals = container.getLocals();
         if ( containerLocals ) {
-            Logger.trace( ">>> Processing container locals.." );
             this.processContainerLocals( containerLocals, container );
-            Logger.trace( "<<< Done. Processing container locals." );
         }
 
         // Process the containers identifiers...
-        Logger.trace( "Processing container local symbols..." );
         for ( let identifierTableKey in container.localIdentifiers ) {
             let identifierInfo = container.localIdentifiers[identifierTableKey];
 
@@ -382,7 +358,6 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
         
         // TJT: Review..
 
-        Logger.trace( "Processing container classifiables..." );
         for ( let classifiableKey in container.classifiableSymbols ) {
             let classSymbol = container.classifiableSymbols[ classifiableKey ];
 
@@ -392,24 +367,15 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
             this.processIdentifierInfo( classIdentifierInfo, container );
         }
 
-        Logger.trace( ">>> Processing container children..." );
         // Recursively go through container children in order added
         let containerChildren = container.getChildren();
 
         for ( let j = 0; j < containerChildren.length; j++ ) {
             this.shortenContainerIdentifiers( containerChildren[j] );
         }
-        Logger.trace( "<<< Done. Processing container children" );
-
-        Logger.trace( "<<< Done. shortenContainerIdentifiers(): ", container.getId() );
     }
 
     private processIdentifierInfo(  identifierInfo: IdentifierInfo, container: Container ): void {
-
-        if (identifierInfo.getSymbol().name === "setInterval" ) {
-            Logger.log( "break" );
-        }
-
         if ( this.canShortenIdentifier( identifierInfo ) ) {
             let shortenedName = this.getShortenedIdentifierName( container, identifierInfo );
 
@@ -439,7 +405,8 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
             identifierInfo.isPrivateMethod() ||
             identifierInfo.isPrivateProperty() ||
             identifierInfo.isInternalFunction( this.bundleConfig.package.getPackageNamespace() ) ||
-            identifierInfo.isParameter() ) {
+            identifierInfo.isParameter() ||
+            identifierInfo.isNamespaceImportAlias() ) {
 
             Logger.trace( "Identifier CAN be shortened: ", identifierInfo.getName() );
             return true;
@@ -557,13 +524,10 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
     public excludeNames( container: Container ): void {
         // Determine identifier names which cannot be used in this container.
 
-        Logger.trace( ">>> Excluding names for container id: ", container.getId() );
-
         // If this container extends a base/parent class then we exclude the base class member names.
         let baseClass = container.getBaseClass();
 
         if ( baseClass ) {
-            Logger.trace( ">>> Excluding base class members..." );
 
             // We need to get the container for the parent/base class
             let baseClassContainer = this.classifiableContainers[ baseClass.name ];
@@ -580,22 +544,18 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
                         let excludedSymbol = this.allIdentifierInfos[ memberSymbolUId ] ;
 
                         if ( excludedSymbol && excludedSymbol.shortenedName ) {
-                            Logger.trace( "Excluding identifier name for: ", excludedSymbol.getName(), excludedSymbol.shortenedName );
                             container.namesExcluded[ excludedSymbol.shortenedName ] = true;
                         }
                     }
                 }
             }
-            Logger.trace( "<<< Done. Excluding base class members" );
         }
 
-        Logger.trace( "Excluding container locals..." );
         for ( let identifierInfoKey in container.localIdentifiers ) {
             let identifierInfo = container.localIdentifiers[ identifierInfoKey ];
             
             this.excludeNamesForIdentifier( identifierInfo, container );
         }
-        Logger.trace( "Excluding container classifiables..." );
 
         for ( let classifiableKey in container.classifiableSymbols ) {
             let classSymbol = container.classifiableSymbols[ classifiableKey ];
@@ -607,7 +567,6 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
 
             this.excludeNamesForIdentifier( classIdentifierInfo, container );
         }
-        Logger.trace( "<<< Done. Excluding names for container id: ", container.getId() );
     }
 
     private getContainerExcludedIdentifiers( container: Container ): ts.Map<IdentifierInfo> {
@@ -649,8 +608,6 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
     }
 
     private excludeNamesForIdentifier( identifierInfo: IdentifierInfo, container: Container ): void {
-        Logger.trace( ">>> Excluding names for identifier: ", identifierInfo.getName() );
-
         // Exclude all shortened names that have already been used in child containers that this identifer is contained in.
         let identifierContainers = identifierInfo.getContainers();
 
@@ -666,11 +623,9 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
 
                 if ( excludedIdentifier.shortenedName ) {
                     container.namesExcluded[ excludedIdentifier.shortenedName ] = true;
-                    Logger.trace( "Excluding identifier name: ", excludedIdentifier.shortenedName );
                 }
             }
         }
-        Logger.trace( "<<< Done. Excluding names for identifier: ", identifierInfo.getName() );
     }
     
     private currentContainer(): Container {
@@ -713,9 +668,7 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
                     // If this child class is declared before the parent base class then the base class symbol will have symbolFlags.Merged.
                     // When the base class is declared it will have a different symbol id from the symbol id determined here.
                     // We should be able to use the symbol name for lookups in the classifiable containers table.
-                    //let baseClassAlias = this.checker.getAliasedSymbol(baseClassSymbol);
-
-                    Logger.trace( "Extending base class: ", baseClassSymbol.name ); 
+                    // let baseClassAlias = this.checker.getAliasedSymbol(baseClassSymbol);
 
                     nextContainer.setBaseClass( baseClassSymbol );
                 }
@@ -754,6 +707,5 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
         statisticsReporter.reportTime( "Minify time", this.transformTime );
         statisticsReporter.reportCount( "Total identifiers", this.identifierCount );
         statisticsReporter.reportCount( "Identifiers shortened", this.shortenedIdentifierCount );
-        //statisticsReporter.reportPercentage( "shortened", ( ( this.IdentifierSpaceBefore - this.whiteSpaceAfter ) / this.whiteSpaceBefore ) * 100.00 );
     }
 }

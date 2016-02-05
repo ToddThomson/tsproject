@@ -48,7 +48,6 @@ export class IdentifierInfo {
     }
 
     public addRef( identifier: ts.Identifier, container: Container ): void {
-        Logger.trace( "Adding identifier ref: ", container.getId(), this.getName() );
         // Add the identifier (node) reference
         this.identifiers.push( identifier );
 
@@ -56,6 +55,16 @@ export class IdentifierInfo {
         if ( !Utils.hasProperty( this.containers, container.getId().toString() ) ) {
             this.containers[ container.getId().toString() ] = container;
         }
+    }
+
+    public isNamespaceImportAlias(): boolean {
+        if ( ( this.symbol.flags & ts.SymbolFlags.Alias ) > 0 ) {
+            if ( this.symbol.declarations[0].kind === ts.SyntaxKind.NamespaceImport ) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public isFunctionScopedVariable(): boolean {
@@ -77,19 +86,6 @@ export class IdentifierInfo {
             if ( variableDeclaration ) {
                 return ( ( variableDeclaration.parent.flags & ts.NodeFlags.Let ) !== 0 ) ||
                     ( ( variableDeclaration.parent.flags & ts.NodeFlags.Const ) !== 0 );
-            }
-        }
-
-        return false;
-    }
-
-    public isParameter(): boolean {
-        // Note: FunctionScopedVariable also indicates a parameter
-        if ( ( this.symbol.flags & ts.SymbolFlags.FunctionScopedVariable ) > 0 ) {
-
-            // A parameter has a value declaration
-            if ( this.symbol.valueDeclaration.kind === ts.SyntaxKind.Parameter ) {
-                return true;
             }
         }
 
@@ -126,6 +122,19 @@ export class IdentifierInfo {
                         node = node.parent;
                     }
                 }
+            }
+        }
+
+        return false;
+    }
+
+    public isParameter(): boolean {
+        // Note: FunctionScopedVariable also indicates a parameter
+        if ( ( this.symbol.flags & ts.SymbolFlags.FunctionScopedVariable ) > 0 ) {
+
+            // A parameter has a value declaration
+            if ( this.symbol.valueDeclaration.kind === ts.SyntaxKind.Parameter ) {
+                return true;
             }
         }
 
@@ -207,6 +216,4 @@ export class IdentifierInfo {
 
         return null;
     }
-
-
 }
