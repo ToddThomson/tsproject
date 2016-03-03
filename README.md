@@ -13,6 +13,8 @@ TsProject produces a compiled output stream of vinyl files for further processin
  
 ## What's New
 
+TsProject 1.2.0 supports Typescript 1.8.x.
+
 TsProject 1.2.0 provides bundle minification by shortening identifiers and whitespace removal.
 
 TsProject 1.2.0 provides bundle packaging support for library and component types.

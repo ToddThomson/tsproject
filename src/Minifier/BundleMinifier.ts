@@ -283,7 +283,7 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
     }
 
     private shortenIdentifiers(): void {
-        // NOTE Once identifier names are shortened, the typescript checker cannot be used. 
+        // NOTE: Once identifier names are shortened, the typescript checker cannot be used. 
 
         // We first need to process all the class containers to determine which properties cannot be shortened 
         // because they are declared externally.
@@ -330,7 +330,6 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
                 }
             }
         }
-        
 
         // Determine the names which cannot be used as shortened names in this container.
         this.excludeNames( container );

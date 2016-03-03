@@ -80,7 +80,7 @@ export class BundleBuilder {
             let bundleSourceFile = this.program.getSourceFile( bundleSourceFileName );
 
             if ( !bundleSourceFile ) {
-                let diagnostic = TsCore.createDiagnostic( { code: 6060, category: ts.DiagnosticCategory.Error, key: "Bundle Source File '{0}' not found." }, bundleSourceFileName );
+                let diagnostic = TsCore.createDiagnostic( { code: 6060, category: ts.DiagnosticCategory.Error, key: "Bundle_source_file_0_not_found_6060", message: "Bundle source file '{0}' not found." }, bundleSourceFileName );
 
                 return new BundleResult( ts.ExitStatus.DiagnosticsPresent_OutputsSkipped, [diagnostic] );
             }

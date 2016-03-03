@@ -203,8 +203,6 @@ export class IdentifierInfo {
             case ts.SyntaxKind.VariableDeclaration:
                 return <ts.VariableDeclaration>this.identifier.parent;
 
-                break;
-
             case ts.SyntaxKind.VariableDeclarationList:
                 Logger.warn( "VariableDeclaratioList in getVariableDeclaration() - returning null" );
                 break;

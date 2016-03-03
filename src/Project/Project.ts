@@ -95,7 +95,7 @@ export class Project {
 
     private watchProject() : boolean {
         if ( !ts.sys.watchFile ) {
-            let diagnostic = TsCore.createDiagnostic( { code: 5001, category: ts.DiagnosticCategory.Warning, key: "The current node host does not support the '{0}' option." }, "-watch" );
+            let diagnostic = TsCore.createDiagnostic( { code: 5001, category: ts.DiagnosticCategory.Warning, key: "The_current_node_host_does_not_support_the_0_option_5001", message: "The current node host does not support the '{0}' option." }, "-watch" );
             DiagnosticsReporter.reportDiagnostic( diagnostic );
 
             return false;
@@ -212,7 +212,7 @@ export class Project {
             var isConfigDirectory = fs.lstatSync( this.configFilePath ).isDirectory();
         }
         catch ( e ) {
-            let diagnostic = TsCore.createDiagnostic( { code: 6064, category: ts.DiagnosticCategory.Error, key: "Cannot read project path '{0}'." }, this.configFilePath );
+            let diagnostic = TsCore.createDiagnostic( { code: 6064, category: ts.DiagnosticCategory.Error, key: "Cannot_read_project_path_0_6064", message: "Cannot read project path '{0}'." }, this.configFilePath );
             return { success: false, errors: [diagnostic] };
         }
 
@@ -332,12 +332,12 @@ export class Project {
         // Ignored: --help, --version
 
         if ( parsedResult.options.project ) {
-            let diagnostic = TsCore.createDiagnostic( { code: 5099, category: ts.DiagnosticCategory.Error, key: "The compiler option '{0}' is not supported in this context." }, "--project" );
+            let diagnostic = TsCore.createDiagnostic( { code: 5099, category: ts.DiagnosticCategory.Error, key: "The_compiler_option_0_is_not_supported_in_this_context_5099", message: "The compiler option '{0}' is not supported in this context." }, "--project" );
             parsedResult.errors.push( diagnostic );
         }
 
         if ( parsedResult.options.init ) {
-            let diagnostic = TsCore.createDiagnostic( { code: 5099, category: ts.DiagnosticCategory.Error, key: "The compiler option '{0}' is not supported in this context." }, "--init" );
+            let diagnostic = TsCore.createDiagnostic( { code: 5099, category: ts.DiagnosticCategory.Error, key: "The_compiler_option_0_is_not_supported_in_this_context_5099", message: "The compiler option '{0}' is not supported in this context." }, "--init" );
             parsedResult.errors.push( diagnostic );
         }
 

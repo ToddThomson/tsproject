@@ -10,7 +10,7 @@
         "preserveConstEnums": true,
         "removeComments": false,
         "sourceMap": false,
-        "noEmit": true
+        "noEmit": false
     },
     "files": [
         "../typings/tsd.d.ts",

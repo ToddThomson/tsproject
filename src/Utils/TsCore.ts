@@ -44,7 +44,8 @@ export namespace TsCore {
     }
 
     export function createDiagnostic( message: ts.DiagnosticMessage, ...args: any[] ): ts.Diagnostic {
-        let text = message.key;
+        // FUTURE: Typescript 1.8.x supports localized diagnostic messages.
+        let text = message.message;
 
         if ( arguments.length > 1 ) {
             text = formatStringFromArgs( text, arguments, 1 );
