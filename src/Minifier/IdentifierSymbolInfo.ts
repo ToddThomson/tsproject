@@ -2,7 +2,7 @@
 import { Container } from "./ContainerContext";
 import { Ast } from "../Ast/Ast";
 import { Utils } from "../Utils/Utilities";
-import { Logger } from "../reporting/logger";
+import { Logger } from "../Reporting/Logger";
 
 export class IdentifierInfo {
 
@@ -76,7 +76,7 @@ export class IdentifierInfo {
             }
         }
 
-        return false;        
+        return false;
     }
 
     public isBlockScopedVariable(): boolean {
@@ -150,7 +150,7 @@ export class IdentifierInfo {
 
     public isPrivateMethod(): boolean {
         if ( ( this.symbol.flags & ts.SymbolFlags.Method ) > 0 ) {
-            
+
             // A method has a value declaration
             let flags = this.symbol.valueDeclaration.flags;
 
@@ -162,7 +162,7 @@ export class IdentifierInfo {
             let parent: ts.Symbol = ( <any>this.symbol ).parent;
 
             if ( parent && Ast.isClassInternal( parent ) ) {
-                
+
                 // TJT: Review - public methods of abstact classes are not shortened.
                 if ( !Ast.isClassAbstract( parent ) ) {
                     return true;
@@ -186,7 +186,7 @@ export class IdentifierInfo {
             let parent: ts.Symbol = ( <any>this.symbol ).parent;
 
             if ( parent && Ast.isClassInternal( parent ) ) {
-                
+
                 // TJT: Review - public properties of abstact classes are not shortened.
                 if ( !Ast.isClassAbstract( parent ) ) {
                     return true;

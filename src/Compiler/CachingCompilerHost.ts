@@ -4,7 +4,7 @@ import * as path from "path";
 import * as chokidar from "chokidar";
 
 import { Logger } from "../Reporting/Logger";
-import { TsCore } from "../Utils/tscore";
+import { TsCore } from "../Utils/TsCore";
 import { Utils } from "../Utils/Utilities";
 
 /**
