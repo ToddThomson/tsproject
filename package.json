@@ -5,7 +5,7 @@
   "homepage": "https://github.com/toddthomson/tsproject",
   "bugs": "https://github.com/toddthomson/tsproject/issues",
   "main": "./tsproject.min.js",
-  "typings": "./tsproject.d.ts",
+  "typings": "./TsProject.d.ts",
   "dependencies": {
     "chalk": "^1.1.1",
     "chokidar": "^1.4.2",
