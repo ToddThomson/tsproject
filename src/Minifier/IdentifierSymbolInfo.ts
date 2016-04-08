@@ -152,7 +152,7 @@ export class IdentifierInfo {
         if ( ( this.symbol.flags & ts.SymbolFlags.Method ) > 0 ) {
 
             // A method has a value declaration
-            let flags = this.symbol.valueDeclaration.flags;
+            let flags = this.symbol.valueDeclaration && this.symbol.valueDeclaration.flags;
 
             if ( ( flags & ts.NodeFlags.Private ) > 0 ) {
                 return true;
@@ -176,7 +176,7 @@ export class IdentifierInfo {
     public isPrivateProperty(): boolean {
         if ( ( this.symbol.flags & ts.SymbolFlags.Property ) > 0 ) {
             // A property has a value declaration
-            let flags = this.symbol.valueDeclaration.flags;
+            let flags = this.symbol.valueDeclaration && this.symbol.valueDeclaration.flags;
 
             if ( ( flags & ts.NodeFlags.Private ) > 0 ) {
                 return true;
