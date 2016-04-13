@@ -32,13 +32,13 @@ export class WatchCompilerHost extends CachingCompilerHost {
             // Use program to get source files
             let sourceFile: TsCore.WatchedSourceFile = this.reuseableProgram.getSourceFile( fileName );
 
-            // If the source file has not been modified (it has a fs watcher ) then use it            
+            // If the source file has not been modified (it has a fs watcher ) then use it
             if ( sourceFile && sourceFile.fileWatcher ) {
                 //Logger.trace( "getSourceFile() watcher hit for: ", fileName );
                 return sourceFile;
             }
         }
-        
+
         // Use base class to get the source file
         //Logger.trace( "getSourceFile() reading source file from fs: ", fileName );
         let sourceFile: TsCore.WatchedSourceFile = super.getSourceFileImpl( fileName, languageVersion, onError );
