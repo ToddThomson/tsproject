@@ -37,7 +37,7 @@ export class ProjectBuildContext {
 
             Utils.forEach( this.program.getSourceFiles(), sourceFile => {
 
-                // Remove fileWatcher from the outgoing program source files if they are not in the
+                // Remove fileWatcher from the outgoing program source files if they are not in the 
                 // new program source file set
 
                 if ( !( newSourceFiles && Utils.contains( newSourceFiles, sourceFile ) ) ) {

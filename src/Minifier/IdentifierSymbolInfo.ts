@@ -76,7 +76,7 @@ export class IdentifierInfo {
             }
         }
 
-        return false;
+        return false;        
     }
 
     public isBlockScopedVariable(): boolean {
@@ -149,17 +149,12 @@ export class IdentifierInfo {
 
     public isPrivateMethod(): boolean {
         if ( ( this.symbol.flags & ts.SymbolFlags.Method ) > 0 ) {
-<<<<<<< HEAD
             
             // We explicitly check that a method has a value declaration.
             if ( this.symbol.valueDeclaration === undefined ) {
                 return false;
             }
 
-=======
-
-            // A method has a value declaration
->>>>>>> origin/master
             let flags = this.symbol.valueDeclaration.flags;
 
             if ( ( flags & ts.NodeFlags.Private ) > 0 ) {
@@ -170,7 +165,7 @@ export class IdentifierInfo {
             let parent: ts.Symbol = ( <any>this.symbol ).parent;
 
             if ( parent && Ast.isClassInternal( parent ) ) {
-
+                
                 // TJT: Review - public methods of abstact classes are not shortened.
                 if ( !Ast.isClassAbstract( parent ) ) {
                     return true;
@@ -199,7 +194,7 @@ export class IdentifierInfo {
             let parent: ts.Symbol = ( <any>this.symbol ).parent;
 
             if ( parent && Ast.isClassInternal( parent ) ) {
-
+                
                 // TJT: Review - public properties of abstact classes are not shortened.
                 if ( !Ast.isClassAbstract( parent ) ) {
                     return true;
