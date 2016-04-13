@@ -138,7 +138,7 @@ export class BundleCompiler {
 
         this.emitTime = new Date().getTime() - this.emitTime;
 
-        // Always stream the bundle source file ts
+        // Always stream the bundle source file ts - even if emit errors.
         Logger.info( "Streaming vinyl bundle source: ", bundleFileName );
         var tsVinylFile = new TsVinylFile( {
             path: bundleFileName,
@@ -147,19 +147,20 @@ export class BundleCompiler {
 
         this.outputStream.push( tsVinylFile );
 
+        // Concat any emit errors
+        let allDiagnostics = preEmitDiagnostics.concat( emitResult.diagnostics );
+        
         // If the emitter didn't emit anything, then pass that value along.
         if ( emitResult.emitSkipped ) {
-            return new CompilerResult( ts.ExitStatus.DiagnosticsPresent_OutputsSkipped );//, emitResult.diagnostics );
+            return new CompilerResult( ts.ExitStatus.DiagnosticsPresent_OutputsSkipped, allDiagnostics );
         }
-
-        let allDiagnostics = preEmitDiagnostics.concat( emitResult.diagnostics );
 
         // The emitter emitted something, inform the caller if that happened in the presence of diagnostics.
         if ( this.compilerOptions.noEmitOnError && allDiagnostics.length > 0 ) {
             return new CompilerResult( ts.ExitStatus.DiagnosticsPresent_OutputsGenerated, allDiagnostics );
         }
 
-        // Emit the output files even if errors if the noEmitOnError is false..
+        // Emit the output files even if errors ( noEmitOnError is false ).
 
         // Stream the emitted files...
         let bundleDir = path.dirname( bundleFile.path );

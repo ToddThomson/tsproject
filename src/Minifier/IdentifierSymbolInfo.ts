@@ -2,7 +2,7 @@
 import { Container } from "./ContainerContext";
 import { Ast } from "../Ast/Ast";
 import { Utils } from "../Utils/Utilities";
-import { Logger } from "../reporting/logger";
+import { Logger } from "../Reporting/Logger";
 
 export class IdentifierInfo {
 
@@ -142,7 +142,6 @@ export class IdentifierInfo {
     }
 
     public isInternalClass(): boolean {
-
         // TJT: Review - should use the same export "override" logic as in isInternalFunction
 
         return Ast.isClassInternal( this.symbol );
@@ -151,7 +150,11 @@ export class IdentifierInfo {
     public isPrivateMethod(): boolean {
         if ( ( this.symbol.flags & ts.SymbolFlags.Method ) > 0 ) {
             
-            // A method has a value declaration
+            // We explicitly check that a method has a value declaration.
+            if ( this.symbol.valueDeclaration === undefined ) {
+                return false;
+            }
+
             let flags = this.symbol.valueDeclaration.flags;
 
             if ( ( flags & ts.NodeFlags.Private ) > 0 ) {
@@ -175,7 +178,12 @@ export class IdentifierInfo {
 
     public isPrivateProperty(): boolean {
         if ( ( this.symbol.flags & ts.SymbolFlags.Property ) > 0 ) {
-            // A property has a value declaration
+            
+            // A property has a value declaration except when it is the "prototype" property.
+            if ( this.symbol.valueDeclaration === undefined ) {
+                return false;
+            }
+
             let flags = this.symbol.valueDeclaration.flags;
 
             if ( ( flags & ts.NodeFlags.Private ) > 0 ) {
@@ -198,7 +206,6 @@ export class IdentifierInfo {
     }
 
     private getVariableDeclaration(): ts.VariableDeclaration {
-
         switch ( ( <ts.Node>this.identifier ).parent.kind ) {
             case ts.SyntaxKind.VariableDeclaration:
                 return <ts.VariableDeclaration>this.identifier.parent;

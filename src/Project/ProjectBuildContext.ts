@@ -4,7 +4,7 @@ import { Compiler } from "../Compiler/Compiler";
 import { ProjectConfig } from "../Project/ProjectConfig";
 import { WatchCompilerHost }  from "../Compiler/WatchCompilerHost";
 import { CompileStream }  from "../Compiler/CompileStream";
-import { TsCore } from "../Utils/tsCore";
+import { TsCore } from "../Utils/TsCore";
 import { Utils } from "../Utils/Utilities";
 
 export class ProjectBuildContext {

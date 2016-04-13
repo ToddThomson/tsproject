@@ -27,6 +27,32 @@ export namespace Ast {
         IsContainerWithLocals = IsContainer | HasLocals
     }
 
+    export function isPrototypeAccessAssignment( expression: ts.Node ): boolean {
+
+        if ( expression.kind !== ts.SyntaxKind.BinaryExpression ) {
+            return false;
+        }
+
+        const expr = <ts.BinaryExpression>expression;
+    
+        if ( expr.operatorToken.kind !== ts.SyntaxKind.EqualsToken || expr.left.kind !== ts.SyntaxKind.PropertyAccessExpression ) {
+            return false;
+        }
+        
+        const lhs = <ts.PropertyAccessExpression>expr.left;
+        
+        if ( lhs.expression.kind === ts.SyntaxKind.PropertyAccessExpression ) {
+            // chained dot, e.g. x.y.z = expr; this var is the 'x.y' part
+            const innerPropertyAccess = <ts.PropertyAccessExpression>lhs.expression;
+            
+            if ( innerPropertyAccess.expression.kind === ts.SyntaxKind.Identifier && innerPropertyAccess.name.text === "prototype" ) {
+                return true;
+            }    
+        }
+
+        return false;
+    }
+
     export function isFunctionLike( node: ts.Node ): boolean {
         if ( node ) {
             switch ( node.kind ) {

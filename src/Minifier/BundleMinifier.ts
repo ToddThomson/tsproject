@@ -90,7 +90,7 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
             isTrivia = false;
 
             if ( Ast.isTrivia( token ) ) {
-                // TJT: Remove after testing
+                // TJT: Uncomment to add new line trivia to output for testing purposes
                 //if ( token === ts.SyntaxKind.NewLineTrivia ) {
                 //    output += scanner.getTokenText();
                 //}
@@ -207,6 +207,12 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
                 case ts.SyntaxKind.Identifier:
                     let identifier: ts.Identifier = <ts.Identifier>node;
                     let identifierSymbol: ts.Symbol = this.checker.getSymbolAtLocation( identifier );
+
+                    // The identifierSymbol may be null when an identifier is accessed within a function that
+                    // has been assigned to the prototype property of an object. We check for this here.
+                    if ( !identifierSymbol ) {
+                        identifierSymbol = this.getSymbolFromPrototypeFunction( identifier );    
+                    }
                    
                     if ( identifierSymbol ) {
                         let identifierUID = Ast.getIdentifierUID( identifierSymbol );
@@ -225,6 +231,8 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
 
                         // Check to see if we've seen this identifer symbol before
                         if ( Utils.hasProperty( this.allIdentifierInfos, identifierUID ) ) {
+                            Logger.info( "Identifier already added: ", identifierSymbol.name, identifierUID );
+
                             // If we have, then add it to the identifier info references 
                             let prevAddedIdentifier = this.allIdentifierInfos[ identifierUID ];
                             this.allIdentifierInfos[ identifierUID ].addRef( identifier, this.currentContainer() );
@@ -237,6 +245,7 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
                         }
                         else {
                             let identifierInfo = new IdentifierInfo( identifier, identifierSymbol, this.currentContainer() );
+                            Logger.info( "Adding new identifier: ", identifierInfo.getName(), identifierInfo.getId() );
 
                             // Add the new identifier info to both the container and the all list
                             this.currentContainer().localIdentifiers[ identifierUID ] = identifierInfo;
@@ -256,7 +265,7 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
                         }
                     }
                     else {
-                        Logger.warn( "Identifier does not have a symbol", identifier.text );
+                        Logger.warn( "Identifier does not have a symbol: ", identifier.text );
                     }
 
                     break;
@@ -264,6 +273,32 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
 
             super.visitNode( node );
         }
+    }
+
+    private getSymbolFromPrototypeFunction( identifier: ts.Identifier ): ts.Symbol {
+
+        let containerNode = this.currentContainer().getNode();
+
+        if ( containerNode.kind === ts.SyntaxKind.FunctionExpression ) {
+            if ( Ast.isPrototypeAccessAssignment( containerNode.parent ) ) {
+                // Get the 'x' of 'x.prototype.y = f' (here, 'f' is 'container')
+                const className = (((containerNode.parent as ts.BinaryExpression)   // x.prototype.y = f
+                    .left as ts.PropertyAccessExpression)       // x.prototype.y
+                    .expression as ts.PropertyAccessExpression) // x.prototype
+                    .expression;                                // x
+                        
+                let classSymbol: ts.Symbol = this.checker.getSymbolAtLocation( className );
+
+                if ( classSymbol && classSymbol.members ) {
+                    if ( Utils.hasProperty( classSymbol.members, identifier.text ) ) {
+                        Logger.info( "Symbol obtained from prototype function: ", identifier.text );
+                        return classSymbol.members[ identifier.text ];
+                    }
+                }
+            }                            
+        }
+        
+        return undefined;        
     }
 
     private minify( sourceFile: ts.SourceFile ): ts.SourceFile {
