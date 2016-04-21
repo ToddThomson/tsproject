@@ -11,8 +11,8 @@
     "chokidar": "^1.4.3",
     "glob": "^5.0.15",
     "lodash": "^3.10.1",
-    "readable-stream": "^1.1.13",
-    "typescript": "^1.8.9",
+    "readable-stream": "^1.1.14",
+    "typescript": "^1.8.10",
     "vinyl": "^1.1.1"
   },
   "devDependencies": {
@@ -22,12 +22,12 @@
     "require-dir": "^0.3.0",
     "run-sequence": "^1.1.5",
     "tsd": "^0.6.5",
-    "typescript": "~1.8.9",
+    "typescript": "~1.8.10",
     "tsproject": "~1.2.1",
     "vinyl-paths": "^2.1.0"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"No test configured.\" && exit 0"
   },
   "keywords": [
     "bundle",
