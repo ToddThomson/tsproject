@@ -26,9 +26,6 @@
     "tsproject": "~1.2.1",
     "vinyl-paths": "^2.1.0"
   },
-  "scripts": {
-    "test": "echo \"No test configured.\" && exit 0"
-  },
   "keywords": [
     "bundle",
     "bundling",
