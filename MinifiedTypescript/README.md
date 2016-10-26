@@ -1,5 +1,5 @@
 ﻿# MinifiedTypescript
-This sample uses TsProject 1.2 and Typescript 1.7.x
+This sample uses TsProject 2.0 and Typescript 2.0
 
 ##Description
 This sample shows how to bundle a simple Typescript app to a single file minified bundle.

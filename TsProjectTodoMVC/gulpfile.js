@@ -31,7 +31,7 @@ var requireJsOptimizerConfig = {
     insertRequire: ['src/bundles/app']
 };
 
-gulp.task( 'ts-common', function() {
+gulp.task( 'ts-commonjs', function() {
     return tsproject.src('./app/src/tsconfig.json',
         {
             logLevel: 0,

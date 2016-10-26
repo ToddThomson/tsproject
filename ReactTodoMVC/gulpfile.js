@@ -37,15 +37,14 @@ var requireJsOptimizerConfig = {
     insertRequire: ['src/bundles/app']
 };
 
-gulp.task( 'ts-common', function() {
-    return tsproject.src('./app/src/tsconfig.json',
-        {
-            logLevel: 0,
-            compilerOptions: {
-                "module": "commonjs"
-            }
-        })
-        .pipe( gulp.dest( './commonjs' ) );
+gulp.task('tsproject-watch', function( cb ) {
+    return tsproject.src('./app/src/tsconfig.json', {
+        logLevel: 0,
+        compilerOptions: {
+            watch: true,
+            listFiles: false
+        }
+    }).pipe(gulp.dest('./'));
 });
 
 gulp.task('ts', function () {

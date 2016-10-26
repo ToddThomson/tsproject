@@ -1,30 +1,30 @@
-       class Greeter {
-    private element: HTMLElement;
-    private span: HTMLElement;
-    private timerToken: number;
+       class a       {
+    private b      : HTMLElement;
+    private c   : HTMLElement;
+    private d         : number;
 
-    constructor( element: HTMLElement ) {
-        this.element = element;
-        this.element.innerHTML += "The time is: ";
-        this.span = document.createElement( 'span' );
-        this.element.appendChild( this.span );
-        this.span.innerText = new Date().toUTCString();
+    constructor( d      : HTMLElement ) {
+        this.b       = d      ;
+        this.b      .innerHTML += "The time is: ";
+        this.c    = document.createElement( 'span' );
+        this.b      .appendChild( this.c    );
+        this.c   .innerText = new Date().toUTCString();
     }
 
-    start() {
-        this.timerToken = setInterval(() => this.span.innerHTML = new Date().toUTCString(), 500 );
+    e    () {
+        this.d          = setInterval(() => this.c   .innerHTML = new Date().toUTCString(), 500 );
     }
 
-    stop() {
-        clearTimeout( this.timerToken );
+    f   () {
+        clearTimeout( this.d          );
     }
 }
                                     
 
 export namespace MyApp {
 
-    var el = document.getElementById( 'content' );
-    export var greeter = new Greeter( el );
+    var f  = document.getElementById( 'content' );
+    export var g       = new a      ( f  );
 }
 
-MyApp.greeter.start();
+MyApp.g      .e    ();

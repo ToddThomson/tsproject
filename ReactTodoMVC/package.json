@@ -1,21 +1,21 @@
 {
-    "name": "TypescriptReactTodoMVC",
-    "version": "1.0.0",
+    "name": "typescriptreacttodomvc",
+    "version": "2.0.0",
     "description": "TodoMVC (React, Flux, Require) app build with TsProject bundle optimizing compiler.",
     "devDependencies": {
-        "gulp": "^3.9.0",
+        "gulp": "^3.9.1",
         "gulp-concat": "~2.6.0",
         "gulp-rimraf": "~0.2.0",
         "gulp-replace": "~0.5.4",
-        "gulp-uglify": "~1.4.1",
-        "gulp-html-replace": "~1.5.4",
+        "gulp-uglify": "~1.5.1",
+        "gulp-html-replace": "~1.6.1",
         "gulp-requirejs": "latest",
-        "tsd" : "~0.6.4",
-        "deeply": "~0.1.0",
-        "chalk": "~1.1.1",
-        "event-stream": "~3.3.1",
-        "typescript": "~1.6.2",
-        "tsproject": "~1.0.0"
+        "tsd" : "~0.6.5",
+        "deeply": "~2.0.3",
+        "chalk": "~1.1.3",
+        "event-stream": "~3.3.4",
+        "typescript": "~2.0.6",
+        "tsproject": "~2.0.0"
     },
     "author": "Todd Thomson <todd.thomson@me.com>",
     "license": "MIT"

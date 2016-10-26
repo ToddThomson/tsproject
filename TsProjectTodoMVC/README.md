@@ -1,5 +1,5 @@
 ﻿# TsProjectTodoMVC App
-This sample uses TsProject 1.0.0 to build an Angular/Require TodoMVC app.
+This sample uses TsProject 2.0 to build an Angular/Require TodoMVC app.
 
 ##TodoMVC
 The source code for this sample was derived from the Angular-Require TodoMVC sample at (http://todomvc.com)

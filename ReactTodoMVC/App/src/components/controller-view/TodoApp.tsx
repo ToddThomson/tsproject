@@ -1,4 +1,5 @@
-﻿/**
+﻿/// <reference path="../../stores/todostore.ts" />
+/**
  * Copyright (c) 2014-2015, Facebook, Inc.
  * All rights reserved.
  *
@@ -14,10 +15,10 @@
 
 import React = require( "react" );
 
-import { Footer } from '../components/Footer';
-import { Header } from '../components/Header';
-import { MainSection } from '../components/MainSection';
-import { todoStore } from '../stores/TodoStore';
+import { Footer } from '../../components/Footer';
+import { Header } from '../../components/Header';
+import { MainSection } from '../../components/MainSection';
+import { todoStore } from '../../stores/TodoStore';
 
 export class TodoApp extends React.Component<any, any> {
 

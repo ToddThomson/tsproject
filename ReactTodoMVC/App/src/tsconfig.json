@@ -5,7 +5,7 @@
         "jsx": "react",
         "noResolve": false,
         "diagnostics": true,
-        "listFiles": true
+        "listFiles": false
     },
 
     "files": [

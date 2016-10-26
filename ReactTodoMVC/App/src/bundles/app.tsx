@@ -1,13 +1,17 @@
 import flux = require( 'flux' );
-﻿export type TodoItem = {
+import React = require( "react" );
+import classNames = require( "classnames" );
+import EventEmitter = require( 'eventemitter' );
+import assign = require( 'object-assign' );
+export type TodoItem = {
     id?: string;
     text: string;
     complete: boolean;
 };
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+                                                                                                                                                                                                                                                                                                                                                                                                                                                               
 
 export var todoDispatcher = new flux.Dispatcher();
-﻿export enum ActionType {
+export enum ActionType {
     TODO_CREATE,
     TODO_COMPLETE,
     TODO_DESTROY,
@@ -16,9 +20,7 @@ export var todoDispatcher = new flux.Dispatcher();
     TODO_UNDO_COMPLETE,
     TODO_UPDATE_TEXT
 }
-import React = require( "react" );
-import classNames = require( "classnames" );
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
 
 class TodoActions {
 
@@ -90,7 +92,7 @@ class TodoActions {
 }
 
 export var todoActions = new TodoActions();
-                                                                                                                                                                                                                                                                                                                                                               
+                                                                                                                                                                                                                                                                                                                                                              
 
 interface TodoTextInputProps {
     className?: string,
@@ -167,7 +169,7 @@ export class TodoTextInput extends React.Component<TodoTextInputProps, any> {
         }
     }
 }
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
 
 interface TodoProps {
     todoItem: TodoItem;
@@ -254,7 +256,7 @@ export class Todo extends React.Component<TodoProps, TodoState> {
         todoActions.destroy( this.props.todoItem.id );
     }
 }
-                                                                                                                                                                                          
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
 
 interface Map<T> {
     [index: string]: T;
@@ -315,9 +317,7 @@ export class Footer extends React.Component<FooterProps, any> {
         todoActions.destroyCompleted();
     }
 }
-import EventEmitter = require( 'eventemitter' );
-import assign = require( 'object-assign' );
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
 
 export class Header extends React.Component<any, any> {
 
@@ -346,7 +346,7 @@ export class Header extends React.Component<any, any> {
         }
     }
 }
-                                                                                                                                                                                                                  
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
 
 interface MainSectionProps {
     allTodos: { [key: string]: TodoItem },
@@ -421,9 +421,9 @@ export class MainSection extends React.Component<MainSectionProps, any> {
         todoActions.toggleCompleteAll();
     }
 }
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
 
-class TodoStore extends EventEmitter {
+export class TodoStore extends EventEmitter {
     constructor() {
         super();
     }
@@ -588,7 +588,7 @@ todoDispatcher.register( function ( action: any ) {
         // no op
     }
 });
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
 
 export class TodoApp extends React.Component<any, any> {
 
@@ -634,7 +634,7 @@ export class TodoApp extends React.Component<any, any> {
     }
 }
 
-                                                                                                                                                                                                                                                                                                                                                                                                                           
+                                                                                                                                                                                                                                                                                                                                                                                                                          
 
 React.render(
     <TodoApp />,

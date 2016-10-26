@@ -1,5 +1,5 @@
 ﻿# ReactTodoMVC App
-This sample uses TsProject 1.0.1 to build TodoMVC using React, Flux, Require using Typescript 1.6.
+This sample uses TsProject 2.0 to build TodoMVC using React, Flux, Require using Typescript 2.0
 
 ##Description
 This sample shows how to bundle a React based Typescript app to a single file.
