@@ -29,12 +29,12 @@ export class Container {
     private baseClass: ts.Symbol = undefined;
     
     private nameIndex: number;
-    public namesExcluded: ts.Map<boolean> = {};
+    public namesExcluded: ts.MapLike<boolean> = {};
 
-    public localIdentifiers: ts.Map<IdentifierInfo> = {};
-    public classifiableSymbols: ts.Map<ts.Symbol> = {};
+    public localIdentifiers: ts.MapLike<IdentifierInfo> = {};
+    public classifiableSymbols: ts.MapLike<ts.Symbol> = {};
 
-    public excludedIdentifiers: ts.Map<IdentifierInfo> = {};
+    public excludedIdentifiers: ts.MapLike<IdentifierInfo> = {};
     public excludedProperties: ts.Symbol[] = [];
 
     public shortenedIdentifierCount = 0;
@@ -56,10 +56,10 @@ export class Container {
 
             // A function scoped container is it's own parent
             this.parent = this;
-
-            // The name generator index starts at 0 for containers 
-            this.nameIndex = 0;
         }
+
+        // The name generator index starts at 0 for containers 
+        this.nameIndex = 0;
     }
 
     public getId(): number {

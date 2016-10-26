@@ -9,7 +9,7 @@ export class IdentifierInfo {
     private identifier: ts.Identifier;
     private symbol: ts.Symbol;
 
-    private containers: ts.Map<Container> = {};
+    private containers: ts.MapLike<Container> = {};
     private identifiers: ts.Identifier[] = [];
 
     public shortenedName: string = undefined;
@@ -39,7 +39,7 @@ export class IdentifierInfo {
         return id ? id.toString() : undefined;
     }
 
-    public getContainers(): ts.Map<Container> {
+    public getContainers(): ts.MapLike<Container> {
         return this.containers;
     }
 
@@ -92,6 +92,30 @@ export class IdentifierInfo {
         return false;
     }
 
+    public isParameter(): boolean {
+        // Note: FunctionScopedVariable also indicates a parameter
+        if ( ( this.symbol.flags & ts.SymbolFlags.FunctionScopedVariable ) > 0 ) {
+
+            // A parameter has a value declaration
+            if ( this.symbol.valueDeclaration.kind === ts.SyntaxKind.Parameter ) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public isInternalClass(): boolean {
+        
+        // TJT: Review - should use the same export "override" logic as in isInternalFunction
+
+        return Ast.isClassInternal( this.symbol );
+    }
+
+    public isInternalInterface(): boolean {
+        return Ast.isInterfaceInternal( this.symbol );
+    }
+
     public isInternalFunction( packageNamespace: string ): boolean {
         if ( this.symbol.flags & ts.SymbolFlags.Function ) {
 
@@ -128,25 +152,6 @@ export class IdentifierInfo {
         return false;
     }
 
-    public isParameter(): boolean {
-        // Note: FunctionScopedVariable also indicates a parameter
-        if ( ( this.symbol.flags & ts.SymbolFlags.FunctionScopedVariable ) > 0 ) {
-
-            // A parameter has a value declaration
-            if ( this.symbol.valueDeclaration.kind === ts.SyntaxKind.Parameter ) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    public isInternalClass(): boolean {
-        // TJT: Review - should use the same export "override" logic as in isInternalFunction
-
-        return Ast.isClassInternal( this.symbol );
-    }
-
     public isPrivateMethod(): boolean {
         if ( ( this.symbol.flags & ts.SymbolFlags.Method ) > 0 ) {
             
@@ -161,7 +166,7 @@ export class IdentifierInfo {
                 return true;
             }
 
-            // Check if the method parent class is "internal" ( non-private methods may be shortened too )
+            // Check if the method parent class or interface is "internal" ( non-private methods may be shortened too )
             let parent: ts.Symbol = ( <any>this.symbol ).parent;
 
             if ( parent && Ast.isClassInternal( parent ) ) {
@@ -170,6 +175,11 @@ export class IdentifierInfo {
                 if ( !Ast.isClassAbstract( parent ) ) {
                     return true;
                 }
+            }
+
+            if ( parent && Ast.isInterfaceInternal( parent ) ) {
+                // TODO: Interfaces methods are always external for now.
+                return false;
             }
         }
 

@@ -10,6 +10,7 @@ import { Logger } from "../Reporting/Logger";
 import { NameGenerator } from "./NameGenerator";
 import { Container } from "./ContainerContext";
 import { IdentifierInfo } from "./IdentifierSymbolInfo";
+import { TsCompilerOptions } from "../Compiler/TsCompilerOptions";
 import { Debug } from "../Utils/Debug";
 import { Utils } from "../Utils/Utilities";
 import { TsCore } from "../Utils/TsCore";
@@ -18,12 +19,12 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
     private bundleSourceFile: ts.SourceFile;
     private program: ts.Program;
     private checker: ts.TypeChecker;
-    private compilerOptions: ts.CompilerOptions;
+    private compilerOptions: TsCompilerOptions;
     private bundleConfig: BundleConfig;
 
     private containerStack: Container[] = [];
-    private classifiableContainers: ts.Map<Container> = {};
-    private allIdentifierInfos: ts.Map<IdentifierInfo> = {};
+    private classifiableContainers: ts.MapLike<Container> = {};
+    private allIdentifierInfos: ts.MapLike<IdentifierInfo> = {};
     private sourceFileContainer: Container;
     private nameGenerator: NameGenerator;
 
@@ -321,27 +322,36 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
         // NOTE: Once identifier names are shortened, the typescript checker cannot be used. 
 
         // We first need to process all the class containers to determine which properties cannot be shortened 
-        // because they are declared externally.
+        // ( if they are declared externally ).
 
         for ( let classContainerKey in this.classifiableContainers ) {
             let classContainer = this.classifiableContainers[ classContainerKey ];
 
             let abstractProperties: ts.Symbol[] = [];
-            let exportProperties: ts.Symbol[] = [];
+            let heritageProperties: ts.Symbol[] = [];
+            let implementsProperties: ts.Symbol[] = [];
 
-            exportProperties = Ast.getClassExportProperties( classContainer.getNode(), this.checker );
-        
             let extendsClause = Ast.getExtendsClause( classContainer.getNode() );
 
-            // Check for abstract properties.
-            // TODO: Abstract properties are currently not shortened, but they could possibly be.
-            // The child class that implements a parent class property would need to have the same shortened name.
             if ( extendsClause ) {
-                abstractProperties = Ast.getAbstractClassProperties( extendsClause, this.checker );
+                // Check for abstract properties...
+            
+                // TODO: Abstract properties are currently not shortened, but they could possibly be.
+                //       The child class that implements a parent class property would need to have the same shortened name.
+                
+                abstractProperties = Ast.getClassAbstractProperties( extendsClause, this.checker );
             }
 
+            let implementsClause = Ast.getImplementsClause( classContainer.getNode() );
+
+            if ( implementsClause ) {
+                implementsProperties = Ast.getImplementsProperties( implementsClause, this.checker );
+            }
+
+            heritageProperties = Ast.getClassHeritageProperties( classContainer.getNode(), this.checker );
+
             // Join the abstract and implements properties
-            let excludedProperties = exportProperties.concat( abstractProperties );
+            let excludedProperties = heritageProperties.concat( abstractProperties, implementsProperties );
 
             classContainer.excludedProperties = excludedProperties;
         }
@@ -411,17 +421,19 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
 
     private processIdentifierInfo(  identifierInfo: IdentifierInfo, container: Container ): void {
         if ( this.canShortenIdentifier( identifierInfo ) ) {
+
             let shortenedName = this.getShortenedIdentifierName( container, identifierInfo );
 
             Logger.trace( "Identifier shortened: ", identifierInfo.getName(), shortenedName );
 
             // Add the shortened name to the excluded names in each container that this identifier was found in.
             let containerRefs = identifierInfo.getContainers();
+            
             for ( let containerKey in containerRefs ) {
                 let containerRef = containerRefs[ containerKey ];
                 containerRef.namesExcluded[ shortenedName ] = true;
             }
-
+            
             // Change all referenced identifier nodes to the shortened name
             Utils.forEach( identifierInfo.getIdentifiers(), identifier => {
                 this.setIdentifierText( identifier, shortenedName );
@@ -436,6 +448,7 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
         if ( identifierInfo.isBlockScopedVariable() ||
             identifierInfo.isFunctionScopedVariable() ||
             identifierInfo.isInternalClass() ||
+            identifierInfo.isInternalInterface() ||
             identifierInfo.isPrivateMethod() ||
             identifierInfo.isPrivateProperty() ||
             identifierInfo.isInternalFunction( this.bundleConfig.package.getPackageNamespace() ) ||
@@ -489,15 +502,31 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
     }
 
     private setIdentifierText( identifier: ts.Identifier, text: string ): void {
+        
+        let identifierLength = identifier.text.length;
+        let bufferLength = ( identifier.end - identifier.pos );
 
+        // Check to see if there is leading trivia
+        var triviaOffset = identifier.getLeadingTriviaWidth();
+
+        // Find the start of the identifier text within the identifier character array
+        for ( var identifierStart = identifier.pos + triviaOffset; identifierStart < identifier.pos + bufferLength; identifierStart++ ) {
+            if ( this.bundleSourceFile.text[ identifierStart ] === identifier.text[ 0 ] )
+                break;
+        }
+
+        // Replace the identifier text
         identifier.text = text;
+        identifier.end = identifierStart + text.length;
 
-        // The identifier text to write to the file has a starting and ending space
-        text = " " + text + " ";
-        identifier.end = identifier.pos + text.length - 1;
+        for ( var i = 0; i < identifierLength; i++ ) {
+            let replaceChar = " ";
+            
+            if ( i < text.length ) {
+                replaceChar = text[i];
+            }
 
-        for ( var i = 0; i < text.length; i++ ) {
-            this.bundleSourceFile.text = Utils.replaceAt( this.bundleSourceFile.text, identifier.pos + i, text[i] );
+            this.bundleSourceFile.text = Utils.replaceAt( this.bundleSourceFile.text, identifierStart + i, replaceChar );
         }
     }
 
@@ -603,10 +632,11 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
         }
     }
 
-    private getContainerExcludedIdentifiers( container: Container ): ts.Map<IdentifierInfo> {
+    private getContainerExcludedIdentifiers( container: Container ): ts.MapLike<IdentifierInfo> {
+
         // Recursively walk the container chain to find shortened identifier names that we cannot use in this container.
         let target = this.compilerOptions.target;
-        let excludes: ts.Map<IdentifierInfo> = {};
+        let excludes: ts.MapLike<IdentifierInfo> = {};
         
         function getContainerExcludes( container: Container ) {
             // Recursively process the container block scoped children..
@@ -615,9 +645,9 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
              for ( let i = 0; i < containerChildren.length; i++ ) {
                 let childContainer = containerChildren[ i ];
                 
-                if ( childContainer.isBlockScoped() ) {
+                //if ( childContainer.isBlockScoped() ) {
                     getContainerExcludes( childContainer );
-                }
+                //}
             }
 
             // Get the excluded identifiers in this block scoped container..

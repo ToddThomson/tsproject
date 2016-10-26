@@ -89,7 +89,7 @@ export class BundleParser {
             let bundlePackageType: BundlePackageType = BundlePackageType.None;
             let bundlePackageNamespace: string = undefined;
 
-            let packageTypeMap: ts.Map<BundlePackageType> = {
+            let packageTypeMap: ts.MapLike<BundlePackageType> = {
                 "none": BundlePackageType.None,
                 "library": BundlePackageType.Library,
                 "component": BundlePackageType.Component

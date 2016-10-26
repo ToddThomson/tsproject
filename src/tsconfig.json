@@ -3,9 +3,11 @@
         "target": "es5",
         "module": "commonjs",
         "moduleResolution": "node",
-        "declaration": false,
+        "declaration": true,
         "diagnostics": true,
         "listFiles": false,
+        "pretty": true,
+        "noEmitOnError": false,
         "noImplicitAny": false,
         "preserveConstEnums": true,
         "removeComments": false,
@@ -13,7 +15,7 @@
         "noEmit": false
     },
     "files": [
-        "../typings/tsd.d.ts",
+        "../typings/main.d.ts",
         "./Ast/Ast.ts",
         "./Ast/AstTransform.ts",
         "./Ast/NodeWalker.ts",
@@ -28,6 +30,7 @@
         "./Compiler/CompilerError.ts",
         "./Compiler/CompilerResult.ts",
         "./Compiler/CompileStream.ts",
+        "./Compiler/TsCompilerOptions.ts",
         "./Compiler/WatchCompilerHost.ts",
         "./Minifier/BundleMinifier.ts",
         "./Minifier/ContainerContext.ts",
@@ -49,7 +52,7 @@
     ],
     "bundles": {
         "tsproject": {
-            "files": [ "../typings/tsd.d.ts", "./TsProject.ts" ],
+            "files": [ "../typings/main.d.ts", "./TsProject.ts" ],
             "config": {
                 "package": "component",
                 "packageNamespace": "TsProject",

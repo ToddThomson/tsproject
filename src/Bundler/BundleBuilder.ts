@@ -1,6 +1,7 @@
 ﻿import { CompilerResult } from "../Compiler/CompilerResult";
 import { WatchCompilerHost }  from "../Compiler/WatchCompilerHost";
 import { CompileStream }  from "../Compiler/CompileStream";
+import { TsCompilerOptions } from "../Compiler/TsCompilerOptions";
 import { StatisticsReporter } from "../Reporting/StatisticsReporter";
 import { Logger } from "../Reporting/Logger";
 import { TsVinylFile } from "../Project/TsVinylFile";
@@ -31,9 +32,9 @@ export class BundleBuilder {
     private bundleCodeText: string = "";
     private bundleImportText: string = "";
 
-    private bundleImportedFiles: ts.Map<string> = {};
-    private bundleModuleImports: ts.Map<ts.Map<string>> = {};
-    private bundleSourceFiles: ts.Map<string> = {};
+    private bundleImportedFiles: ts.MapLike<string> = {};
+    private bundleModuleImports: ts.MapLike<ts.MapLike<string>> = {};
+    private bundleSourceFiles: ts.MapLike<string> = {};
 
     constructor( compilerHost: WatchCompilerHost, program: ts.Program ) {
         this.compilerHost = compilerHost
@@ -68,7 +69,7 @@ export class BundleBuilder {
 
         var isBundleTsx = false;
 
-        let allDependencies: ts.Map<ts.Node[]> = {};
+        let allDependencies: ts.MapLike<ts.Node[]> = {};
 
         for ( var filesKey in bundle.fileNames ) {
             let fileName = bundle.fileNames[filesKey];
@@ -166,7 +167,7 @@ export class BundleBuilder {
 
         this.buildTime = new Date().getTime() - this.buildTime;
 
-        if ( this.program.getCompilerOptions().diagnostics ) {
+        if ( (<TsCompilerOptions>this.program.getCompilerOptions()).diagnostics ) {
             this.reportStatistics();
         }
 
@@ -362,15 +363,13 @@ export class BundleBuilder {
     }
 
     private isCodeSourceFile( file: ts.SourceFile ): boolean {
-        return ( file.kind === ts.SyntaxKind.SourceFile &&
-            !( file.flags & ts.NodeFlags.DeclarationFile ) );
+        return ( file.kind === ts.SyntaxKind.SourceFile && !file.isDeclarationFile );
     }
 
     private isCodeModule( importSymbol: ts.Symbol ): boolean {
         let declaration = importSymbol.getDeclarations()[0];
 
-        return ( declaration.kind === ts.SyntaxKind.SourceFile &&
-            !( declaration.flags & ts.NodeFlags.DeclarationFile ) );
+        return ( ( declaration.kind === ts.SyntaxKind.SourceFile ) && !( (<ts.SourceFile>declaration).isDeclarationFile ) );
     }
 
     private isAmbientModule( importSymbol: ts.Symbol ): boolean {

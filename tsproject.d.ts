@@ -1,5 +1,9 @@
-import * as stream from "stream";
 declare namespace TsProject {
-    function src(configFilePath: string, settings?: any): stream.Readable;
+    function src(configFilePath: string, settings?: any): NodeJS.ReadableStream
 }
-export = TsProject;
+
+export default TsProject;
+
+//declare module "TsProject" {
+//    export default TsProject;
+//}

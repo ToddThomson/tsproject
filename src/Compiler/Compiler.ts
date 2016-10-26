@@ -1,6 +1,7 @@
 ﻿import { CompilerResult } from "./CompilerResult";
 import { CachingCompilerHost }  from "./CachingCompilerHost";
 import { CompileStream }  from "./CompileStream";
+import { TsCompilerOptions } from "./TsCompilerOptions";
 import { StatisticsReporter } from "../Reporting/StatisticsReporter";
 import { Logger } from "../Reporting/Logger";
 import { TsVinylFile } from "../Project/TsVinylFile";
@@ -15,7 +16,7 @@ export class Compiler {
     private compilerHost: CachingCompilerHost;
     private program: ts.Program;
     private compileStream: CompileStream;
-    private compilerOptions: ts.CompilerOptions;
+    private compilerOptions: TsCompilerOptions;
 
     private preEmitTime: number = 0;
     private emitTime: number = 0;
@@ -80,6 +81,8 @@ export class Compiler {
             return new CompilerResult( ts.ExitStatus.DiagnosticsPresent_OutputsGenerated, diagnostics );
         }
 
+        // TODO: diagnostics is now internal
+
         if ( this.compilerOptions.diagnostics ) {
             this.reportStatistics();
         }
@@ -100,7 +103,7 @@ export class Compiler {
     private compiledLines(): number {
         var count = 0;
         Utils.forEach( this.program.getSourceFiles(), file => {
-            if ( !TsCore.isDeclarationFile( file ) ) {
+            if ( !file.isDeclarationFile ) {
                 count += this.getLineStarts( file ).length;
             }
         });

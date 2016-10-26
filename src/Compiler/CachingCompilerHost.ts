@@ -12,19 +12,18 @@ import { Utils } from "../Utils/Utilities";
  */
 export class CachingCompilerHost implements ts.CompilerHost {
 
-    private output: ts.Map<string> = {};
-    private dirExistsCache: ts.Map<boolean> = {};
+    private output: ts.MapLike<string> = {};
+    private dirExistsCache: ts.MapLike<boolean> = {};
     private dirExistsCacheSize: number = 0;
-    private fileExistsCache: ts.Map<boolean> = {};
+    private fileExistsCache: ts.MapLike<boolean> = {};
     private fileExistsCacheSize: number = 0;
-    private fileReadCache: ts.Map<string> = {};
+    private fileReadCache: ts.MapLike<string> = {};
 
     protected compilerOptions;
     private baseHost: ts.CompilerHost;
 
     constructor( compilerOptions: ts.CompilerOptions ) {
         this.compilerOptions = compilerOptions;
-
         this.baseHost = ts.createCompilerHost( this.compilerOptions );
     }
 
@@ -82,6 +81,10 @@ export class CachingCompilerHost implements ts.CompilerHost {
     public getCurrentDirectory() {
         return this.baseHost.getCurrentDirectory();
     }
+
+    public getDirectories( path: string ): string[] {
+        return this.baseHost.getDirectories( path );
+    } 
 
     public getCanonicalFileName( fileName: string ) {
         return this.baseHost.getCanonicalFileName( fileName );

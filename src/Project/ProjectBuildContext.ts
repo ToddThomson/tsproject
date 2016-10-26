@@ -13,7 +13,8 @@ export class ProjectBuildContext {
     private program: ts.Program;
     public config: ProjectConfig;
 
-    private files: ts.Map<string>;
+    // FIXME: Not referenced
+    private files: ts.MapLike<string>;
 
     constructor( host: WatchCompilerHost, config: ProjectConfig, program?: ts.Program ) {
         this.host = host;

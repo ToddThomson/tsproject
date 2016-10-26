@@ -4,6 +4,7 @@ import { DiagnosticsReporter } from "../Reporting/DiagnosticsReporter";
 import { WatchCompilerHost }  from "../Compiler/WatchCompilerHost";
 import { ProjectBuildContext } from "./ProjectBuildContext";
 import { CompileStream }  from "../Compiler/CompileStream";
+import { TsCompilerOptions } from "../Compiler/TsCompilerOptions";
 import { BundleBuilder } from "../Bundler/BundleBuilder";
 import { BundleFile, BundleResult } from "../Bundler/BundleResult";
 import { BundleCompiler } from "../Bundler/BundleCompiler";
@@ -336,10 +337,12 @@ export class Project {
             parsedResult.errors.push( diagnostic );
         }
 
-        if ( parsedResult.options.init ) {
-            let diagnostic = TsCore.createDiagnostic( { code: 5099, category: ts.DiagnosticCategory.Error, key: "The_compiler_option_0_is_not_supported_in_this_context_5099", message: "The compiler option '{0}' is not supported in this context." }, "--init" );
-            parsedResult.errors.push( diagnostic );
-        }
+        // FIXME: Perhaps no longer needed?
+
+        //if ( parsedResult.options.init ) {
+        //    let diagnostic = TsCore.createDiagnostic( { code: 5099, category: ts.DiagnosticCategory.Error, key: "The_compiler_option_0_is_not_supported_in_this_context_5099", message: "The compiler option '{0}' is not supported in this context." }, "--init" );
+        //    parsedResult.errors.push( diagnostic );
+        //}
 
         return parsedResult;
     }

@@ -45,17 +45,17 @@ export namespace TsCore {
 
     export function createDiagnostic( message: ts.DiagnosticMessage, ...args: any[] ): ts.Diagnostic {
         // FUTURE: Typescript 1.8.x supports localized diagnostic messages.
-        let text = message.message;
+        let textUnique123 = message.message;
 
         if ( arguments.length > 1 ) {
-            text = formatStringFromArgs( text, arguments, 1 );
+            textUnique123 = formatStringFromArgs( textUnique123, arguments, 1 );
         }
 
         return {
             file: undefined,
             start: undefined,
             length: undefined,
-            messageText: text,
+            messageText: textUnique123,
             category: message.category,
             code: message.code
         };
@@ -66,10 +66,6 @@ export namespace TsCore {
         return text.replace( /{(\d+)}/g, function ( match: any, index: any ) {
             return args[+index + baseIndex];
         });
-    }
-
-    export function isDeclarationFile( file: ts.SourceFile ): boolean {
-        return ( file.flags & ts.NodeFlags.DeclarationFile ) !== 0;
     }
 
     // An alias symbol is created by one of the following declarations:

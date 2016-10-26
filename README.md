@@ -1,7 +1,7 @@
 ﻿[![npm version](https://badge.fury.io/js/tsproject.svg)](http://badge.fury.io/js/tsproject)
 ﻿[![Build Status](https://travis-ci.org/ToddThomson/tsproject.svg?branch=master)](https://travis-ci.org/ToddThomson/tsproject)
 # TsProject
-TsProject is a Typescript bundle compiler which utilizes the Typescript project configuration file, tsconfig.json, to provide a compilation context for source files, module bundles and compile options.
+TsProject is a Typescript minifier and modular bundle optimizing compiler which utilizes the Typescript project configuration file, tsconfig.json, to provide a compilation context for source files, module bundles and compile options.
 
 TsProject produces a compiled output stream of vinyl files for further processing in the gulp build pipeline.
 
@@ -14,29 +14,14 @@ TsProject produces a compiled output stream of vinyl files for further processin
  
 ## What's New
 
-TsProject 1.2.0 supports Typescript 1.8.x.
+TsProject 2.0.0 supports Typescript 2.x.
 
-TsProject 1.2.0 provides bundle minification by shortening identifiers and whitespace removal.
-
-TsProject 1.2.0 provides bundle packaging support for library and component types.
-
-TsProject 1.1.0 provides project watch support for cache optimized, incremental builds.
-
-TsProject 1.1.0 supports Typescript 1.7!
-
-TsProject 1.0.5 provides file glob pattern matching for specifying "files" in the tsconfig.json project file.
-
-TsProject 1.0.5 is used to build TsProject. TsProject is a bundled, single file node module using ES6 module imports.
-
-TsProject 1.0.1 bundles React (.tsx) file types. TsProject on github contains a [React based TodoMVC sample](https://github.com/ToddThomson/tsproject/tree/master/ReactTodoMVC) to help you get started.
+TsProject 2.0.0 provides improved bundle minification by shortening identifiers and whitespace removal.
 
 ## Why TsProject?
 
-TsProject provides 2 new features:
-
-1. **A single Typescript project build context**. TsProject uses the new tsconfig.json Typescript project file introduced in Typescript version 1.5 to configure source files, bundles and compile options.
-
-2. **Single file typescript bundles and javascript bundles for packaging of Typescript, javascript and Typescript definition files**. TsProject bundles file dependencies of external Typescript modules at compilation time rather than relying on build tools (AMD Optimizer, r.js for example ) further down in the build pipeline.
+TsProject is the only Typescript 2.0 transpiler that provides minified, single file typescript bundles and javascript bundles for packaging of Typescript, javascript and Typescript definition files.
+TsProject bundles file dependencies of external Typescript modules at compilation time rather than relying on build tools (AMD Optimizer, r.js for example ) further down in the build pipeline.
 
 ## TsProject Wiki
 

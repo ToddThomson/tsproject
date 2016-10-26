@@ -1,6 +1,7 @@
 ﻿import { CompilerResult } from "../Compiler/CompilerResult";
 import { StatisticsReporter } from "../Reporting/StatisticsReporter";
 import { WatchCompilerHost }  from "../Compiler/WatchCompilerHost";
+import { TsCompilerOptions } from "../Compiler/TsCompilerOptions";
 import { CompileStream }  from "../Compiler/CompileStream";
 import { Logger } from "../Reporting/Logger";
 import { TsVinylFile } from "../Project/TsVinylFile";
@@ -22,13 +23,13 @@ export class BundleCompiler {
     private compilerHost: WatchCompilerHost;
     private program: ts.Program;
     private outputStream: CompileStream;
-    private compilerOptions: ts.CompilerOptions;
+    private compilerOptions: TsCompilerOptions;
 
     private emitTime: number = 0;
     private compileTime: number = 0;
     private preEmitTime: number = 0;
 
-    private bundleSourceFiles: ts.Map<string> = {};
+    private bundleSourceFiles: ts.MapLike<string> = {};
 
     constructor( compilerHost: WatchCompilerHost, program: ts.Program, outputStream: CompileStream ) {
         this.compilerHost = compilerHost
@@ -56,7 +57,7 @@ export class BundleCompiler {
             bundleFiles.push( file.fileName );
         });
 
-        let outputText: ts.Map<string> = {};
+        let outputText: ts.MapLike<string> = {};
         let defaultGetSourceFile: ( fileName: string, languageVersion: ts.ScriptTarget, onError?: ( message: string ) => void ) => ts.SourceFile;
 
         let minifyBundle = bundleConfig.minify || false;
@@ -110,6 +111,8 @@ export class BundleCompiler {
         compilerOptions.noEmit = false; // Always emit bundle output
 
         if ( minifyBundle ) {
+            // TJT: Temporary workaround. If declaration is true when minifying an emit error occurs.
+            compilerOptions.declaration = false;
             compilerOptions.removeComments = true;
         }
 
@@ -142,11 +145,11 @@ export class BundleCompiler {
         Logger.info( "Streaming vinyl bundle source: ", bundleFileName );
         var tsVinylFile = new TsVinylFile( {
             path: bundleFileName,
-            contents: new Buffer( bundleFile.text )
+            contents: new Buffer( bundleSourceFile.text )
         });
 
         this.outputStream.push( tsVinylFile );
-
+        
         // Concat any emit errors
         let allDiagnostics = preEmitDiagnostics.concat( emitResult.diagnostics );
         

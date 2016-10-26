@@ -10,7 +10,7 @@ export class DependencyBuilder {
     private host: ts.CompilerHost;
     private program: ts.Program;
     private options: ts.CompilerOptions;
-    private moduleImportsByName: ts.Map<ts.Symbol[]> = {};
+    private moduleImportsByName: ts.MapLike<ts.Symbol[]> = {};
 
     constructor( host: ts.CompilerHost, program: ts.Program ) {
         this.host = host;
@@ -18,10 +18,10 @@ export class DependencyBuilder {
         this.options = this.program.getCompilerOptions();
     }
 
-    public getSourceFileDependencies( sourceFile: ts.SourceFile ): ts.Map<ts.Node[]> {
+    public getSourceFileDependencies( sourceFile: ts.SourceFile ): ts.MapLike<ts.Node[]> {
         var self = this;
-        var dependencies: ts.Map<ts.Node[]> = {};
-        var importWalked: ts.Map<boolean> = {};
+        var dependencies: ts.MapLike<ts.Node[]> = {};
+        var importWalked: ts.MapLike<boolean> = {};
 
         function walkModuleImports( importNodes: ts.Node[] ) {
             importNodes.forEach( importNode => {
@@ -29,6 +29,7 @@ export class DependencyBuilder {
                 let importSymbol = self.getSymbolFromNode( importNode );
                 let importSymbolSourceFile = self.getSourceFileFromSymbol( importSymbol );
                 let canonicalFileName = self.host.getCanonicalFileName( importSymbolSourceFile.fileName );
+                
                 Logger.info( "Import symbol file name: ", canonicalFileName );
 
                 // Don't walk imports that we've already processed
@@ -84,7 +85,7 @@ export class DependencyBuilder {
                         }
                     }
                 }
-                else if (node.kind === ts.SyntaxKind.ModuleDeclaration && (<ts.ModuleDeclaration>node).name.kind === ts.SyntaxKind.StringLiteral && (node.flags & ts.NodeFlags.Ambient || TsCore.isDeclarationFile(file))) {
+                else if (node.kind === ts.SyntaxKind.ModuleDeclaration && (<ts.ModuleDeclaration>node).name.kind === ts.SyntaxKind.StringLiteral && (node.flags & ts.NodeFlags.Ambient || file.isDeclarationFile ) ) {
                     // An AmbientExternalModuleDeclaration declares an external module.
                     var moduleDeclaration = <ts.ModuleDeclaration>node;
                     Logger.info("Processing ambient module declaration: ", moduleDeclaration.name.text);
@@ -114,16 +115,9 @@ export class DependencyBuilder {
         }
     }
 
-    private getSourceFileFromNode( importNode: ts.Node ): ts.SourceFile {
-        return importNode.getSourceFile();
-    }
-
     private getSourceFileFromSymbol( importSymbol: ts.Symbol ): ts.SourceFile {
         let declaration = importSymbol.getDeclarations()[0];
-        let isCodeModule = declaration.kind === ts.SyntaxKind.SourceFile &&
-            !( declaration.flags & ts.NodeFlags.DeclarationFile );
-        let file = declaration.getSourceFile();
-
-        return file;
+        
+        return declaration.getSourceFile();
     }
 }

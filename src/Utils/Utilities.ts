@@ -28,7 +28,7 @@ export namespace Utils {
 
     let hasOwnProperty = Object.prototype.hasOwnProperty;
 
-    export function hasProperty<T>( map: ts.Map<T>, key: string ): boolean {
+    export function hasProperty<T>( map: ts.MapLike<T>, key: string ): boolean {
         return hasOwnProperty.call( map, key );
     }
 
@@ -52,11 +52,11 @@ export namespace Utils {
         return result;
     }
 
-    export function extend<T1, T2>( first: ts.Map<T1>, second: ts.Map<T2> ): ts.Map<T1 & T2> {
+    export function extend<T1, T2>( first: ts.MapLike<T1>, second: ts.MapLike<T2> ): ts.MapLike<T1 & T2> {
 
         let sentinal = 1;
-
-        let result: ts.Map<T1 & T2> = {};
+        let result: ts.MapLike<T1 & T2> = {};
+        
         for ( let id in first ) {
             ( result as any )[id] = first[id];
         }
