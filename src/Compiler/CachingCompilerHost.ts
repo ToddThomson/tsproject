@@ -48,7 +48,7 @@ export class CachingCompilerHost implements ts.CompilerHost {
         fileName = this.getCanonicalFileName( fileName );
 
         // Prune off searches on directories that don't exist
-        if ( !this.dirExists( path.dirname( fileName ) ) ) {
+        if ( !this.directoryExists( path.dirname( fileName ) ) ) {
             return false;
         }
 
@@ -64,11 +64,11 @@ export class CachingCompilerHost implements ts.CompilerHost {
 
     public readFile( fileName ): string {
         if ( Utils.hasProperty( this.fileReadCache, fileName ) ) {
-            //Logger.trace( "readFile() cache hit: ", fileName );
+            Logger.trace( "readFile() cache hit: ", fileName );
             return this.fileReadCache[fileName];
         }
 
-        //Logger.trace( "readFile() Adding to cache: ", fileName );
+        Logger.trace( "readFile() Adding to cache: ", fileName );
         return this.fileReadCache[fileName] = this.baseHost.readFile( fileName );
     }
 
@@ -98,11 +98,13 @@ export class CachingCompilerHost implements ts.CompilerHost {
         return this.baseHost.getNewLine();
     }
 
-    public dirExists( directoryPath: string ): boolean {
+    public directoryExists( directoryPath: string ): boolean {
+
         if ( Utils.hasProperty( this.dirExistsCache, directoryPath ) ) {
             //Logger.trace( "dirExists() hit", directoryPath, this.dirExistsCache[ directoryPath ] );
             return this.dirExistsCache[directoryPath];
         }
+        
         this.dirExistsCacheSize++;
 
         //Logger.trace( "dirExists Adding: ", directoryPath, ts.sys.directoryExists( directoryPath ), this.dirExistsCacheSize );

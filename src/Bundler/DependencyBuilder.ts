@@ -36,8 +36,9 @@ export class DependencyBuilder {
                 if ( !Utils.hasProperty( importWalked, canonicalFileName ) ) {
                     importWalked[canonicalFileName] = true;
 
-                    // Build dependencies bottom up, left to right by recursively calling walkModuleImports
-                    walkModuleImports( self.getImportsOfModule( importSymbolSourceFile ) );
+                     // Build dependencies bottom up, left to right by recursively calling walkModuleImports
+                    if ( !importSymbolSourceFile.isDeclarationFile )
+                        walkModuleImports( self.getImportsOfModule( importSymbolSourceFile ) );
                 }
 
                 if ( !Utils.hasProperty( dependencies, canonicalFileName ) ) {
@@ -47,17 +48,17 @@ export class DependencyBuilder {
             });
         }
 
-        // Get the top level imports
-        var sourceFileImports = self.getImportsOfModule(sourceFile);
+        // Get the top level source file imports
+        var sourceFileImports = self.getImportsOfModule( sourceFile );
 
         // Walk the module import tree
-        walkModuleImports(sourceFileImports);
+        walkModuleImports( sourceFileImports );
 
         let canonicalSourceFileName = self.host.getCanonicalFileName( sourceFile.fileName );
 
         if (!Utils.hasProperty(dependencies, canonicalSourceFileName)) {
-            Logger.info("Adding top level import dependencies for file: ", canonicalSourceFileName);
-            dependencies[canonicalSourceFileName] = sourceFileImports;
+            Logger.info("Adding top level import dependencies for file: ", canonicalSourceFileName );
+            dependencies[ canonicalSourceFileName ] = sourceFileImports;
         }
 
         return dependencies;
@@ -67,29 +68,29 @@ export class DependencyBuilder {
         var importNodes: ts.Node[] = [];
         var self = this;
         
-        function getImports(searchNode: ts.Node) {
+        function getImports( searchNode: ts.Node ) {
             ts.forEachChild(searchNode, node => {
                 if (node.kind === ts.SyntaxKind.ImportDeclaration || node.kind === ts.SyntaxKind.ImportEqualsDeclaration || node.kind === ts.SyntaxKind.ExportDeclaration) {
                     Logger.info("Found import declaration");
-                    let moduleNameExpr = TsCore.getExternalModuleName(node);
+                    let moduleNameExpr = TsCore.getExternalModuleName( node );
 
-                    if (moduleNameExpr && moduleNameExpr.kind === ts.SyntaxKind.StringLiteral) {
-                        let moduleSymbol = self.program.getTypeChecker().getSymbolAtLocation(moduleNameExpr);
+                    if ( moduleNameExpr && moduleNameExpr.kind === ts.SyntaxKind.StringLiteral ) {
+                        let moduleSymbol = self.program.getTypeChecker().getSymbolAtLocation( moduleNameExpr );
 
-                        if (moduleSymbol) {
-                            Logger.info("Adding import symbol: ", moduleSymbol.name, file.fileName);
-                            importNodes.push(node);
+                        if ( moduleSymbol ) {
+                            Logger.info("Adding import symbol: ", moduleSymbol.name, file.fileName) ;
+                            importNodes.push( node );
                         }
                         else {
                             Logger.warn("Module symbol not found");
                         }
                     }
                 }
-                else if (node.kind === ts.SyntaxKind.ModuleDeclaration && (<ts.ModuleDeclaration>node).name.kind === ts.SyntaxKind.StringLiteral && (node.flags & ts.NodeFlags.Ambient || file.isDeclarationFile ) ) {
+                else if ( node.kind === ts.SyntaxKind.ModuleDeclaration && (<ts.ModuleDeclaration>node).name.kind === ts.SyntaxKind.StringLiteral && ( node.flags & ts.NodeFlags.Ambient || file.isDeclarationFile ) ) {
                     // An AmbientExternalModuleDeclaration declares an external module.
                     var moduleDeclaration = <ts.ModuleDeclaration>node;
-                    Logger.info("Processing ambient module declaration: ", moduleDeclaration.name.text);
-                    getImports((<ts.ModuleDeclaration>node).body);
+                    Logger.info( "Processing ambient module declaration: ", moduleDeclaration.name.text );
+                    getImports( (<ts.ModuleDeclaration>node).body );
                 }
             });
         };

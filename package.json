@@ -1,7 +1,7 @@
 {
   "name": "tsproject",
-  "version": "2.0.0",
-  "description": "Typescript project compiler and modular typescript bundle optimizer for gulp (Ts Vinyl Adapter).",
+  "version": "2.0.1",
+  "description": "Typescript minifier and modular typescript bundle optimizer for gulp (Ts Vinyl Adapter).",
   "homepage": "https://github.com/toddthomson/tsproject",
   "bugs": "https://github.com/toddthomson/tsproject/issues",
   "main": "./tsproject.min.js",
@@ -12,7 +12,7 @@
     "glob": "^7.1.1",
     "lodash": "^4.16.4",
     "readable-stream": "^2.1.5",
-    "typescript": "^2.0.3",
+    "typescript": "^2.0.6",
     "vinyl": "^1.2.0"
   },
   "devDependencies": {
@@ -24,8 +24,8 @@
     "bluebird": "^3.4.6",
     "typings": "^1.4.0",
     "typings-core": "^1.6.0",
-    "typescript": "^2.0.3",
-    "tsproject": "^2.0.0",
+    "typescript": "^2.0.6",
+    "tsproject": "^2.0.1",
     "vinyl-paths": "^2.1.0"
   },
   "keywords": [

@@ -101,7 +101,7 @@ export class BundleBuilder {
             // Merge current bundle file dependencies into all dependencies
             for ( var mergeKey in sourceDependencies ) {
                 if ( !Utils.hasProperty( allDependencies, mergeKey ) ) {
-                    allDependencies[mergeKey] = sourceDependencies[mergeKey];
+                    allDependencies[ mergeKey ] = sourceDependencies[ mergeKey ];
                 }
             }
 
@@ -110,10 +110,10 @@ export class BundleBuilder {
             Logger.info( "Traversing source dependencies for: ", bundleSourceFile.fileName );
             for ( var depKey in sourceDependencies ) {
                 // Add module dependencies first..
-                sourceDependencies[depKey].forEach( importNode => {
+                sourceDependencies[ depKey ].forEach( importNode => {
                     var importSymbol = this.getSymbolFromNode( importNode );
 
-                    if ( this.isCodeModule( importSymbol ) ) {
+                    if ( this.isSourceCodeModule( importSymbol ) ) {
                         let declaration = importSymbol.getDeclarations()[0];
                         let importedSource = declaration.getSourceFile();
                         let importedSourceFileName = importedSource.fileName;
@@ -137,7 +137,9 @@ export class BundleBuilder {
                         }
                         else {
                             // ImportDeclaration kind..
-                            this.writeImportDeclaration( <ts.ImportDeclaration>importNode );
+                            if ( importNode.kind === ts.SyntaxKind.ImportDeclaration ) {
+                                this.writeImportDeclaration( <ts.ImportDeclaration>importNode );
+                            }
                         }
                     }
                 });
@@ -288,7 +290,7 @@ export class BundleBuilder {
 
                     let moduleSymbol = this.program.getTypeChecker().getSymbolAtLocation( moduleNameExpression );
 
-                    if ( ( moduleSymbol ) && ( this.isCodeModule( moduleSymbol ) || this.isAmbientModule ) ) {
+                    if ( ( moduleSymbol ) && ( this.isSourceCodeModule( moduleSymbol ) || this.isAmbientModule ) ) {
                         Logger.info( "processImportStatements() removing code module symbol." );
                         editText = this.whiteOut( node.pos, node.end, editText );
                     }
@@ -345,7 +347,7 @@ export class BundleBuilder {
     private addSourceFile( file: ts.SourceFile ) {
         Logger.info( "Entering addSourceFile() with: ", file.fileName );
 
-        if ( this.isCodeSourceFile( file ) ) {
+        if ( this.isSourceCodeFile( file ) ) {
             // Before adding the source text, we must white out non-external import statements and
             // white out export modifiers where applicable
             let editText = this.processImportExports( file );
@@ -362,11 +364,11 @@ export class BundleBuilder {
         }
     }
 
-    private isCodeSourceFile( file: ts.SourceFile ): boolean {
+    private isSourceCodeFile( file: ts.SourceFile ): boolean {
         return ( file.kind === ts.SyntaxKind.SourceFile && !file.isDeclarationFile );
     }
 
-    private isCodeModule( importSymbol: ts.Symbol ): boolean {
+    private isSourceCodeModule( importSymbol: ts.Symbol ): boolean {
         let declaration = importSymbol.getDeclarations()[0];
 
         return ( ( declaration.kind === ts.SyntaxKind.SourceFile ) && !( (<ts.SourceFile>declaration).isDeclarationFile ) );
