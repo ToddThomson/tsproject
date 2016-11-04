@@ -107,19 +107,25 @@ export class BundleBuilder {
 
             startTime = new Date().getTime();
             
-            Logger.info( "Traversing source dependencies for: ", bundleSourceFile.fileName );
-            for ( var depKey in sourceDependencies ) {
-                // Add module dependencies first..
-                sourceDependencies[ depKey ].forEach( importNode => {
+            Logger.info( "Traversing source dependencies for bundle: ", bundleSourceFile.fileName );
+            for ( var sourceDependencyFileName in sourceDependencies ) {
+                var sourceDependencyNodes = sourceDependencies[ sourceDependencyFileName ];
+
+                sourceDependencyNodes.forEach( importNode => {
                     var importSymbol = this.getSymbolFromNode( importNode );
 
                     if ( this.isSourceCodeModule( importSymbol ) ) {
                         let declaration = importSymbol.getDeclarations()[0];
-                        let importedSource = declaration.getSourceFile();
-                        let importedSourceFileName = importedSource.fileName;
+                        let importSourceFile = declaration.getSourceFile();
+                        let importSourceFileName = this.compilerHost.getCanonicalFileName( importSourceFile.fileName );
+                        let importDependencyNodes = sourceDependencies[ importSourceFileName ];
+                        
+                        if ( importDependencyNodes ) {
+                            this.processCircularDependencies( sourceDependencyFileName, importDependencyNodes );
+                        }
 
-                        if ( !Utils.hasProperty( this.bundleImportedFiles, importedSourceFileName ) ) {
-                            this.addSourceFile( importedSource );
+                        if ( !Utils.hasProperty( this.bundleImportedFiles, importSourceFileName ) ) {
+                            this.addSourceFile( importSourceFile );
                         }
                     }
                     else {
@@ -174,6 +180,29 @@ export class BundleBuilder {
         }
 
         return new BundleResult( ts.ExitStatus.Success, undefined, bundleFile );
+    }
+
+    private processCircularDependencies( moduleSourceFileName: string, importNodes: ts.Node[] ) {
+        // This is a extremely basic method to deal with circular dependencies.
+        // When a circular dependency is found we simply add the dependent source file to the bundle before
+        // adding the module/parent source file to the bundle.
+
+        importNodes.forEach( importNode => {
+                    
+            var importSymbol = this.getSymbolFromNode( importNode );
+
+            if ( this.isSourceCodeModule( importSymbol ) ) {
+                let declaration = importSymbol.getDeclarations()[0];
+                let importSourceFile = declaration.getSourceFile();
+                let importSourceFileName = this.compilerHost.getCanonicalFileName( importSourceFile.fileName );
+
+                if ( importSourceFileName == moduleSourceFileName ) {
+                    if ( !Utils.hasProperty( this.bundleImportedFiles, importSourceFileName ) ) {
+                        this.addSourceFile( importSourceFile );
+                    }
+                }
+            }
+        });
     }
 
     private getImportModuleName( node: ts.ImportEqualsDeclaration ): string {
@@ -353,10 +382,12 @@ export class BundleBuilder {
             let editText = this.processImportExports( file );
 
             this.bundleCodeText += editText + "\n";
-            this.bundleImportedFiles[file.fileName] = file.fileName;
+
+            let sourceFileName = this.compilerHost.getCanonicalFileName( file.fileName );
+            this.bundleImportedFiles[ sourceFileName ] = sourceFileName;
         }
         else {
-            // Add d.ts files to the build source files context
+            // Add typescript definition files to the build source files context
             if ( !Utils.hasProperty( this.bundleSourceFiles, file.fileName ) ) {
                 Logger.info( "Adding definition file to bundle source context: ", file.fileName );
                 this.bundleSourceFiles[file.fileName] = file.text;
