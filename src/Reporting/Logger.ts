@@ -54,6 +54,5 @@ export class Logger {
         }
 
         console.log( `[${this.logName}]` + chalk.gray( " TRACE: " ), ...args );
-
     }
 }  

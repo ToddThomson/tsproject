@@ -28,6 +28,18 @@ export namespace TsCore {
         return false;
     }
 
+    export function getSourceFileFromSymbol( symbol: ts.Symbol ): ts.SourceFile {
+        const declarations = symbol.getDeclarations();
+        
+        if ( declarations && declarations.length > 0 ) {
+            if ( declarations[0].kind === ts.SyntaxKind.SourceFile ) {
+                return declarations[0].getSourceFile();
+            }
+        }
+
+        return undefined;
+    }
+
     export function getExternalModuleName( node: ts.Node ): ts.Expression {
         if ( node.kind === ts.SyntaxKind.ImportDeclaration ) {
             return ( <ts.ImportDeclaration>node ).moduleSpecifier;

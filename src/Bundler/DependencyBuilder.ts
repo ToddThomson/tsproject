@@ -27,23 +27,23 @@ export class DependencyBuilder {
             importNodes.forEach( importNode => {
                 // Get the import symbol for the import node
                 let importSymbol = self.getSymbolFromNode( importNode );
-                let importSymbolSourceFile = self.getSourceFileFromSymbol( importSymbol );
-                let canonicalFileName = self.host.getCanonicalFileName( importSymbolSourceFile.fileName );
+                let importSourceFile = self.getSourceFileFromSymbol( importSymbol );
+                let canonicalFileName = self.host.getCanonicalFileName( importSourceFile.fileName );
                 
                 // Don't walk imports that we've already processed
                 if ( !Utils.hasProperty( importWalked, canonicalFileName ) ) {
                     importWalked[ canonicalFileName ] = true;
 
                      // Build dependencies bottom up, left to right by recursively calling walkModuleImports
-                    if ( !importSymbolSourceFile.isDeclarationFile ) {
+                    if ( !importSourceFile.isDeclarationFile ) {
                         Logger.info( "Walking Import module: ", canonicalFileName );
-                        walkModuleImports( self.getImportsOfModule( importSymbolSourceFile ) );
+                        walkModuleImports( self.getImportsOfModule( importSourceFile ) );
                     }
                 }
 
                 if ( !Utils.hasProperty( dependencies, canonicalFileName ) ) {
-                    Logger.info( "Getting imports of module file: ", canonicalFileName );
-                    dependencies[ canonicalFileName ] = self.getImportsOfModule( importSymbolSourceFile );
+                    Logger.info( "Getting and adding imports of module file: ", canonicalFileName );
+                    dependencies[ canonicalFileName ] = self.getImportsOfModule( importSourceFile );
                 }
             });
         }
@@ -69,7 +69,7 @@ export class DependencyBuilder {
         var self = this;
         
         function getImports( searchNode: ts.Node ) {
-            ts.forEachChild(searchNode, node => {
+            ts.forEachChild( searchNode, node => {
                 if (node.kind === ts.SyntaxKind.ImportDeclaration || node.kind === ts.SyntaxKind.ImportEqualsDeclaration || node.kind === ts.SyntaxKind.ExportDeclaration) {
                     let moduleNameExpr = TsCore.getExternalModuleName( node );
 
@@ -77,7 +77,7 @@ export class DependencyBuilder {
                         let moduleSymbol = self.program.getTypeChecker().getSymbolAtLocation( moduleNameExpr );
 
                         if ( moduleSymbol ) {
-                            Logger.info("Adding import symbol: ", moduleSymbol.name ) ;
+                            Logger.info("Adding import node: ", moduleSymbol.name ) ;
                             importNodes.push( node );
                         }
                         else {
