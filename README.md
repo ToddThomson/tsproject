@@ -1,4 +1,5 @@
 ﻿[![npm version](https://badge.fury.io/js/tsproject.svg)](http://badge.fury.io/js/tsproject)
+﻿[![Build Status](https://travis-ci.org/ToddThomson/tsproject.svg?branch=master)](https://travis-ci.org/ToddThomson/tsproject)
 # TsProject
 TsProject is a Typescript minifier and modular bundle optimizing compiler which utilizes the Typescript project configuration file, tsconfig.json, to provide a compilation context for source files, module bundles and compile options.
 
