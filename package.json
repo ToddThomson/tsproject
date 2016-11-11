@@ -1,18 +1,24 @@
 {
   "name": "tsproject",
-  "version": "2.0.1",
+  "version": "2.0.2",
+  "author": "Todd Thomson <todd.thomson@me.com>",
   "description": "Typescript minifier and modular typescript bundle optimizer for gulp (Ts Vinyl Adapter).",
-  "homepage": "https://github.com/toddthomson/tsproject",
-  "bugs": "https://github.com/toddthomson/tsproject/issues",
+  "license": "MIT",
   "main": "./tsproject.min.js",
   "typings": "./tsproject.d.ts",
   "dependencies": {
+    "@types/chalk": "^0.4.31",
+    "@types/chokidar": "1.4.29",
+    "@types/glob": "5.0.30",
+    "@types/lodash": "4.14.38",
+    "@types/node": "6.0.46",
+    "@types/vinyl": "1.2.30",
     "chalk": "^1.1.3",
     "chokidar": "^1.6.1",
     "glob": "^7.1.1",
-    "lodash": "^4.16.4",
-    "readable-stream": "^2.1.5",
-    "typescript": "^2.0.6",
+    "lodash": "^4.16.6",
+    "readable-stream": "^2.2.1",
+    "typescript": "^2.0.8",
     "vinyl": "^1.2.0"
   },
   "devDependencies": {
@@ -20,12 +26,8 @@
     "del": "^2.2.2",
     "require-dir": "^0.3.1",
     "run-sequence": "^1.2.2",
-    "any-promise": "^1.3.0",
-    "bluebird": "^3.4.6",
-    "typings": "^1.4.0",
-    "typings-core": "^1.6.0",
-    "typescript": "^2.0.6",
-    "tsproject": "^2.0.1",
+    "typescript": "^2.0.8",
+    "tsproject": "^2.0.2",
     "vinyl-paths": "^2.1.0"
   },
   "keywords": [
@@ -52,10 +54,13 @@
     "typescript bundles",
     "vinyl adapter"
   ],
-  "author": "Todd Thomson <todd.thomson@me.com>",
-  "license": "MIT",
+  "homepage": "https://github.com/toddthomson/tsproject",
   "repository": {
     "type": "git",
     "url": "https://github.com/toddthomson/tsproject.git"
+  },
+  "bugs": "https://github.com/toddthomson/tsproject/issues",
+  "scripts": {
+    "build": "gulp build"
   }
 }

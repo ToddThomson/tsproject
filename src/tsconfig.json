@@ -3,7 +3,7 @@
         "target": "es5",
         "module": "commonjs",
         "moduleResolution": "node",
-        "declaration": true,
+        "declaration": false,
         "diagnostics": true,
         "listFiles": false,
         "pretty": true,
@@ -11,11 +11,10 @@
         "noImplicitAny": false,
         "preserveConstEnums": true,
         "removeComments": false,
-        "sourceMap": true,
+        "sourceMap": false,
         "noEmit": false
     },
     "files": [
-        "../typings/main.d.ts",
         "./Ast/Ast.ts",
         "./Ast/AstTransform.ts",
         "./Ast/NodeWalker.ts",
@@ -52,7 +51,7 @@
     ],
     "bundles": {
         "tsproject": {
-            "files": [ "../typings/main.d.ts", "./TsProject.ts" ],
+            "files": [ "./TsProject.ts" ],
             "config": {
                 "package": "component",
                 "packageNamespace": "TsProject",

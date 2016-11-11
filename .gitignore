@@ -4,6 +4,7 @@ issues
 node_modules/*
 obj
 dist/*
+tests/*
 tsproject.js
 *.dat
 *.njsproj.user

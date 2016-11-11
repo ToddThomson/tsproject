@@ -12,13 +12,8 @@ typings
 .gitignore
 .npmignore
 .travis.yml
-gulp_tsd.json
 gulpfile.js
-tsd.json
 rundbg.js
-rundbgtest.ts
-tsconfig.json
-tsproject.js
 TsProjectTodoMVC
 ReactTodoMVC
 *.dat
