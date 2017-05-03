@@ -3,7 +3,7 @@ import File = require( "vinyl" );
 
 export class TsVinylFile extends File {
 
-    constructor( options: any ) {
+    constructor( options?: any  ) {
         super( options );
     }
 

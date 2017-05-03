@@ -32,6 +32,8 @@ export class BundleBuilder {
     private bundleCodeText: string = "";
     private bundleImportText: string = "";
 
+    private tets: Map<string,ts.Node[]>;
+
     private bundleImportedFiles: ts.MapLike<string> = {};
     private bundleModuleImports: ts.MapLike<ts.MapLike<string>> = {};
     private bundleSourceFiles: ts.MapLike<string> = {};
@@ -354,7 +356,7 @@ export class BundleBuilder {
                         let module = <ts.ModuleDeclaration>node;
 
                         if ( module.name.getText() !== this.bundle.config.package.getPackageNamespace() ) {
-                            if ( module.flags & ts.NodeFlags.Export ) {
+                            if ( module.flags & ts.NodeFlags.ExportContext ) {
                                 Logger.info( "Component namespace not package namespace. Removing export modifier." );
                                 let nodeModifier = module.modifiers[0];
                                 editText = this.whiteOut( nodeModifier.pos, nodeModifier.end, editText );
@@ -362,7 +364,7 @@ export class BundleBuilder {
                         }
                     }
                     else {
-                        if ( node.flags & ts.NodeFlags.Export ) {
+                        if ( node.flags & ts.NodeFlags.ExportContext ) {
                             let exportModifier = node.modifiers[0];
 
                             editText = this.whiteOut( exportModifier.pos, exportModifier.end, editText );
@@ -427,10 +429,24 @@ export class BundleBuilder {
         return ( ( declaration.kind === ts.SyntaxKind.SourceFile ) && !( (<ts.SourceFile>declaration).isDeclarationFile ) );
     }
 
-    private isAmbientModule( importSymbol: ts.Symbol ): boolean {
-        let declaration = importSymbol.getDeclarations()[0];
+    private isAmbientModule( symbol: ts.Symbol ): boolean {
+        const declarations = symbol.getDeclarations();
 
-        return ( ( declaration.kind === ts.SyntaxKind.ModuleDeclaration ) && ( ( declaration.flags & ts.NodeFlags.Ambient ) > 0 ) );
+        if ( declarations && declarations.length > 0 ) {
+            const declaration = symbol.getDeclarations()[0];
+
+            if ( declaration.kind === ts.SyntaxKind.ModuleDeclaration ) {
+                if ( declaration.modifiers ) {
+                    for ( const modifier of declaration.modifiers ) {
+                        if ( modifier.kind === ts.SyntaxKind.DeclareKeyword ) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 
     // TJT: Review duplicate code. Move to TsCore pass program as arg.

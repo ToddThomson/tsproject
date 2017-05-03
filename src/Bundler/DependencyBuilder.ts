@@ -1,10 +1,11 @@
-﻿import { Logger } from "../Reporting/Logger";
-import { Utils } from "../Utils/Utilities";
-import { TsCore } from "../Utils/TsCore";
+﻿import { Ast } from "../Ast/Ast"
+import { Logger } from "../Reporting/Logger"
+import { Utils } from "../Utils/Utilities"
+import { TsCore } from "../Utils/TsCore"
 
-import * as ts from "typescript";
-import * as fs from "fs";
-import * as path from "path";
+import * as ts from "typescript"
+import * as fs from "fs"
+import * as path from "path"
 
 export class DependencyBuilder {
     private host: ts.CompilerHost;
@@ -85,11 +86,20 @@ export class DependencyBuilder {
                         }
                     }
                 }
-                else if ( node.kind === ts.SyntaxKind.ModuleDeclaration && (<ts.ModuleDeclaration>node).name.kind === ts.SyntaxKind.StringLiteral && ( node.flags & ts.NodeFlags.Ambient || file.isDeclarationFile ) ) {
-                    // An AmbientExternalModuleDeclaration declares an external module.
-                    var moduleDeclaration = <ts.ModuleDeclaration>node;
-                    Logger.info( "Processing ambient module declaration: ", moduleDeclaration.name.text );
-                    getImports( (<ts.ModuleDeclaration>node).body );
+                else if ( node.kind === ts.SyntaxKind.ModuleDeclaration ) {
+                    // For a namespace ( or module ), traverse the body to locate ES6 module dependencies.
+                    // TJT: This section needs to be reviewed. Should namespace/module syntax kinds be scanned or
+                    //      Do we only support ES6 import/export syntax, where dependencies must be declared top level?
+
+                    const moduleDeclaration: ts.ModuleDeclaration = <ts.ModuleDeclaration>node;
+
+                    if ( ( moduleDeclaration.name.kind === ts.SyntaxKind.StringLiteral ) &&
+                        ( Ast.getModifierFlags( moduleDeclaration ) & ts.ModifierFlags.Ambient || file.isDeclarationFile ) ) {
+                        // An AmbientExternalModuleDeclaration declares an external module.
+                        Logger.info( "Scanning for dependencies within ambient module declaration: ", moduleDeclaration.name.text );
+
+                        getImports( moduleDeclaration.body );
+                    }
                 }
             });
         };

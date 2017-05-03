@@ -291,7 +291,8 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
                 let classSymbol: ts.Symbol = this.checker.getSymbolAtLocation( className );
 
                 if ( classSymbol && classSymbol.members ) {
-                    if ( Utils.hasProperty( classSymbol.members, identifier.text ) ) {
+                    // TJT: Review - Map Vs MapLike
+                    if ( classSymbol.members.has[ identifier.text ] ) {
                         Logger.info( "Symbol obtained from prototype function: ", identifier.text );
                         return classSymbol.members[ identifier.text ];
                     }

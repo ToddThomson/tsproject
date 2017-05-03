@@ -1,10 +1,11 @@
-﻿import * as ts from "typescript";
-import * as fs from "fs";
+﻿import * as ts from "typescript"
+import * as fs from "fs"
+import * as chokidar from "chokidar"
 
 export namespace TsCore {
 
     export interface WatchedSourceFile extends ts.SourceFile {
-        fileWatcher?: fs.FSWatcher;
+        fileWatcher?: chokidar.FSWatcher;
     }
 
     export function fileExtensionIs( path: string, extension: string ): boolean {

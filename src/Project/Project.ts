@@ -41,7 +41,7 @@ export class Project {
 
     private buildContext: ProjectBuildContext;
 
-    private configFileWatcher: fs.FSWatcher;
+    private configFileWatcher: chokidar.FSWatcher;
 
     private rebuildTimer: NodeJS.Timer;
 

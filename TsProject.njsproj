@@ -1,0 +1,210 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <PropertyGroup>
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">11.0</VisualStudioVersion>
+    <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
+    <Name>TsProject</Name>
+    <RootNamespace>TsProject</RootNamespace>
+    <SccProjectName>SAK</SccProjectName>
+    <SccProvider>SAK</SccProvider>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccLocalPath>SAK</SccLocalPath>
+    <ScriptArguments>
+    </ScriptArguments>
+  </PropertyGroup>
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>b82b5826-99f0-44c8-836c-13a1bbab81b1</ProjectGuid>
+    <ProjectHome>.</ProjectHome>
+    <StartupFile>rundbg.js</StartupFile>
+    <StartWebBrowser>False</StartWebBrowser>
+    <SearchPath>
+    </SearchPath>
+    <WorkingDirectory>.</WorkingDirectory>
+    <OutputPath>.</OutputPath>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <ProjectTypeGuids>{3AF33F2E-1136-4D97-BBB7-1795711AC8B8};{9092AA53-FB77-4645-B42D-1CCCA6BD08BD}</ProjectTypeGuids>
+    <ProjectView>ProjectFiles</ProjectView>
+    <TypeScriptSourceMap>true</TypeScriptSourceMap>
+    <TypeScriptModuleKind>CommonJS</TypeScriptModuleKind>
+    <EnableTypeScript>true</EnableTypeScript>
+    <StartWebBrowser>False</StartWebBrowser>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+  <ItemGroup>
+    <Content Include=".travis.yml" />
+    <Content Include=".gitignore" />
+    <Content Include=".npmignore" />
+    <Content Include=".vscode\settings.json" />
+    <Content Include=".vscode\tasks.json" />
+    <Content Include="package.json" />
+    <Content Include="README.md" />
+    <Content Include="src\tsconfig.json" />
+    <Content Include="tests\bundler\tsconfig.json" />
+    <Content Include="tests\Issues\no93\tsconfig.json" />
+    <Content Include="tests\minifier\tsconfig.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include=".vscode\" />
+    <Folder Include="build\" />
+    <Folder Include="build\tasks\" />
+    <Folder Include="tests\" />
+    <Folder Include="src\" />
+    <Folder Include="src\Minifier\" />
+    <Folder Include="src\Ast\" />
+    <Folder Include="src\Bundler\" />
+    <Folder Include="src\Compiler\" />
+    <Folder Include="src\Utils\" />
+    <Folder Include="src\Reporting\" />
+    <Folder Include="src\Project\" />
+    <Folder Include="tests\Issues\no93\" />
+    <Folder Include="tests\minifier\" />
+    <Folder Include="tests\minifier\classes\" />
+    <Folder Include="tests\bundler\" />
+    <Folder Include="tests\Issues\" />
+  </ItemGroup>
+  <ItemGroup>
+    <TypeScriptCompile Include="src\Ast\Ast.ts" />
+    <TypeScriptCompile Include="src\Ast\AstTransform.ts" />
+    <TypeScriptCompile Include="src\Bundler\BundlePackage.ts" />
+    <TypeScriptCompile Include="src\Compiler\TsCompilerOptions.ts" />
+    <TypeScriptCompile Include="src\Minifier\ContainerContext.ts" />
+    <TypeScriptCompile Include="src\Minifier\IdentifierSymbolInfo.ts" />
+    <TypeScriptCompile Include="src\Minifier\NameGenerator.ts" />
+    <TypeScriptCompile Include="src\Ast\NodeWalker.ts" />
+    <TypeScriptCompile Include="src\Bundler\BundleBuilder.ts" />
+    <TypeScriptCompile Include="src\Minifier\BundleMinifier.ts" />
+    <TypeScriptCompile Include="src\Bundler\BundleResult.ts" />
+    <TypeScriptCompile Include="src\Compiler\CachingCompilerHost.ts" />
+    <TypeScriptCompile Include="src\Project\ProjectBuildContext.ts" />
+    <TypeScriptCompile Include="src\Bundler\BundleCompiler.ts" />
+    <TypeScriptCompile Include="src\Bundler\BundleParser.ts" />
+    <TypeScriptCompile Include="src\Compiler\Compiler.ts" />
+    <TypeScriptCompile Include="src\Compiler\CompilerError.ts" />
+    <TypeScriptCompile Include="src\Compiler\WatchCompilerHost.ts" />
+    <TypeScriptCompile Include="src\Reporting\StatisticsReporter.ts" />
+    <TypeScriptCompile Include="src\Compiler\CompilerResult.ts" />
+    <TypeScriptCompile Include="src\Compiler\CompileStream.ts" />
+    <TypeScriptCompile Include="src\Bundler\DependencyBuilder.ts" />
+    <TypeScriptCompile Include="src\Reporting\DiagnosticsReporter.ts" />
+    <TypeScriptCompile Include="src\Utils\Debug.ts" />
+    <TypeScriptCompile Include="src\Utils\EventEmitter.ts" />
+    <TypeScriptCompile Include="src\Project\Glob.ts" />
+    <TypeScriptCompile Include="src\Reporting\Logger.ts" />
+    <TypeScriptCompile Include="src\Project\Project.ts" />
+    <TypeScriptCompile Include="src\Project\ProjectConfig.ts" />
+    <TypeScriptCompile Include="src\Utils\TsCore.ts" />
+    <TypeScriptCompile Include="src\TsProject.ts" />
+    <TypeScriptCompile Include="src\Project\TsVinylFile.ts" />
+    <TypeScriptCompile Include="src\Utils\Utilities.ts" />
+    <TypeScriptCompile Include="tests\bundler\ambients.ts" />
+    <TypeScriptCompile Include="tests\bundler\GreetingsModule.ts" />
+    <TypeScriptCompile Include="tests\Issues\no93\a.ts" />
+    <TypeScriptCompile Include="tests\Issues\no93\e.ts" />
+    <TypeScriptCompile Include="tests\Issues\no93\b.ts" />
+    <TypeScriptCompile Include="tests\Issues\no93\c.ts" />
+    <TypeScriptCompile Include="tests\minifier\AbstractTest.ts" />
+    <TypeScriptCompile Include="tests\minifier\classes\Configuration.ts" />
+    <TypeScriptCompile Include="tests\minifier\classes\NodeWalker.ts" />
+    <TypeScriptCompile Include="tests\minifier\classes\Utilities.ts" />
+    <TypeScriptCompile Include="tests\minifier\ComponentTest.ts" />
+    <TypeScriptCompile Include="tests\minifier\classes\Greeter.ts" />
+    <TypeScriptCompile Include="tests\minifier\ExternalInterfaceTest.ts" />
+    <TypeScriptCompile Include="tests\minifier\Inheritance.ts" />
+    <TypeScriptCompile Include="tests\minifier\classes\Logger.ts" />
+    <TypeScriptCompile Include="tests\minifier\classes\ParentClass.ts" />
+    <TypeScriptCompile Include="tests\minifier\classes\PlusMinusClass.ts" />
+    <TypeScriptCompile Include="tests\minifier\NamespaceTest.ts" />
+    <TypeScriptCompile Include="tests\minifier\Project.ts" />
+    <TypeScriptCompile Include="tests\minifier\PrototypeTest.ts" />
+    <TypeScriptCompile Include="tests\minifier\ScopeTest.ts" />
+    <TypeScriptCompile Include="tests\minifier\classes\TestClass.ts" />
+    <TypeScriptCompile Include="tsproject.d.ts" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="build\paths.js" />
+    <Compile Include="build\tasks\build.js" />
+    <Compile Include="build\tasks\clean.js" />
+    <Compile Include="build\tasks\test.js" />
+    <Compile Include="build\tasks\watch.js" />
+    <Compile Include="gulpfile.js" />
+    <Compile Include="tsproject.min.js" />
+    <None Include="LICENSE" />
+    <Compile Include="rundbg.js" />
+  </ItemGroup>
+  <!-- Do not delete the following Import Project.  While this appears to do nothing it is a marker for setting TypeScript properties before our import that depends on them. -->
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|Any CPU'">
+    <TypeScriptTarget>ES5</TypeScriptTarget>
+    <TypeScriptCompileOnSaveEnabled>True</TypeScriptCompileOnSaveEnabled>
+    <TypeScriptNoImplicitAny>False</TypeScriptNoImplicitAny>
+    <TypeScriptRemoveComments>True</TypeScriptRemoveComments>
+    <TypeScriptOutFile />
+    <TypeScriptOutDir />
+    <TypeScriptGeneratesDeclarations>False</TypeScriptGeneratesDeclarations>
+    <TypeScriptNoEmitOnError>False</TypeScriptNoEmitOnError>
+    <TypeScriptMapRoot />
+    <TypeScriptSourceRoot />
+    <TypeScriptSourceMap>True</TypeScriptSourceMap>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
+    <TypeScriptTarget>ES5</TypeScriptTarget>
+    <TypeScriptJSXEmit>None</TypeScriptJSXEmit>
+    <TypeScriptCompileOnSaveEnabled>True</TypeScriptCompileOnSaveEnabled>
+    <TypeScriptNoImplicitAny>False</TypeScriptNoImplicitAny>
+    <TypeScriptRemoveComments>False</TypeScriptRemoveComments>
+    <TypeScriptOutFile />
+    <TypeScriptOutDir />
+    <TypeScriptGeneratesDeclarations>False</TypeScriptGeneratesDeclarations>
+    <TypeScriptNoEmitOnError>True</TypeScriptNoEmitOnError>
+    <TypeScriptMapRoot />
+    <TypeScriptSourceRoot />
+    <TypeScriptSourceMap>True</TypeScriptSourceMap>
+  </PropertyGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets" Condition="False" />
+  <Import Project="$(VSToolsPath)\Node.js Tools\Microsoft.NodejsTools.targets" />
+  <ProjectExtensions>
+    <VisualStudio>
+      <FlavorProperties GUID="{349c5851-65df-11da-9384-00065b846f21}">
+        <WebProjectProperties>
+          <UseIIS>False</UseIIS>
+          <AutoAssignPort>True</AutoAssignPort>
+          <DevelopmentServerPort>0</DevelopmentServerPort>
+          <DevelopmentServerVPath>/</DevelopmentServerVPath>
+          <IISUrl>http://localhost:48022/</IISUrl>
+          <NTLMAuthentication>False</NTLMAuthentication>
+          <UseCustomServer>True</UseCustomServer>
+          <CustomServerUrl>http://localhost:1337</CustomServerUrl>
+          <SaveServerSettingsInUserFile>False</SaveServerSettingsInUserFile>
+        </WebProjectProperties>
+      </FlavorProperties>
+      <FlavorProperties GUID="{349c5851-65df-11da-9384-00065b846f21}" User="">
+        <WebProjectProperties>
+          <StartPageUrl>
+          </StartPageUrl>
+          <StartAction>CurrentPage</StartAction>
+          <AspNetDebugging>True</AspNetDebugging>
+          <SilverlightDebugging>False</SilverlightDebugging>
+          <NativeDebugging>False</NativeDebugging>
+          <SQLDebugging>False</SQLDebugging>
+          <ExternalProgram>
+          </ExternalProgram>
+          <StartExternalURL>
+          </StartExternalURL>
+          <StartCmdLineArguments>
+          </StartCmdLineArguments>
+          <StartWorkingDirectory>
+          </StartWorkingDirectory>
+          <EnableENC>False</EnableENC>
+          <AlwaysStartWebServerOnDebug>False</AlwaysStartWebServerOnDebug>
+        </WebProjectProperties>
+      </FlavorProperties>
+    </VisualStudio>
+  </ProjectExtensions>
+</Project>
