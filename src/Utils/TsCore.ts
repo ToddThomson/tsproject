@@ -54,6 +54,8 @@ export namespace TsCore {
         if ( node.kind === ts.SyntaxKind.ExportDeclaration ) {
             return ( <ts.ExportDeclaration>node ).moduleSpecifier;
         }
+
+        return undefined;
     }
 
     export function createDiagnostic( message: ts.DiagnosticMessage, ...args: any[] ): ts.Diagnostic {

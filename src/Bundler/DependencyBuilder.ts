@@ -66,6 +66,10 @@ export class DependencyBuilder {
     }
 
     public getImportsOfModule( file: ts.SourceFile ): ts.Node[] {
+        if ( !Ast.isSourceCodeFile( file ) ) {
+            return [];
+        }
+        
         var importNodes: ts.Node[] = [];
         var self = this;
         

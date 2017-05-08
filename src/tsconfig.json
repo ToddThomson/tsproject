@@ -11,7 +11,7 @@
         "noImplicitAny": false,
         "preserveConstEnums": true,
         "removeComments": false,
-        "sourceMap": false,
+        "sourceMap": true,
         "noEmit": false
     },
     "files": [

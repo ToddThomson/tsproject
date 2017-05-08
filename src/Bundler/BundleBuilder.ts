@@ -1,21 +1,22 @@
-﻿import { CompilerResult } from "../Compiler/CompilerResult";
-import { WatchCompilerHost }  from "../Compiler/WatchCompilerHost";
-import { CompileStream }  from "../Compiler/CompileStream";
-import { TsCompilerOptions } from "../Compiler/TsCompilerOptions";
-import { StatisticsReporter } from "../Reporting/StatisticsReporter";
-import { Logger } from "../Reporting/Logger";
-import { TsVinylFile } from "../Project/TsVinylFile";
-import { Glob } from "../Project/Glob";
-import { BundleParser, Bundle } from "./BundleParser";
-import { BundlePackage, BundlePackageType } from "./BundlePackage";
-import { BundleResult } from "./BundleResult";
-import { DependencyBuilder } from "./DependencyBuilder";
-import { Utils } from "../Utils/Utilities";
-import { TsCore } from "../Utils/TsCore";
+﻿import { CompilerResult } from "../Compiler/CompilerResult"
+import { WatchCompilerHost } from "../Compiler/WatchCompilerHost"
+import { CompileStream }  from "../Compiler/CompileStream"
+import { TsCompilerOptions } from "../Compiler/TsCompilerOptions"
+import { StatisticsReporter } from "../Reporting/StatisticsReporter"
+import { Logger } from "../Reporting/Logger"
+import { TsVinylFile } from "../Project/TsVinylFile"
+import { Glob } from "../Project/Glob"
+import { BundleParser, Bundle } from "./BundleParser"
+import { BundlePackage, BundlePackageType } from "./BundlePackage"
+import { BundleResult } from "./BundleResult"
+import { DependencyBuilder } from "./DependencyBuilder"
+import { Utils } from "../Utils/Utilities"
+import { TsCore } from "../Utils/TsCore"
+import { Ast } from "../Ast/Ast"
 
-import * as ts from "typescript";
-import * as fs from "fs";
-import * as path from "path";
+import * as ts from "typescript"
+import * as fs from "fs"
+import * as path from "path"
 
 export class BundleBuilder {
 
@@ -350,13 +351,13 @@ export class BundleBuilder {
                 }
             }
             else {
+                // TJT - Review this...
                 if ( this.bundle.config.package.getPackageType() === BundlePackageType.Component ) {
                     if ( node.kind === ts.SyntaxKind.ModuleDeclaration ) {
-
                         let module = <ts.ModuleDeclaration>node;
 
                         if ( module.name.getText() !== this.bundle.config.package.getPackageNamespace() ) {
-                            if ( module.flags & ts.NodeFlags.ExportContext ) {
+                            if ( Ast.getModifierFlags( module ) & ts.ModifierFlags.Export ) {
                                 Logger.info( "Component namespace not package namespace. Removing export modifier." );
                                 let nodeModifier = module.modifiers[0];
                                 editText = this.whiteOut( nodeModifier.pos, nodeModifier.end, editText );
@@ -364,7 +365,7 @@ export class BundleBuilder {
                         }
                     }
                     else {
-                        if ( node.flags & ts.NodeFlags.ExportContext ) {
+                        if ( Ast.getModifierFlags( node ) & ts.ModifierFlags.Export ) {
                             let exportModifier = node.modifiers[0];
 
                             editText = this.whiteOut( exportModifier.pos, exportModifier.end, editText );

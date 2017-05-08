@@ -1,7 +1,9 @@
-﻿var tsproject = require('./src/tsproject.js');
+﻿var gulp = require('gulp');
+var tsproject = require('./src/tsproject.js');
+//var tsproject = require('./tsproject.min.js');
 
-tsproject.src( './tests/issues/no93/tsconfig.json', {
-    logLevel: 4,
+tsproject.src( './tests/minifier/tsconfig.json', {
+    logLevel: 3,
     compilerOptions: {
         watch: false,
         listFiles: false

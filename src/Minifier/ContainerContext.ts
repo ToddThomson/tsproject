@@ -51,6 +51,7 @@ export class Container {
             this.parent = parentContainer.getParent();
         }
         else {
+            // Function scoped container...
             this.container = this.blockScopeContainer = node;
             this.isBlockScope = false;
 
@@ -102,7 +103,7 @@ export class Container {
                     return (<ts.EnumDeclaration>this.container).members;
 
                 default:
-                    Logger.trace( "Container::getMembers() unprocessed container kind: ", this.container.kind );
+                    Logger.trace( "Container::getMembers() unprocessed container kind: ", this.container.kind, this.getId() );
             }
         }
 
@@ -110,12 +111,12 @@ export class Container {
     }
 
     public getLocals(): ts.SymbolTable {
-         if ( this.container && this.containerFlags & Ast.ContainerFlags.HasLocals ) {
+        if ( this.container && this.containerFlags & Ast.ContainerFlags.HasLocals ) {
             switch ( this.container.kind ) {
                 case ts.SyntaxKind.ModuleDeclaration:
                     return (<any>this.container).locals;
                 default:
-                    Logger.warn( "Container::getLocals() unprocessed container kind: ", this.container.kind );
+                    Logger.warn( "Container::getLocals() unprocessed container kind: ", this.container.kind, this.getId() );
             }
         }
 

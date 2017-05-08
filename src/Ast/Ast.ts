@@ -1,4 +1,4 @@
-﻿import * as ts from "typescript";
+﻿import * as ts from "typescript"
 
 export namespace Ast {
 
@@ -121,9 +121,13 @@ export namespace Ast {
     export function isInterfaceInternal( symbol: ts.Symbol ): boolean {
         if ( symbol && ( symbol.flags & ts.SymbolFlags.Interface ) ) {
             if ( symbol.valueDeclaration ) {
-                let flags = symbol.valueDeclaration.flags;
+                let flags = getModifierFlags( symbol.valueDeclaration );
 
-                // FUTURE: How to make interfaces internal be convention?
+                //if ( !( flags & ts.ModifierFlags.Export ) ) {
+                //    return true;
+                //}
+
+                // FUTURE: How to make interfaces internal by convention?
                 return false;
             }
         }
@@ -181,7 +185,7 @@ export namespace Ast {
                     const inheritedTypeProperties: ts.Symbol[] = inheritedType.getProperties();
 
                     for ( const propertySymbol of inheritedTypeProperties ) {
-                        if ( Ast.isExportProperty( propertySymbol ) ) {
+                        if ( Ast.isExportContext( propertySymbol ) ) {
                             classExportProperties.push( propertySymbol );
                         }
                     }
@@ -378,8 +382,14 @@ export namespace Ast {
         return ts.SyntaxKind.FirstTriviaToken <= token && token <= ts.SyntaxKind.LastTriviaToken;
     }
 
-    export function isExportProperty( propertySymbol: ts.Symbol ): boolean {
+    export function isExportContext( propertySymbol: ts.Symbol ): boolean {
         let node: ts.Node = propertySymbol.valueDeclaration;
+        //while ( node ) {
+        //    if ( getModifierFlags( node ) & ts.ModifierFlags.Export ) {
+        //        return true;
+        //    }
+        //    node = node.parent;
+        //}
         while ( node ) {
             if ( node.flags & ts.NodeFlags.ExportContext ) {
                 return true;
@@ -390,7 +400,7 @@ export namespace Ast {
         return false;
     }
 
-    export function isAmbientProperty( propertySymbol: ts.Symbol ): boolean {
+    export function isAmbientContext( propertySymbol: ts.Symbol ): boolean {
         let node: ts.Node = propertySymbol.valueDeclaration;
         while ( node ) {
             if ( getModifierFlags( node ) & ts.ModifierFlags.Ambient ) {
@@ -400,5 +410,9 @@ export namespace Ast {
         }
         
         return false;
+    }
+
+    export function isSourceCodeFile( file: ts.SourceFile ): boolean {
+        return ( file.kind === ts.SyntaxKind.SourceFile && !file.isDeclarationFile );
     }
 }

@@ -14,7 +14,7 @@ TsProject produces a compiled output stream of vinyl files for further processin
  
 ## What's New
 
-TsProject 2.1.0 supports Typescript 2.3.x.
+TsProject 2.1.1 supports Typescript 2.3.x.
 
 ## Why TsProject?
 

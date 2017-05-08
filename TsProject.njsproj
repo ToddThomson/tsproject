@@ -50,6 +50,8 @@
     <Content Include="tests\bundler\tsconfig.json" />
     <Content Include="tests\Issues\no93\tsconfig.json" />
     <Content Include="tests\minifier\tsconfig.json" />
+    <Content Include="tsproject.js.map" />
+    <Content Include="tsproject.min.js.map" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include=".vscode\" />
@@ -130,11 +132,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="build\paths.js" />
+    <Compile Include="build\tasks\local.js" />
     <Compile Include="build\tasks\build.js" />
     <Compile Include="build\tasks\clean.js" />
     <Compile Include="build\tasks\test.js" />
     <Compile Include="build\tasks\watch.js" />
     <Compile Include="gulpfile.js" />
+    <Compile Include="tsproject.js" />
     <Compile Include="tsproject.min.js" />
     <None Include="LICENSE" />
     <Compile Include="rundbg.js" />

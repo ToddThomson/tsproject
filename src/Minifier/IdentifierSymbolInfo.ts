@@ -106,9 +106,7 @@ export class IdentifierInfo {
     }
 
     public isInternalClass(): boolean {
-        
         // TJT: Review - should use the same export "override" logic as in isInternalFunction
-
         return Ast.isClassInternal( this.symbol );
     }
 
@@ -123,8 +121,8 @@ export class IdentifierInfo {
             if ( this.symbol.valueDeclaration.kind === ts.SyntaxKind.FunctionDeclaration ) {
                 let flags = Ast.getModifierFlags( this.symbol.valueDeclaration );
 
-                // If The function is from an extern API or ambient then it cannot be considered internal.
-                if ( Ast.isExportProperty( this.symbol ) || Ast.isAmbientProperty( this.symbol ) ) {
+                // If the function is from an extern API or ambient then it cannot be considered internal.
+                if ( Ast.isExportContext( this.symbol ) || Ast.isAmbientContext( this.symbol ) ) {
                     return false;
                 }
 
