@@ -1,6 +1,6 @@
 {
   "name": "tsproject",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "author": "Todd Thomson <todd.thomson@me.com>",
   "description": "Typescript minifier and modular typescript bundle optimizer for gulp (Ts Vinyl Adapter).",
   "license": "MIT",

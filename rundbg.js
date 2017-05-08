@@ -2,8 +2,8 @@
 var tsproject = require('./src/tsproject.js');
 //var tsproject = require('./tsproject.min.js');
 
-tsproject.src( './tests/minifier/tsconfig.json', {
-    logLevel: 3,
+tsproject.src( './tests/issues/no104/src/tsconfig.test.json', {
+    logLevel: 0,
     compilerOptions: {
         watch: false,
         listFiles: false

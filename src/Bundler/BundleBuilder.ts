@@ -199,7 +199,7 @@ export class BundleBuilder {
 
                 var dependencyBindings = this.getNamedBindingsFromImport( <ts.ImportDeclaration>dependencyNode );
                 
-                if ( this.isInheritedBinding( moduleDependencyNode, dependencyBindings ) ) {
+                if ( dependencyBindings && this.isInheritedBinding( moduleDependencyNode, dependencyBindings ) ) {
                     // Add the dependency file to the bundle now if it is required for inheritance. 
                     if ( !Utils.hasProperty( this.bundleImportedFiles, dependencyFileName ) ) {
                             this.addSourceFile( dependencyFile );
@@ -211,11 +211,18 @@ export class BundleBuilder {
 
     private isInheritedBinding( dependencyNode: ts.Node, namedBindings: string[] ): boolean {
         var dependencySymbol = this.getSymbolFromNode( dependencyNode );
-        var exports = this.program.getTypeChecker().getExportsOfModule( dependencySymbol );
-
+        var intrinsicTypes = ( ts.TypeFlags.Any | ts.TypeFlags.String | ts.TypeFlags.Number | ts.TypeFlags.Boolean | ts.TypeFlags.BooleanLiteral | ts.TypeFlags.ESSymbol | ts.TypeFlags.Void | ts.TypeFlags.Undefined | ts.TypeFlags.Null | ts.TypeFlags.Never | ts.TypeFlags.NonPrimitive );
+        const checker = this.program.getTypeChecker();
+        var exports = checker.getExportsOfModule( dependencySymbol );
+        
         for ( var exportedSymbol of exports ) {
-            var exportType = this.program.getTypeChecker().getDeclaredTypeOfSymbol( exportedSymbol );
-            var baseTypes = this.program.getTypeChecker().getBaseTypes( <ts.InterfaceType>exportType );
+            // We need to check for intrinsic types as Typescript checker.getBaseTypes() chokes on intrinsics            
+            var exportType = checker.getDeclaredTypeOfSymbol( exportedSymbol );
+            if ( exportType.flags & intrinsicTypes ) {
+                continue;
+            }
+
+            var baseTypes = checker.getBaseTypes( <ts.InterfaceType>exportType );
 
             for ( var baseType of baseTypes ) {
                 var baseTypeName = baseType.symbol.getName();
