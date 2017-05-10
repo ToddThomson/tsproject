@@ -1,0 +1,9 @@
+{
+  "name": "ts-project",
+  "version": "0.0.0",
+  "description": "TsProject",
+  "main": "app.js",
+  "author": {
+    "name": "Administrator"
+  }
+}
