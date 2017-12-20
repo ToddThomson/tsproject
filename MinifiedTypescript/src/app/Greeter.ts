@@ -1,7 +1,7 @@
 ﻿export class Greeter {
     private element: HTMLElement;
     private span: HTMLElement;
-    private timerToken: number;
+    private timerToken: NodeJS.Timer;
 
     constructor( element: HTMLElement ) {
         this.element = element;

@@ -1,7 +1,7 @@
        class a       {
     private b      : HTMLElement;
     private c   : HTMLElement;
-    private d         : number;
+    private d         : NodeJS.Timer;
 
     constructor( d      : HTMLElement ) {
         this.b       = d      ;
