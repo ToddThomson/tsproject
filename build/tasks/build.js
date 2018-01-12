@@ -1,7 +1,7 @@
 var gulp = require( 'gulp' );
 var runSequence = require( 'run-sequence' );
 var paths = require( '../paths' );
-var tsproject = require( 'tsproject' );
+var tsproject = require( '../../src/tsproject' );
 
 gulp.task( 'compile', function() {
     return tsproject.src( paths.sourceTsConfig )

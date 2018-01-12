@@ -1,22 +1,22 @@
-﻿import { CompilerResult } from "../Compiler/CompilerResult";
-import { StatisticsReporter } from "../Reporting/StatisticsReporter";
-import { WatchCompilerHost }  from "../Compiler/WatchCompilerHost";
-import { TsCompilerOptions } from "../Compiler/TsCompilerOptions";
-import { CompileStream }  from "../Compiler/CompileStream";
-import { Logger } from "../Reporting/Logger";
-import { TsVinylFile } from "../Project/TsVinylFile";
-import { BundleParser, Bundle, BundleConfig } from "../Bundler/BundleParser";
-import { BundleResult, BundleFile } from "../Bundler/BundleResult";
-import { BundleMinifier } from "../Minifier/BundleMinifier";
-import { DependencyBuilder } from "./DependencyBuilder";
-import { Glob } from "../Project/Glob";
+﻿import { CompilerResult } from "../Compiler/CompilerResult"
+import { StatisticsReporter } from "../Reporting/StatisticsReporter"
+import { WatchCompilerHost }  from "../Compiler/WatchCompilerHost"
+import { TsCompilerOptions } from "../Compiler/TsCompilerOptions"
+import { CompileStream }  from "../Compiler/CompileStream"
+import { Logger } from "../Reporting/Logger"
+import { BundleParser, Bundle, BundleConfig } from "../Bundler/BundleParser"
+import { BundleResult, BundleFile } from "../Bundler/BundleResult"
+import { BundleMinifier } from "../Minifier/BundleMinifier"
+import { DependencyBuilder } from "./DependencyBuilder"
+import { Glob } from "../Project/Glob"
 
-import { Utils } from "../Utils/Utilities";
-import { TsCore } from "../Utils/TsCore";
+import { Utils } from "../Utils/Utilities"
+import { TsCore } from "../Utils/TsCore"
 
-import * as ts from "typescript";
-import * as fs from "fs";
-import * as path from "path";
+import * as ts from "typescript"
+import * as fs from "fs"
+import * as path from "path"
+import VinylFile = require( "vinyl" )
 
 export class BundleCompiler {
 
@@ -143,7 +143,7 @@ export class BundleCompiler {
 
         // Always stream the bundle source file ts - even if emit errors.
         Logger.info( "Streaming vinyl bundle source: ", bundleFileName );
-        var tsVinylFile = new TsVinylFile( {
+        var tsVinylFile = new VinylFile( {
             path: bundleFileName,
             contents: new Buffer( bundleSourceFile.text )
         });
@@ -151,7 +151,7 @@ export class BundleCompiler {
         this.outputStream.push( tsVinylFile );
         
         // Concat any emit errors
-        let allDiagnostics = preEmitDiagnostics.concat( emitResult.diagnostics );
+        let allDiagnostics = preEmitDiagnostics.concat( emitResult.diagnostics as ts.Diagnostic[] );
         
         // If the emitter didn't emit anything, then pass that value along.
         if ( emitResult.emitSkipped ) {
@@ -182,7 +182,7 @@ export class BundleCompiler {
                 
             }
             Logger.info( "Streaming vinyl js: ", bundleName );
-            var bundleJsVinylFile = new TsVinylFile( {
+            var bundleJsVinylFile = new VinylFile( {
                 path: jsBundlePath,
                 contents: new Buffer( jsContents )
             });
@@ -195,7 +195,7 @@ export class BundleCompiler {
         // d.ts is generated, if compiler option declaration is true
         if ( Utils.hasProperty( outputText, dtsBundlePath ) ) {
             Logger.info( "Streaming vinyl d.ts: ", dtsBundlePath );
-            var bundleDtsVinylFile = new TsVinylFile( {
+            var bundleDtsVinylFile = new VinylFile( {
                 path: dtsBundlePath,
                 contents: new Buffer( outputText[ dtsBundlePath ] )
             });
@@ -208,7 +208,7 @@ export class BundleCompiler {
         // js.map is generated, if compiler option sourceMap is true
         if ( Utils.hasProperty( outputText, mapBundlePath ) ) {
             Logger.info( "Streaming vinyl js.map: ", mapBundlePath );
-            var bundleMapVinylFile = new TsVinylFile( {
+            var bundleMapVinylFile = new VinylFile( {
                 path: mapBundlePath,
                 contents: new Buffer( outputText[mapBundlePath] )
             });

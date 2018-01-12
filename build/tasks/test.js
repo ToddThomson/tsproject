@@ -1,8 +1,8 @@
 ﻿var gulp = require('gulp');
 var runSequence = require('run-sequence');
 var paths = require('../paths');
-var tsproject = require('tsproject');
-var tsprojectmin = require( 'tsproject' );
+var tsproject = require('../../src/TsProject');
+var tsprojectmin = require( '../../src/tsproject' );
 
 gulp.task('test', function () {
     return tsproject.src( "./tests/minifier/tsconfig.json", { logLevel: 4 })

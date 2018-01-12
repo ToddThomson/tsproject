@@ -267,15 +267,15 @@ export namespace Ast {
             case ts.SyntaxKind.ObjectLiteralExpression:
             case ts.SyntaxKind.TypeLiteral:
             case ts.SyntaxKind.JSDocTypeLiteral:
-            case ts.SyntaxKind.JSDocRecordType:
+            case ts.SyntaxKind.JsxAttributes:
                 return ContainerFlags.IsContainer;
 
             case ts.SyntaxKind.InterfaceDeclaration:
                 return ContainerFlags.IsContainer | ContainerFlags.IsInterface;
 
-            case ts.SyntaxKind.JSDocFunctionType:
             case ts.SyntaxKind.ModuleDeclaration:
             case ts.SyntaxKind.TypeAliasDeclaration:
+            case ts.SyntaxKind.MappedType:
                 return ContainerFlags.IsContainer | ContainerFlags.HasLocals;
 
             case ts.SyntaxKind.SourceFile:
@@ -285,16 +285,17 @@ export namespace Ast {
                 if ( isObjectLiteralOrClassExpressionMethod( node ) ) {
                     return ContainerFlags.IsContainer | ContainerFlags.IsControlFlowContainer | ContainerFlags.HasLocals | ContainerFlags.IsFunctionLike | ContainerFlags.IsObjectLiteralOrClassExpressionMethod;
                 }
-
+            // falls through
             case ts.SyntaxKind.Constructor:
             case ts.SyntaxKind.FunctionDeclaration:
             case ts.SyntaxKind.MethodSignature:
             case ts.SyntaxKind.GetAccessor:
             case ts.SyntaxKind.SetAccessor:
             case ts.SyntaxKind.CallSignature:
+            case ts.SyntaxKind.JSDocFunctionType:
+            case ts.SyntaxKind.FunctionType:
             case ts.SyntaxKind.ConstructSignature:
             case ts.SyntaxKind.IndexSignature:
-            case ts.SyntaxKind.FunctionType:
             case ts.SyntaxKind.ConstructorType:
                 return ContainerFlags.IsContainer | ContainerFlags.IsControlFlowContainer | ContainerFlags.HasLocals | ContainerFlags.IsFunctionLike;
 
@@ -304,9 +305,8 @@ export namespace Ast {
 
             case ts.SyntaxKind.ModuleBlock:
                 return ContainerFlags.IsControlFlowContainer;
-
             case ts.SyntaxKind.PropertyDeclaration:
-                return (<ts.PropertyDeclaration>node).initializer ? ContainerFlags.IsControlFlowContainer : 0;
+                return ( <ts.PropertyDeclaration>node ).initializer ? ContainerFlags.IsControlFlowContainer : 0;
 
             case ts.SyntaxKind.CatchClause:
             case ts.SyntaxKind.ForStatement:
@@ -317,7 +317,7 @@ export namespace Ast {
 
             case ts.SyntaxKind.Block:
                 // do not treat blocks directly inside a function as a block-scoped-container.
-                // Locals that reside in this block should go to the function locals. Othewise 'x'
+                // Locals that reside in this block should go to the function locals. Otherwise 'x'
                 // would not appear to be a redeclaration of a block scoped local in the following
                 // example:
                 //

@@ -41,7 +41,7 @@ export class ProjectBuildContext {
                 // Remove fileWatcher from the outgoing program source files if they are not in the 
                 // new program source file set
 
-                if ( !( newSourceFiles && Utils.contains( newSourceFiles, sourceFile ) ) ) {
+                if ( !( newSourceFiles && Utils.contains( newSourceFiles as ts.SourceFile[], sourceFile ) ) ) {
 
                     let watchedSourceFile: TsCore.WatchedSourceFile = sourceFile;
 

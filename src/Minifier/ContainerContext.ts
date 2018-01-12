@@ -1,6 +1,6 @@
 ﻿import * as ts from "typescript";
 import { Ast } from "../Ast/Ast";
-import { IdentifierInfo } from "./IdentifierSymbolInfo";
+import { IdentifierInfo } from "./IdentifierInfo";
 import { Logger } from "../Reporting/Logger";
 import { Utils } from "../Utils/Utilities";
 

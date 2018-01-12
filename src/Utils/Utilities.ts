@@ -1,8 +1,7 @@
 ﻿import ts = require( "typescript" );
 
 export namespace Utils {
-
-    export function forEach<T, U>( array: T[], callback: ( element: T, index: number ) => U ): U {
+    export function forEach<T, U>( array: ReadonlyArray<T> | undefined, callback: ( element: T, index: number ) => U | undefined ): U | undefined {
         if ( array ) {
             for ( let i = 0, len = array.length; i < len; i++ ) {
                 let result = callback( array[i], i );
@@ -11,6 +10,7 @@ export namespace Utils {
                 }
             }
         }
+
         return undefined;
     }
 

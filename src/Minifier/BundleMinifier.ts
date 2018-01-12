@@ -1,19 +1,20 @@
 ﻿import * as ts from "typescript";
 
-import { BundleFile } from "../Bundler/BundleResult";
-import { BundleConfig } from "../Bundler/BundleParser";
-import { NodeWalker } from "../Ast/NodeWalker";
-import { Ast } from "../Ast/Ast";
-import { AstTransform } from "../Ast/AstTransform";
-import { StatisticsReporter } from "../Reporting/StatisticsReporter";
-import { Logger } from "../Reporting/Logger";
-import { NameGenerator } from "./NameGenerator";
-import { Container } from "./ContainerContext";
-import { IdentifierInfo } from "./IdentifierSymbolInfo";
-import { TsCompilerOptions } from "../Compiler/TsCompilerOptions";
-import { Debug } from "../Utils/Debug";
-import { Utils } from "../Utils/Utilities";
-import { TsCore } from "../Utils/TsCore";
+import { BundleFile } from "../Bundler/BundleResult"
+import { BundleConfig } from "../Bundler/BundleParser"
+import { NodeWalker } from "../Ast/NodeWalker"
+import { Ast } from "../Ast/Ast"
+import { AstTransform } from "../Ast/AstTransform"
+import { StatisticsReporter } from "../Reporting/StatisticsReporter"
+import { Logger } from "../Reporting/Logger"
+import { NameGenerator } from "./NameGenerator"
+import { Container } from "./ContainerContext"
+import { IdentifierInfo } from "./IdentifierInfo"
+import { TsCompilerOptions } from "../Compiler/TsCompilerOptions"
+import { Debug } from "../Utils/Debug"
+import { format } from "../Utils/formatter"
+import { Utils } from "../Utils/Utilities"
+import { TsCore } from "../Utils/TsCore"
 
 export class BundleMinifier extends NodeWalker implements AstTransform {
     private bundleSourceFile: ts.SourceFile;
@@ -432,6 +433,7 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
     }
 
     private processIdentifierInfo( identifierInfo: IdentifierInfo, container: Container ): void {
+
         if ( this.canShortenIdentifier( identifierInfo ) ) {
             let shortenedName = this.getShortenedIdentifierName( container, identifierInfo );
 
@@ -444,11 +446,15 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
                 let containerRef = containerRefs[ containerKey ];
                 containerRef.namesExcluded[ shortenedName ] = true;
             }
-            
-            // Change all referenced identifier nodes to the shortened name
-            Utils.forEach( identifierInfo.getIdentifiers(), identifier => {
-                this.setIdentifierText( identifier, shortenedName );
-            });
+
+            if ( !identifierInfo.isMinified ) {
+                // Change all referenced identifier nodes to the shortened name
+                Utils.forEach( identifierInfo.getIdentifiers(), identifier => {
+                    this.setIdentifierText( identifier, shortenedName );
+                } );
+
+                identifierInfo.isMinified = true;
+            }
 
             return;
         }
@@ -525,8 +531,7 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
                 break;
         }
 
-        // Replace the identifier text
-        identifier.text = text;
+        // Replace the identifier text within the bundle source file
         identifier.end = identifierStart + text.length;
 
         for ( var i = 0; i < identifierLength; i++ ) {
@@ -784,5 +789,9 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
         statisticsReporter.reportTime( "Minify time", this.transformTime );
         statisticsReporter.reportCount( "Total identifiers", this.identifierCount );
         statisticsReporter.reportCount( "Identifiers shortened", this.shortenedIdentifierCount );
+    }
+
+    private prettify( input: string ): string {
+        return format( input );
     }
 }

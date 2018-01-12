@@ -4,12 +4,12 @@ import { CompileStream }  from "./CompileStream";
 import { TsCompilerOptions } from "./TsCompilerOptions";
 import { StatisticsReporter } from "../Reporting/StatisticsReporter";
 import { Logger } from "../Reporting/Logger";
-import { TsVinylFile } from "../Project/TsVinylFile";
 import { Utils } from "../Utils/Utilities";
 import { TsCore } from "../Utils/TsCore";
 
 import * as ts from "typescript";
 import * as path from "path";
+import VinylFile = require( "vinyl" )
 
 export class Compiler {
 
@@ -48,11 +48,11 @@ export class Compiler {
             // Compile the source files..
             let startTime = new Date().getTime();
 
-            var emitResult = this.program.emit();
+            const emitResult = this.program.emit();
 
             this.emitTime = new Date().getTime() - startTime;
 
-            diagnostics = diagnostics.concat( emitResult.diagnostics );
+            diagnostics = diagnostics.concat( emitResult.diagnostics as ts.Diagnostic[] );
 
             // If the emitter didn't emit anything, then we're done
             if ( emitResult.emitSkipped ) {
@@ -65,7 +65,7 @@ export class Compiler {
             for ( var fileName in fileOutput ) {
                 var fileData = fileOutput[fileName];
 
-                var tsVinylFile = new TsVinylFile( {
+                var tsVinylFile = new VinylFile( {
                     path: fileName,
                     contents: new Buffer( fileData )
                 });
@@ -111,7 +111,7 @@ export class Compiler {
         return count;
     }
 
-    private getLineStarts( sourceFile: ts.SourceFile ): number[] {
+    private getLineStarts( sourceFile: ts.SourceFile ): ReadonlyArray<number> {
         return sourceFile.getLineStarts();
     }
 } 

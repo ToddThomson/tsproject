@@ -1,11 +1,11 @@
 ﻿import * as ts from "typescript";
-import File = require( "vinyl" );
+import VinylFile = require( "vinyl" );
 
-export class TsVinylFile extends File {
+//export class TsVinylFile extends VinylFile {
 
-    constructor( options?: any  ) {
-        super( options );
-    }
+//    constructor( options?: any  ) {
+//        super( options );
+//    }
 
-    public sourceFile: ts.SourceFile;
-} 
+//    //public sourceFile: ts.SourceFile;
+//} 

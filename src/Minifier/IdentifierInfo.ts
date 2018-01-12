@@ -14,6 +14,8 @@ export class IdentifierInfo {
 
     public shortenedName: string = undefined;
 
+    public isMinified: boolean = false;
+
     constructor( identifier: ts.Identifier, symbol: ts.Symbol, container: Container ) {
         this.identifier = identifier;
         this.symbol = symbol;
