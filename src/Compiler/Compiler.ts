@@ -67,7 +67,7 @@ export class Compiler {
 
                 var tsVinylFile = new VinylFile( {
                     path: fileName,
-                    contents: new Buffer( fileData )
+                    contents: Buffer.from( fileData )
                 });
 
                 this.compileStream.push( tsVinylFile );

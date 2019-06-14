@@ -68,7 +68,7 @@ export namespace Utils {
         return result;
     }
 
-    export function replaceAt( str, index, character ) {
+    export function replaceAt( str: string, index: number, character: string ) {
         return str.substr( 0, index ) + character + str.substr( index + character.length );
     }
 }

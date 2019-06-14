@@ -4,7 +4,7 @@ import chalk from "chalk";
 
 export class DiagnosticsReporter {
     
-    public static reportDiagnostics( diagnostics: ts.Diagnostic[] ) {
+    public static reportDiagnostics( diagnostics: ReadonlyArray<ts.Diagnostic> ) {
         if ( !diagnostics ) {
             return;
         }

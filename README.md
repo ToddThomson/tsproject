@@ -15,11 +15,11 @@ TsProject produces a compiled output stream of vinyl files for further processin
  
 ## What's New
 
-TsProject 2.1.3 supports Typescript 2.3.x.
+TsProject 3.0.0 supports Typescript 3.5.x.
 
 ## Why TsProject?
 
-TsProject is the only Typescript 2.0 transpiler that provides minified, single file typescript bundles and javascript bundles for packaging of Typescript, javascript and Typescript definition files.
+TsProject is the only Typescript transpiler that provides minified, single file typescript bundles and javascript bundles for packaging of Typescript, javascript and Typescript definition files.
 TsProject bundles file dependencies of external Typescript modules at compilation time rather than relying on build tools (AMD Optimizer, r.js for example ) further down in the build pipeline.
 
 ## TsProject Wiki

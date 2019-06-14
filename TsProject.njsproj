@@ -7,6 +7,7 @@
     <ToolsVersionPromptShown>0.0</ToolsVersionPromptShown>
     <TypeScriptToolsVersion>Latest</TypeScriptToolsVersion>
     <NodeExeArguments> --inspect-brk</NodeExeArguments>
+    <SaveNodeJsSettingsInProjectFile>True</SaveNodeJsSettingsInProjectFile>
   </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -37,40 +38,6 @@
     <Content Include=".gitignore" />
     <Content Include=".npmignore" />
     <Content Include=".travis.yml" />
-    <Content Include="dist\src\Ast\Ast.js.map" />
-    <Content Include="dist\src\Ast\AstTransform.js.map" />
-    <Content Include="dist\src\Ast\NodeWalker.js.map" />
-    <Content Include="dist\src\Bundler\BundleBuilder.js.map" />
-    <Content Include="dist\src\Bundler\BundleCompiler.js.map" />
-    <Content Include="dist\src\Bundler\BundlePackage.js.map" />
-    <Content Include="dist\src\Bundler\BundleParser.js.map" />
-    <Content Include="dist\src\Bundler\BundleResult.js.map" />
-    <Content Include="dist\src\Bundler\DependencyBuilder.js.map" />
-    <Content Include="dist\src\bundle\tsproject.min.js.map" />
-    <Content Include="dist\src\Compiler\CachingCompilerHost.js.map" />
-    <Content Include="dist\src\Compiler\Compiler.js.map" />
-    <Content Include="dist\src\Compiler\CompilerError.js.map" />
-    <Content Include="dist\src\Compiler\CompilerResult.js.map" />
-    <Content Include="dist\src\Compiler\CompileStream.js.map" />
-    <Content Include="dist\src\Compiler\TsCompilerOptions.js.map" />
-    <Content Include="dist\src\Compiler\WatchCompilerHost.js.map" />
-    <Content Include="dist\src\Minifier\BundleMinifier.js.map" />
-    <Content Include="dist\src\Minifier\ContainerContext.js.map" />
-    <Content Include="dist\src\Minifier\IdentifierSymbolInfo.js.map" />
-    <Content Include="dist\src\Minifier\NameGenerator.js.map" />
-    <Content Include="dist\src\Project\Glob.js.map" />
-    <Content Include="dist\src\Project\Project.js.map" />
-    <Content Include="dist\src\Project\ProjectBuildContext.js.map" />
-    <Content Include="dist\src\Project\ProjectConfig.js.map" />
-    <Content Include="dist\src\Project\TsVinylFile.js.map" />
-    <Content Include="dist\src\Reporting\DiagnosticsReporter.js.map" />
-    <Content Include="dist\src\Reporting\Logger.js.map" />
-    <Content Include="dist\src\Reporting\StatisticsReporter.js.map" />
-    <Content Include="dist\src\TsProject.js.map" />
-    <Content Include="dist\src\Utils\Debug.js.map" />
-    <Content Include="dist\src\Utils\EventEmitter.js.map" />
-    <Content Include="dist\src\Utils\TsCore.js.map" />
-    <Content Include="dist\src\Utils\Utilities.js.map" />
     <Content Include="LICENSE" />
     <Content Include="package.json" />
     <Content Include="README.md" />
@@ -82,16 +49,6 @@
   <ItemGroup>
     <Folder Include="build\" />
     <Folder Include="build\tasks\" />
-    <Folder Include="dist\" />
-    <Folder Include="dist\src\" />
-    <Folder Include="dist\src\Ast\" />
-    <Folder Include="dist\src\Bundler\" />
-    <Folder Include="dist\src\bundle\" />
-    <Folder Include="dist\src\Compiler\" />
-    <Folder Include="dist\src\Minifier\" />
-    <Folder Include="dist\src\Project\" />
-    <Folder Include="dist\src\Reporting\" />
-    <Folder Include="dist\src\Utils\" />
     <Folder Include="src\" />
     <Folder Include="src\Ast\" />
     <Folder Include="src\Bundler\" />
@@ -102,7 +59,6 @@
     <Folder Include="src\Utils\" />
   </ItemGroup>
   <ItemGroup>
-    <TypeScriptCompile Include="dist\src\bundle\tsproject.min.ts" />
     <TypeScriptCompile Include="src\Ast\Ast.ts" />
     <TypeScriptCompile Include="src\Ast\AstTransform.ts" />
     <TypeScriptCompile Include="src\Ast\NodeWalker.ts" />
@@ -147,40 +103,6 @@
     <Compile Include="build\tasks\local.js" />
     <Compile Include="build\tasks\test.js" />
     <Compile Include="build\tasks\watch.js" />
-    <Compile Include="dist\src\Ast\Ast.js" />
-    <Compile Include="dist\src\Ast\AstTransform.js" />
-    <Compile Include="dist\src\Ast\NodeWalker.js" />
-    <Compile Include="dist\src\Bundler\BundleBuilder.js" />
-    <Compile Include="dist\src\Bundler\BundleCompiler.js" />
-    <Compile Include="dist\src\Bundler\BundlePackage.js" />
-    <Compile Include="dist\src\Bundler\BundleParser.js" />
-    <Compile Include="dist\src\Bundler\BundleResult.js" />
-    <Compile Include="dist\src\Bundler\DependencyBuilder.js" />
-    <Compile Include="dist\src\bundle\tsproject.min.js" />
-    <Compile Include="dist\src\Compiler\CachingCompilerHost.js" />
-    <Compile Include="dist\src\Compiler\Compiler.js" />
-    <Compile Include="dist\src\Compiler\CompilerError.js" />
-    <Compile Include="dist\src\Compiler\CompilerResult.js" />
-    <Compile Include="dist\src\Compiler\CompileStream.js" />
-    <Compile Include="dist\src\Compiler\TsCompilerOptions.js" />
-    <Compile Include="dist\src\Compiler\WatchCompilerHost.js" />
-    <Compile Include="dist\src\Minifier\BundleMinifier.js" />
-    <Compile Include="dist\src\Minifier\ContainerContext.js" />
-    <Compile Include="dist\src\Minifier\IdentifierSymbolInfo.js" />
-    <Compile Include="dist\src\Minifier\NameGenerator.js" />
-    <Compile Include="dist\src\Project\Glob.js" />
-    <Compile Include="dist\src\Project\Project.js" />
-    <Compile Include="dist\src\Project\ProjectBuildContext.js" />
-    <Compile Include="dist\src\Project\ProjectConfig.js" />
-    <Compile Include="dist\src\Project\TsVinylFile.js" />
-    <Compile Include="dist\src\Reporting\DiagnosticsReporter.js" />
-    <Compile Include="dist\src\Reporting\Logger.js" />
-    <Compile Include="dist\src\Reporting\StatisticsReporter.js" />
-    <Compile Include="dist\src\TsProject.js" />
-    <Compile Include="dist\src\Utils\Debug.js" />
-    <Compile Include="dist\src\Utils\EventEmitter.js" />
-    <Compile Include="dist\src\Utils\TsCore.js" />
-    <Compile Include="dist\src\Utils\Utilities.js" />
     <Compile Include="gulpfile.js" />
     <Compile Include="rundbg.ts" />
   </ItemGroup>

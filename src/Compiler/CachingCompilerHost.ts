@@ -1,7 +1,5 @@
 ﻿import * as ts from "typescript";
-import * as fs from "fs";
 import * as path from "path";
-import * as chokidar from "chokidar";
 
 import { Logger } from "../Reporting/Logger";
 import { TsCore } from "../Utils/TsCore";
@@ -19,7 +17,7 @@ export class CachingCompilerHost implements ts.CompilerHost {
     private fileExistsCacheSize: number = 0;
     private fileReadCache: ts.MapLike<string> = {};
 
-    protected compilerOptions;
+    protected compilerOptions: ts.CompilerOptions;
     private baseHost: ts.CompilerHost;
 
     constructor( compilerOptions: ts.CompilerOptions ) {
@@ -62,7 +60,7 @@ export class CachingCompilerHost implements ts.CompilerHost {
         return this.fileExistsCache[fileName] = this.baseHost.fileExists( fileName );
     }
 
-    public readFile( fileName ): string {
+    public readFile( fileName: string ): string {
         if ( Utils.hasProperty( this.fileReadCache, fileName ) ) {
             Logger.trace( "readFile() cache hit: ", fileName );
             return this.fileReadCache[fileName];

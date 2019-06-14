@@ -194,7 +194,7 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
         if ( this.compilerOptions.diagnostics )
             this.reportWhitespaceStatistics();
 
-        return output;
+        return jsContents; // output;
     }
 
     protected visitNode( node: ts.Node ): void {
@@ -293,15 +293,16 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
                     .expression as ts.PropertyAccessExpression) // x.prototype
                     .expression;                                // x
                         
-                let classSymbol: ts.Symbol = this.checker.getSymbolAtLocation( className );
+                const classSymbol = this.checker.getSymbolAtLocation( className );
 
                 if ( classSymbol && classSymbol.members ) {
-                    // TJT: Review - Map Vs MapLike
-                    if ( classSymbol.members.has[ identifier.text ] ) {
+                    if ( classSymbol.members.has( identifier.escapedText ) ) {
                         Logger.info( "Symbol obtained from prototype function: ", identifier.text );
-                        return classSymbol.members[ identifier.text ];
+                        return classSymbol.members.get( identifier.escapedText );
                     }
                 }
+
+                return undefined;
             }                            
         }
         

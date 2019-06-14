@@ -1,6 +1,6 @@
-﻿import * as ts from "typescript"
-import * as fs from "fs"
-import * as chokidar from "chokidar"
+﻿import * as ts from "typescript";
+import * as fs from "fs";
+import * as chokidar from "chokidar";
 
 export namespace TsCore {
 

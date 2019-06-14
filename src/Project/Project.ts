@@ -383,8 +383,8 @@ export class Project {
 
             if ( configFileText !== undefined ) {
                 let jsonConfigObject = JSON.parse( configFileText );
+                let relativeFileNames: string[] = [];
 
-                let relativeFileNames = [];
                 fileNames.forEach( fileName => {
                     relativeFileNames.push ( path.relative( configDirPath, fileName ).replace( /\\/g, "/" ) );
                 });

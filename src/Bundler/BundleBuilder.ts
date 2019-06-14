@@ -462,9 +462,13 @@ export class BundleBuilder {
     private getSymbolFromNode( node: ts.Node ): ts.Symbol {
         let moduleNameExpr = TsCore.getExternalModuleName( node );
 
-        if ( moduleNameExpr && moduleNameExpr.kind === ts.SyntaxKind.StringLiteral ) {
-            return this.program.getTypeChecker().getSymbolAtLocation( moduleNameExpr );
+        if (moduleNameExpr && moduleNameExpr.kind === ts.SyntaxKind.StringLiteral) {
+            return this.program.getTypeChecker().getSymbolAtLocation(moduleNameExpr);
         }
+
+        // TJT: Throw?
+
+        return undefined;
     }
 
     private getNamedBindingsFromImport( node: ts.ImportDeclaration ): string[] {

@@ -7,8 +7,13 @@
     "diagnostics": true,
     "listFiles": false,
     "pretty": true,
+    "skipLibCheck": true,
     "noEmitOnError": false,
-    "noImplicitAny": false,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
+    "noImplicitUseStrict": false,
     "preserveConstEnums": true,
     "removeComments": false,
     "sourceMap": true,
@@ -57,7 +62,7 @@
         "package": "component",
         "packageNamespace": "TsProject",
         "outDir": "./bundle",
-        "minify": true
+        "minify": false
       }
     }
   }

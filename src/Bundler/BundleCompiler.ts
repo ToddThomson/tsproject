@@ -12,6 +12,7 @@ import { Glob } from "../Project/Glob"
 
 import { Utils } from "../Utils/Utilities"
 import { TsCore } from "../Utils/TsCore"
+import { format } from "../Utils/Formatter"
 
 import * as ts from "typescript"
 import * as fs from "fs"
@@ -145,7 +146,7 @@ export class BundleCompiler {
         Logger.info( "Streaming vinyl bundle source: ", bundleFileName );
         var tsVinylFile = new VinylFile( {
             path: bundleFileName,
-            contents: new Buffer( bundleSourceFile.text )
+            contents: Buffer.from( format( bundleSourceFile.text ) )
         });
 
         this.outputStream.push( tsVinylFile );
@@ -184,7 +185,7 @@ export class BundleCompiler {
             Logger.info( "Streaming vinyl js: ", bundleName );
             var bundleJsVinylFile = new VinylFile( {
                 path: jsBundlePath,
-                contents: new Buffer( jsContents )
+                contents: Buffer.from( jsContents )
             });
 
             this.outputStream.push( bundleJsVinylFile );
@@ -197,7 +198,7 @@ export class BundleCompiler {
             Logger.info( "Streaming vinyl d.ts: ", dtsBundlePath );
             var bundleDtsVinylFile = new VinylFile( {
                 path: dtsBundlePath,
-                contents: new Buffer( outputText[ dtsBundlePath ] )
+                contents: Buffer.from( outputText[ dtsBundlePath ] )
             });
 
             this.outputStream.push( bundleDtsVinylFile );
@@ -210,7 +211,7 @@ export class BundleCompiler {
             Logger.info( "Streaming vinyl js.map: ", mapBundlePath );
             var bundleMapVinylFile = new VinylFile( {
                 path: mapBundlePath,
-                contents: new Buffer( outputText[mapBundlePath] )
+                contents: Buffer.from( outputText[mapBundlePath] )
             });
 
             this.outputStream.push( bundleMapVinylFile );

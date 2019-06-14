@@ -3,14 +3,15 @@
 export class CompilerResult {
 
     private status: ts.ExitStatus;
-    private errors: ts.Diagnostic[];
+    private readonly errors: ReadonlyArray<ts.Diagnostic>
 
-    constructor( status: ts.ExitStatus, errors?: ts.Diagnostic[] ) {
+
+    constructor( status: ts.ExitStatus, errors?: ReadonlyArray<ts.Diagnostic> ) {
         this.status = status;
         this.errors = errors;
     }
 
-    public getErrors(): ts.Diagnostic[] {
+    public getErrors(): ReadonlyArray<ts.Diagnostic> {
         return this.errors;
     }
 
