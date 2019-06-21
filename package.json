@@ -1,6 +1,6 @@
 {
   "name": "tsproject",
-  "version": "3.0.0",
+  "version": "3.0.0-rc1",
   "author": "Todd Thomson <todd.thomson@me.com>",
   "description": "Typescript minifier and modular typescript bundle optimizer for gulp (Ts Vinyl Adapter).",
   "license": "MIT",
@@ -8,9 +8,9 @@
   "typings": "./tsproject.d.ts",
   "dependencies": {
     "@types/glob": "^7.1.1",
-    "@types/lodash": "4.14.134",
+    "@types/lodash": "^4.14.134",
     "@types/node": "^10.14.9",
-    "@types/prettier": "1.16.4",
+    "@types/prettier": "^1.16.4",
     "@types/vinyl": "^2.0.3",
     "chalk": "^2.4.2",
     "chokidar": "^3.0.1",
@@ -18,16 +18,17 @@
     "lodash": "^4.17.11",
     "prettier": "^1.18.2",
     "readable-stream": "^2.3.6",
-    "typescript": "^3.4.5",
+    "tsproject": "~2.1.2",
+    "typescript": "~3.5.2",
     "vinyl": "^2.2.0"
   },
   "devDependencies": {
     "del": "^4.1.1",
-    "gulp": "^3.9.1",
-    "require-dir": "^1.2.0",
-    "run-sequence": "^2.2.1",
-    "typescript": "3.4.5",
-    "vinyl-paths": "^2.1.0"
+    "gulp": "^4.0.2",
+    "gulp-hub": "^4.2.0",
+    "tsproject": "~2.1.2",
+    "typescript": "~3.5.2",
+    "vinyl-paths": "^3.0.0"
   },
   "keywords": [
     "bundle",
@@ -60,6 +61,9 @@
   },
   "bugs": "https://github.com/toddthomson/tsproject/issues",
   "scripts": {
-    "build": "gulp build"
+    "tsc-build": "tsc --build ./src ",
+    "tsc-clean": "tsc --build ./src --clean",
+    "build": "tsc --build ./src && gulp build",
+    "clean": "gulp clean"
   }
 }

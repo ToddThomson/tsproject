@@ -1,14 +1,23 @@
 ﻿import * as ts from "typescript"
 
+// This file contains Typescript AST version 3.5.2 code found in utilities.ts
 export namespace Ast {
 
-    export function getModifierFlags( node: ts.Node ): ts.ModifierFlags {
+    export interface ContainerNode extends ts.Node {
+        nextContainer?: ContainerNode;
+    }
+
+    export function getModifierFlagsNoCache( node: ts.Node ): ts.ModifierFlags {
         let flags = ts.ModifierFlags.None;
 
         if ( node.modifiers ) {
             for ( const modifier of node.modifiers ) {
                 flags |= modifierToFlag( modifier.kind );
             }
+        }
+
+        if ( node.flags & ts.NodeFlags.NestedNamespace || ( node.kind === ts.SyntaxKind.Identifier && ( <ts.Identifier>node ).isInJSDocNamespace ) ) {
+            flags |= ts.ModifierFlags.Export;
         }
 
         return flags;
@@ -28,6 +37,7 @@ export namespace Ast {
             case ts.SyntaxKind.AsyncKeyword: return ts.ModifierFlags.Async;
             case ts.SyntaxKind.ReadonlyKeyword: return ts.ModifierFlags.Readonly;
         }
+
         return ts.ModifierFlags.None;
     }
 
@@ -90,38 +100,50 @@ export namespace Ast {
         return false;
     }
 
-    export function isFunctionLike( node: ts.Node ): boolean {
-        if ( node ) {
-            switch ( node.kind ) {
-                case ts.SyntaxKind.Constructor:
-                case ts.SyntaxKind.FunctionExpression:
-                case ts.SyntaxKind.FunctionDeclaration:
-                case ts.SyntaxKind.ArrowFunction:
-                case ts.SyntaxKind.MethodDeclaration:
-                case ts.SyntaxKind.MethodSignature:
-                case ts.SyntaxKind.GetAccessor:
-                case ts.SyntaxKind.SetAccessor:
-                case ts.SyntaxKind.CallSignature:
-                case ts.SyntaxKind.ConstructSignature:
-                case ts.SyntaxKind.IndexSignature:
-                case ts.SyntaxKind.FunctionType:
-                case ts.SyntaxKind.ConstructorType:
-                    return true;
-            }
-        }
+    export function isFunctionLike( node: ts.Node ): node is ts.FunctionLike {
+        return node && isFunctionLikeKind( node.kind );
+    }
 
-        return false;
+    export function isFunctionLikeDeclarationKind( kind: ts.SyntaxKind ): boolean {
+        switch ( kind ) {
+            case ts.SyntaxKind.FunctionDeclaration:
+            case ts.SyntaxKind.MethodDeclaration:
+            case ts.SyntaxKind.Constructor:
+            case ts.SyntaxKind.GetAccessor:
+            case ts.SyntaxKind.SetAccessor:
+            case ts.SyntaxKind.FunctionExpression:
+            case ts.SyntaxKind.ArrowFunction:
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    export function isFunctionLikeKind( kind: ts.SyntaxKind ): boolean {
+        switch ( kind ) {
+            case ts.SyntaxKind.MethodSignature:
+            case ts.SyntaxKind.CallSignature:
+            case ts.SyntaxKind.ConstructSignature:
+            case ts.SyntaxKind.IndexSignature:
+            case ts.SyntaxKind.FunctionType:
+            case ts.SyntaxKind.JSDocFunctionType:
+            case ts.SyntaxKind.ConstructorType:
+                return true;
+            default:
+                return isFunctionLikeDeclarationKind( kind );
+        }
     }
 
     export function isObjectLiteralOrClassExpressionMethod( node: ts.Node): node is ts.MethodDeclaration {
         return node.kind === ts.SyntaxKind.MethodDeclaration &&
-            ( node.parent.kind === ts.SyntaxKind.ObjectLiteralExpression || node.parent.kind === ts.SyntaxKind.ClassExpression );
+            ( node.parent.kind === ts.SyntaxKind.ObjectLiteralExpression ||
+              node.parent.kind === ts.SyntaxKind.ClassExpression );
     }
 
     export function isInterfaceInternal( symbol: ts.Symbol ): boolean {
         if ( symbol && ( symbol.flags & ts.SymbolFlags.Interface ) ) {
             if ( symbol.valueDeclaration ) {
-                let flags = getModifierFlags( symbol.valueDeclaration );
+                let flags = getModifierFlagsNoCache( symbol.valueDeclaration );
 
                 //if ( !( flags & ts.ModifierFlags.Export ) ) {
                 //    return true;
@@ -137,8 +159,14 @@ export namespace Ast {
 
     export function isClassInternal( symbol: ts.Symbol ): boolean {
         if ( symbol && ( symbol.flags & ts.SymbolFlags.Class ) ) {
+
+            // If the class is from an extern API or ambient then it cannot be considered internal.
+            if ( Ast.isExportContext( symbol ) || Ast.isAmbientContext( symbol ) ) {
+                return false;
+            }
+
             // A class always has a value declaration
-            let flags = getModifierFlags( symbol.valueDeclaration );
+            let flags = getModifierFlagsNoCache( symbol.valueDeclaration );
 
             // By convention, "Internal" classes are ones that are not exported.
             if ( !( flags & ts.ModifierFlags.Export ) ) {
@@ -151,7 +179,7 @@ export namespace Ast {
 
     export function isClassAbstract( classSymbol: ts.Symbol ): boolean {
         if ( classSymbol && classSymbol.valueDeclaration ) {
-            if ( getModifierFlags( classSymbol.valueDeclaration ) & ts.ModifierFlags.Abstract ) {
+            if ( getModifierFlagsNoCache( classSymbol.valueDeclaration ) & ts.ModifierFlags.Abstract ) {
                 return true;
             }
         }
@@ -159,7 +187,7 @@ export namespace Ast {
         return false;
     }
 
-    export function getClassHeritageProperties( classNode: ts.Node, checker: ts.TypeChecker ): ts.Symbol[] {
+    export function getClassHeritageProperties( classNodeU: ts.Node, checker: ts.TypeChecker ): ts.Symbol[] {
         let classExportProperties: ts.Symbol[] = [];
         
         function getHeritageExportProperties( heritageClause: ts.HeritageClause, checker: ts.TypeChecker ): void {
@@ -193,7 +221,7 @@ export namespace Ast {
             }
         }
 
-        let heritageClauses = (<ts.ClassLikeDeclaration>classNode).heritageClauses;
+        let heritageClauses = (<ts.ClassLikeDeclaration>classNodeU).heritageClauses;
         
         if ( heritageClauses ) {
             for ( const heritageClause of heritageClauses ) {
@@ -214,7 +242,7 @@ export namespace Ast {
             let abstractTypeSymbol = abstractType.getSymbol();
        
             if ( abstractTypeSymbol.valueDeclaration ) {
-                if ( getModifierFlags( abstractTypeSymbol.valueDeclaration ) & ts.ModifierFlags.Abstract ) {
+                if ( getModifierFlagsNoCache( abstractTypeSymbol.valueDeclaration ) & ts.ModifierFlags.Abstract ) {
                     const props: ts.Symbol[] = abstractType.getProperties();
 
                     for ( const prop of props ) {
@@ -384,6 +412,9 @@ export namespace Ast {
 
     export function isExportContext( propertySymbol: ts.Symbol ): boolean {
         let node: ts.Node = propertySymbol.valueDeclaration;
+
+        // TJT: Same code. Remove
+
         //while ( node ) {
         //    if ( getModifierFlags( node ) & ts.ModifierFlags.Export ) {
         //        return true;
@@ -403,7 +434,7 @@ export namespace Ast {
     export function isAmbientContext( propertySymbol: ts.Symbol ): boolean {
         let node: ts.Node = propertySymbol.valueDeclaration;
         while ( node ) {
-            if ( getModifierFlags( node ) & ts.ModifierFlags.Ambient ) {
+            if ( getModifierFlagsNoCache( node ) & ts.ModifierFlags.Ambient ) {
                 return true;
             }
             node = node.parent;

@@ -127,4 +127,3 @@ Once Gulp is installed, you can build it with the following commands:
 npm install
 gulp build
 ```  
-

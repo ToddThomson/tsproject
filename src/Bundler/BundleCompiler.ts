@@ -6,7 +6,8 @@ import { CompileStream }  from "../Compiler/CompileStream"
 import { Logger } from "../Reporting/Logger"
 import { BundleParser, Bundle, BundleConfig } from "../Bundler/BundleParser"
 import { BundleResult, BundleFile } from "../Bundler/BundleResult"
-import { BundleMinifier } from "../Minifier/BundleMinifier"
+import { BundleMinifier } from "../Minifier/Minifier"
+import { getMinifierTransform } from "../Minifier/MinifierTransform";
 import { DependencyBuilder } from "./DependencyBuilder"
 import { Glob } from "../Project/Glob"
 
@@ -137,7 +138,9 @@ export class BundleCompiler {
         }
 
         this.emitTime = new Date().getTime();
-
+        
+        let transform = getMinifierTransform( bundlerProgram );
+        const result = ts.transform( bundleSourceFile, [transform] );
         var emitResult = bundlerProgram.emit( bundleSourceFile );
 
         this.emitTime = new Date().getTime() - this.emitTime;
@@ -179,7 +182,8 @@ export class BundleCompiler {
             if ( minifyBundle ) {
                 // Whitespace removal cannot be performed in the AST minification transform, so we do it here for now
                 let minifier = new BundleMinifier( bundlerProgram, compilerOptions, bundleConfig );
-                jsContents = minifier.removeWhitespace( jsContents );
+                // FIXME:
+                //jsContents = minifier.removeWhitespace( jsContents );
                 
             }
             Logger.info( "Streaming vinyl js: ", bundleName );

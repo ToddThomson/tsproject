@@ -1,10 +1,7 @@
 ﻿import * as ts from "typescript";
 
-import { BundleFile } from "../Bundler/BundleResult"
 import { BundleConfig } from "../Bundler/BundleParser"
-import { NodeWalker } from "../Ast/NodeWalker"
 import { Ast } from "../Ast/Ast"
-import { AstTransform } from "../Ast/AstTransform"
 import { StatisticsReporter } from "../Reporting/StatisticsReporter"
 import { Logger } from "../Reporting/Logger"
 import { NameGenerator } from "./NameGenerator"
@@ -16,32 +13,25 @@ import { format } from "../Utils/formatter"
 import { Utils } from "../Utils/Utilities"
 import { TsCore } from "../Utils/TsCore"
 
-export class BundleMinifier extends NodeWalker implements AstTransform {
+export class BundleMinifier {
     private bundleSourceFile: ts.SourceFile;
-    private program: ts.Program;
     private checker: ts.TypeChecker;
     private compilerOptions: TsCompilerOptions;
     private bundleConfig: BundleConfig;
 
+    private lastContainer: Container;
     private containerStack: Container[] = [];
     private classifiableContainers: ts.MapLike<Container> = {};
     private allIdentifierInfos: ts.MapLike<IdentifierInfo> = {};
     private sourceFileContainer: Container;
     private nameGenerator: NameGenerator;
 
-    private whiteSpaceBefore: number;
-    private whiteSpaceAfter: number;
-
-    private whiteSpaceTime: number;
-    private transformTime: number;
-
     private identifierCount = 0;
     private shortenedIdentifierCount = 0;
 
-    constructor( program: ts.Program, compilerOptions: ts.CompilerOptions, bundleConfig: BundleConfig ) {
-        super();
+    private transformTime: number;
 
-        this.program = program;
+    constructor( program: ts.Program, compilerOptions: ts.CompilerOptions, bundleConfig: BundleConfig ) {
         this.checker = program.getTypeChecker();
         this.compilerOptions = compilerOptions;
         this.bundleConfig = bundleConfig;
@@ -52,268 +42,173 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
 
     public transform( bundleSourceFile: ts.SourceFile ): ts.SourceFile {
 
-        this.bundleSourceFile = bundleSourceFile;
+        return this.bundleSourceFile = bundleSourceFile;
 
-        return this.minify( bundleSourceFile );
+        //return this.minify( bundleSourceFile );
     }
 
-    public removeWhitespace( jsContents: string ): string {
-        // ES6 whitespace rules..
-
-        // Special Cases..
-        // break, continue, function: space right if next token is [Expression]
-        // return, yield: space if next token is not a semicolon
-        // else:
-
-        // Space to left and right of keyword..
-        // extends, in, instanceof : space left and right
-        
-        // Space to the right of the keyword..
-        // case, class, const, delete, do, export, get, import, let, new, set, static, throw, typeof, var, void
-        
-        // Space not required..
-        // catch, debugger, default, finally, for, if, super, switch, this, try, while, with
-        
-        // Notes..
-        // export: Not supported yet? For now add space
-        // default: When used with export?
-
-        this.whiteSpaceTime = new Date().getTime();
-        this.whiteSpaceBefore = jsContents.length;
-
-        let output = "";
-        let lastNonTriviaToken = ts.SyntaxKind.Unknown;
-        let isTrivia = false;
-        let token: ts.SyntaxKind;
-
-        const scanner = ts.createScanner( ts.ScriptTarget.ES5, /* skipTrivia */ false, ts.LanguageVariant.Standard, jsContents );
-
-        while ( ( token = scanner.scan() ) !== ts.SyntaxKind.EndOfFileToken ) {
-            isTrivia = false;
-
-            if ( Ast.isTrivia( token ) ) {
-                // TJT: Uncomment to add new line trivia to output for testing purposes
-                //if ( token === ts.SyntaxKind.NewLineTrivia ) {
-                //    output += scanner.getTokenText();
-                //}
-                isTrivia = true;
-            }
-
-            if ( !isTrivia ) {
-                // Process the last non trivia token
-                switch ( lastNonTriviaToken ) {
-                    case ts.SyntaxKind.FunctionKeyword:
-                        // Space required after function keyword if next token is an identifier
-                        if ( token === ts.SyntaxKind.Identifier ) {
-                            output += " ";
-                        }
-                        break;
-
-                    case ts.SyntaxKind.BreakKeyword:
-                    case ts.SyntaxKind.ContinueKeyword:
-                    case ts.SyntaxKind.ReturnKeyword:
-                    case ts.SyntaxKind.YieldKeyword:
-                        // Space not required after return keyword if the current token is a semicolon
-                        if ( token !== ts.SyntaxKind.SemicolonToken ) {
-                            output += " ";
-                        }
-                        break;
-
-                    case ts.SyntaxKind.ElseKeyword:
-                        // Space not required after return keyword if the current token is a punctuation
-                        if ( token !== ts.SyntaxKind.OpenBraceToken ) {
-                            output += " ";
-                        }
-                        break;
-                }
-
-                // Process the current token..
-                switch ( token ) {
-                    // Keywords that require a right space
-                    case ts.SyntaxKind.CaseKeyword:
-                    case ts.SyntaxKind.ClassKeyword:
-                    case ts.SyntaxKind.ConstKeyword:
-                    case ts.SyntaxKind.DeleteKeyword:
-                    case ts.SyntaxKind.DoKeyword:
-                    case ts.SyntaxKind.ExportKeyword: // TJT: Add a space just to be sure right now 
-                    case ts.SyntaxKind.GetKeyword:
-                    case ts.SyntaxKind.ImportKeyword:
-                    case ts.SyntaxKind.LetKeyword:
-                    case ts.SyntaxKind.NewKeyword:
-                    case ts.SyntaxKind.SetKeyword:
-                    case ts.SyntaxKind.StaticKeyword:
-                    case ts.SyntaxKind.ThrowKeyword:
-                    case ts.SyntaxKind.TypeOfKeyword:
-                    case ts.SyntaxKind.VarKeyword:
-                    case ts.SyntaxKind.VoidKeyword:
-                        output += scanner.getTokenText() + " ";
-                        break;
-
-                    // Keywords that require space left and right..
-                    case ts.SyntaxKind.ExtendsKeyword:
-                    case ts.SyntaxKind.InKeyword:
-                    case ts.SyntaxKind.InstanceOfKeyword:
-                        output += " " + scanner.getTokenText() + " ";
-                        break;
-
-                    // Avoid concatenations of ++, + and --, - operators
-                    case ts.SyntaxKind.PlusToken:
-                    case ts.SyntaxKind.PlusPlusToken:
-                        if ( ( lastNonTriviaToken === ts.SyntaxKind.PlusToken ) ||
-                            ( lastNonTriviaToken === ts.SyntaxKind.PlusPlusToken ) ) {
-                            output += " ";
-                        }
-                        output += scanner.getTokenText();
-                        break;
-
-                    case ts.SyntaxKind.MinusToken:
-                    case ts.SyntaxKind.MinusMinusToken:
-                        if ( ( lastNonTriviaToken === ts.SyntaxKind.MinusToken ) ||
-                            ( lastNonTriviaToken === ts.SyntaxKind.MinusMinusToken ) ) {
-                            output += " ";
-                        }
-
-                        output += scanner.getTokenText();
-                        break;
-
-                    default:
-                        // All other tokens can be output. Keywords that do not require whitespace.
-                        output += scanner.getTokenText();
-                        break;
-                }
-            }
-
-            if ( !isTrivia ) {
-                lastNonTriviaToken = token;
-            }
+    private addToContainerChain( nextContainer: Container ) {
+        if ( this.lastContainer ) {
+            this.lastContainer.nextContainer = nextContainer;
         }
 
-        this.whiteSpaceAfter = output.length;
-        this.whiteSpaceTime = new Date().getTime() - this.whiteSpaceTime;
-
-        if ( this.compilerOptions.diagnostics )
-            this.reportWhitespaceStatistics();
-
-        return jsContents; // output;
+        this.lastContainer = nextContainer;
     }
 
-    protected visitNode( node: ts.Node ): void {
-        // Traverse nodes to build containers and process all identifiers nodes.
-        if ( this.isNextContainer( node ) ) {
-            super.visitNode( node );
+    public walkContainerChain( head: Ast.ContainerNode ) {
+        var currentContainerNode = head;
 
-            this.restoreContainer();
+        while ( currentContainerNode ) {
+            var container = new Container( currentContainerNode );
+
+            this.addToContainerChain( container );
+
+            // Get the next container node (if any)
+            currentContainerNode = currentContainerNode.nextContainer;
         }
-        else {
-            switch ( node.kind ) {
-                case ts.SyntaxKind.Identifier:
-                    Logger.info( "Identifier node walked in container id: ", this.currentContainer().getId() );
+    }
 
-                    let tmpContainer = this.currentContainer();
+    //protected visitNode( node: ts.Node ): void {
+    //    // Traverse nodes to build containers and process all identifiers nodes.
+    //    if ( this.isNextContainer( node ) ) {
+    //        super.visitNode( node );
 
-                    let identifier: ts.Identifier = <ts.Identifier>node;
-                    let identifierSymbol: ts.Symbol = this.checker.getSymbolAtLocation( identifier );
+    //        //this.restoreContainer();
+    //    }
+    //    else {
+    //        switch ( node.kind ) {
+    //            case ts.SyntaxKind.Identifier:
+    //                Logger.info( "Identifier node walked in container id: ", this.currentContainer().getId() );
 
-                    // The identifierSymbol may be null when an identifier is accessed within a function that
-                    // has been assigned to the prototype property of an object. We check for this here.
-                    if ( !identifierSymbol ) {
-                        identifierSymbol = this.getSymbolFromPrototypeFunction( identifier );    
-                    }
+    //                let identifier: ts.Identifier = <ts.Identifier>node;
+    //                let identifierSymbol: ts.Symbol = this.checker.getSymbolAtLocation( identifier );
+
+    //                // The identifierSymbol may be null when an identifier is accessed within a function that
+    //                // has been assigned to the prototype property of an object. We check for this here.
+    //                if ( !identifierSymbol ) {
+    //                    identifierSymbol = this.getSymbolFromPrototypeFunction( identifier );    
+    //                }
                    
-                    if ( identifierSymbol ) {
-                        let identifierUID = Ast.getIdentifierUID( identifierSymbol );
+    //                if ( identifierSymbol ) {
+    //                    let identifierUID = Ast.getIdentifierUID( identifierSymbol );
 
-                        if ( identifierUID === undefined ) {
-                            if ( identifierSymbol.flags & ts.SymbolFlags.Transient ) {
-                                // TJT: Can we ignore all transient symbols?
-                                Logger.trace( "Ignoring transient symbol: ", identifierSymbol.name );
-                                break;
-                            }
-                            else {
-                                identifierUID = ( <any>ts).getSymbolId( identifierSymbol ).toString();
-                                Logger.trace( "Generated symbol id for: ", identifierSymbol.name, identifierUID );
-                            }
-                        }
+    //                    if ( identifierUID === undefined ) {
+    //                        if ( identifierSymbol.flags & ts.SymbolFlags.Transient ) {
+    //                            // TJT: Can we ignore all transient symbols?
+    //                            Logger.trace( "Ignoring transient symbol: ", identifierSymbol.name );
+    //                            break;
+    //                        }
+    //                        else {
+    //                            identifierUID = ( <any>ts).getSymbolId( identifierSymbol ).toString();
+    //                            Logger.trace( "Generated symbol id for: ", identifierSymbol.name, identifierUID );
+    //                        }
+    //                    }
 
-                        // Check to see if we've seen this identifer symbol before
-                        if ( Utils.hasProperty( this.allIdentifierInfos, identifierUID ) ) {
-                            Logger.info( "Identifier already added: ", identifierSymbol.name, identifierUID );
+    //                    // Check to see if we've seen this identifer symbol before
+    //                    if ( Utils.hasProperty( this.allIdentifierInfos, identifierUID ) ) {
+    //                        Logger.info( "Identifier already added: ", identifierSymbol.name, identifierUID );
 
-                            // If we have, then add it to the identifier info references 
-                            let prevAddedIdentifier = this.allIdentifierInfos[ identifierUID ];
-                            this.allIdentifierInfos[ identifierUID ].addRef( identifier, this.currentContainer() );
+                            
+    //                        // If we have, then add it to the identifier info references 
+    //                        let prevAddedIdentifier = this.allIdentifierInfos[identifierUID];
 
-                            // If the previously added identifier is not in the current container's local identifier table then
-                            // it must be excluded so that it's shortened name will not be used in this container.
-                            if ( !Utils.hasProperty( this.currentContainer().localIdentifiers, identifierUID ) ) {
-                                this.currentContainer().excludedIdentifiers[ identifierUID ] = prevAddedIdentifier; 
-                            }
-                        }
-                        else {
-                            let identifierInfo = new IdentifierInfo( identifier, identifierSymbol, this.currentContainer() );
-                            Logger.info( "Adding new identifier: ", identifierInfo.getName(), identifierInfo.getId() );
+    //                        if ( prevAddedIdentifier.getName() === 'getClassHeritageProperties' ) {
+    //                            var breakme4 = 1;
 
-                            // Add the new identifier info to both the container and the all list
-                            this.currentContainer().localIdentifiers[ identifierUID ] = identifierInfo;
-                            this.allIdentifierInfos[ identifierUID ] = identifierInfo;
+    //                            var s = prevAddedIdentifier.getSymbol();
+    //                            var mems = s.members;
+    //                            var decl = s.valueDeclaration;
+    //                            var cont = ( <any>s.valueDeclaration ).nextContainer;
+    //                        }
 
-                            // We can't shorten identifier names that are 1 character in length AND
-                            // we can't risk the chance that an identifier name will be replaced with a 2 char
-                            // shortened name due to the constraint that the names are changed in place
-                            let identifierName = identifierSymbol.getName();
+                            
+                            
+    //                        this.allIdentifierInfos[ identifierUID ].addRef( identifier, this.currentContainer() );
 
-                            if ( identifierName.length === 1 ) {
-                                identifierInfo.shortenedName = identifierName;
-                                this.currentContainer().excludedIdentifiers[ identifierUID ] = identifierInfo;
-                            }
+    //                        // If the previously added identifier is not in the current container's local identifier table then
+    //                        // it must be excluded so that it's shortened name will not be used in this container.
+    //                        if ( !Utils.hasProperty( this.currentContainer().localIdentifiers, identifierUID ) ) {
+    //                            this.currentContainer().excludedIdentifiers[ identifierUID ] = prevAddedIdentifier; 
+    //                        }
+    //                    }
+    //                    else {
+    //                        let identifierInfo = new IdentifierInfo( identifier, identifierSymbol, this.currentContainer() );
+                            
+    //                        if ( identifierInfo.getName() === 'getClassHeritageProperties' ) {
+    //                            var breakme4 = 1;
+    //                        }
+    //                        if ( identifierInfo.getName() === 'classNodeU' ) {
+    //                            var breakme4 = 1;
+    //                        }
+    //                        if ( identifierInfo.getName() === 'classExportProperties' ) {
+    //                            var breakme4 = 1;
+    //                        }
+    //                        if ( identifierInfo.getName() === 'getHeritageExportProperties' ) {
+    //                            var breakme4 = 1;
+    //                        }
+    //                        Logger.info( "Adding new identifier: ", identifierInfo.getName(), identifierInfo.getId() );
 
-                            this.identifierCount++;
-                        }
-                    }
-                    else {
-                        Logger.warn( "Identifier does not have a symbol: ", identifier.text );
-                    }
+    //                        // Add the new identifier info to both the container and the all list
+    //                        this.currentContainer().localIdentifiers[ identifierUID ] = identifierInfo;
+    //                        this.allIdentifierInfos[ identifierUID ] = identifierInfo;
 
-                    break;
-            }
+    //                        // We can't shorten identifier names that are 1 character in length AND
+    //                        // we can't risk the chance that an identifier name will be replaced with a 2 char
+    //                        // shortened name due to the constraint that the names are changed in place
+    //                        let identifierName = identifierSymbol.getName();
 
-            super.visitNode( node );
-        }
-    }
+    //                        if ( identifierName.length === 1 ) {
+    //                            identifierInfo.shortenedName = identifierName;
+    //                            this.currentContainer().excludedIdentifiers[ identifierUID ] = identifierInfo;
+    //                        }
 
-    private getSymbolFromPrototypeFunction( identifier: ts.Identifier ): ts.Symbol {
+    //                        this.identifierCount++;
+    //                    }
+    //                }
+    //                else {
+    //                    Logger.warn( "Identifier does not have a symbol: ", identifier.text );
+    //                }
 
-        let containerNode = this.currentContainer().getNode();
+    //                break;
+    //        }
 
-        if ( containerNode.kind === ts.SyntaxKind.FunctionExpression ) {
-            if ( Ast.isPrototypeAccessAssignment( containerNode.parent ) ) {
-                // Get the 'x' of 'x.prototype.y = f' (here, 'f' is 'container')
-                const className = (((containerNode.parent as ts.BinaryExpression)   // x.prototype.y = f
-                    .left as ts.PropertyAccessExpression)       // x.prototype.y
-                    .expression as ts.PropertyAccessExpression) // x.prototype
-                    .expression;                                // x
+    //        super.visitNode( node );
+    //    }
+    //}
+
+    //private getSymbolFromPrototypeFunction( identifier: ts.Identifier ): ts.Symbol {
+
+    //    let containerNode = this.currentContainer().getNode();
+
+    //    if ( containerNode.kind === ts.SyntaxKind.FunctionExpression ) {
+    //        if ( Ast.isPrototypeAccessAssignment( containerNode.parent ) ) {
+    //            // Get the 'x' of 'x.prototype.y = f' (here, 'f' is 'container')
+    //            const className = (((containerNode.parent as ts.BinaryExpression)   // x.prototype.y = f
+    //                .left as ts.PropertyAccessExpression)       // x.prototype.y
+    //                .expression as ts.PropertyAccessExpression) // x.prototype
+    //                .expression;                                // x
                         
-                const classSymbol = this.checker.getSymbolAtLocation( className );
+    //            const classSymbol = this.checker.getSymbolAtLocation( className );
 
-                if ( classSymbol && classSymbol.members ) {
-                    if ( classSymbol.members.has( identifier.escapedText ) ) {
-                        Logger.info( "Symbol obtained from prototype function: ", identifier.text );
-                        return classSymbol.members.get( identifier.escapedText );
-                    }
-                }
+    //            if ( classSymbol && classSymbol.members ) {
+    //                if ( classSymbol.members.has( identifier.escapedText ) ) {
+    //                    Logger.info( "Symbol obtained from prototype function: ", identifier.text );
+    //                    return classSymbol.members.get( identifier.escapedText );
+    //                }
+    //            }
 
-                return undefined;
-            }                            
-        }
+    //            return undefined;
+    //        }                            
+    //    }
         
-        return undefined;        
-    }
+    //    return undefined;        
+    //}
 
     private minify( sourceFile: ts.SourceFile ): ts.SourceFile {
         this.transformTime = new Date().getTime();
 
         // Walk the sourceFile to build containers and the identifiers within. 
-        this.walk( sourceFile );
+        //this.walk( sourceFile );
 
         this.shortenIdentifiers();
 
@@ -434,6 +329,17 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
     }
 
     private processIdentifierInfo( identifierInfo: IdentifierInfo, container: Container ): void {
+        if ( identifierInfo.getName() === 'classNodeU' ) {
+            var breakme4 = 1;
+        }
+        if ( identifierInfo.getName() === 'getHeritageExportProperties' ) {
+            var breakme4 = 1;
+        }
+
+        if ( identifierInfo.isMinified ) {
+            Logger.trace( "Identifier already has shortened name: ", identifierInfo.getName(), identifierInfo.shortenedName ); 
+            return;
+        }
 
         if ( this.canShortenIdentifier( identifierInfo ) ) {
             let shortenedName = this.getShortenedIdentifierName( container, identifierInfo );
@@ -448,20 +354,21 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
                 containerRef.namesExcluded[ shortenedName ] = true;
             }
 
-            if ( !identifierInfo.isMinified ) {
+            //if ( !identifierInfo.isMinified ) {
                 // Change all referenced identifier nodes to the shortened name
                 Utils.forEach( identifierInfo.getIdentifiers(), identifier => {
                     this.setIdentifierText( identifier, shortenedName );
                 } );
 
                 identifierInfo.isMinified = true;
-            }
+            //}
 
             return;
         }
     }
 
     private canShortenIdentifier( identifierInfo: IdentifierInfo ): boolean {
+
         if ( identifierInfo.isBlockScopedVariable() ||
             identifierInfo.isFunctionScopedVariable() ||
             identifierInfo.isInternalClass() ||
@@ -492,21 +399,30 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
             else {
                 // Loop until we have a valid shortened name
                 // The shortened name MUST be the same length or less
-                while ( true ) {
+                while ( !identifierInfo.shortenedName ) {
                     let shortenedName = this.nameGenerator.getName( container.getNameIndex() );
 
                     Debug.assert( shortenedName.length <= identifierName.length );
 
-                    if ( !Utils.hasProperty( container.namesExcluded, shortenedName ) ) {
-                        identifierInfo.shortenedName = shortenedName
-                        break;
+                    let containerRefs = identifierInfo.getContainers();
+                    let isShortenedNameAlreadyUsed = false;
+
+                    for ( let containerKey in containerRefs ) {
+                        let containerRef = containerRefs[containerKey];
+
+                        if ( Utils.hasProperty( containerRef.namesExcluded, shortenedName ) ) {
+                            isShortenedNameAlreadyUsed = true;
+                            Logger.trace( "Generated name was excluded: ", shortenedName, identifierName );
+                            break;
+                        }
                     }
-                    else {
-                        Logger.trace( "Generated name was excluded: ", shortenedName, identifierName );
+
+                    if ( !isShortenedNameAlreadyUsed ) {
+                        identifierInfo.shortenedName = shortenedName;
                     }
                 }
 
-                this.shortenedIdentifierCount++
+                this.shortenedIdentifierCount++;
             }
         }
         else {
@@ -650,6 +566,9 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
     }
 
     private getContainerExcludedIdentifiers( container: Container ): ts.MapLike<IdentifierInfo> {
+        if ( container.getId() === 206 ) {
+            var breakme = 4;
+        }
 
         // Recursively walk the container chain to find shortened identifier names that we cannot use in this container.
         let target = this.compilerOptions.target;
@@ -659,11 +578,12 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
             // Recursively process the container block scoped children..
             let containerChildren = container.getChildren();
            
-             for ( let i = 0; i < containerChildren.length; i++ ) {
-                let childContainer = containerChildren[ i ];
-                
+            for ( let i = 0; i < containerChildren.length; i++ ) {
+                let childContainer = containerChildren[i];
+
+                // TJT: Review. Comments added in release 2.0
                 //if ( childContainer.isBlockScoped() ) {
-                    getContainerExcludes( childContainer );
+                getContainerExcludes( childContainer );
                 //}
             }
 
@@ -689,6 +609,9 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
     }
 
     private excludeNamesForIdentifier( identifierInfo: IdentifierInfo, container: Container ): void {
+        if ( identifierInfo.getName() === 'getHeritageExportProperties' ) {
+            var breakme4 = 1;
+        }
         // Exclude all shortened names that have already been used in child containers that this identifer is contained in.
         let identifierContainers = identifierInfo.getContainers();
 
@@ -709,80 +632,67 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
         }
     }
     
-    private currentContainer(): Container {
-        return this.containerStack[ this.containerStack.length - 1 ];
-    }
+    //private isNextContainer( node: ts.Node ): boolean {
+    //    let containerFlags: Ast.ContainerFlags = Ast.getContainerFlags( node );
 
-    private restoreContainer(): Container {
-        return this.containerStack.pop();
-    }
+    //    if ( containerFlags & ( Ast.ContainerFlags.IsContainer | Ast.ContainerFlags.IsBlockScopedContainer ) ) {
+    //        let nextContainer = new Container( node )
 
-    private isNextContainer( node: ts.Node ): boolean {
-        let containerFlags: Ast.ContainerFlags = Ast.getContainerFlags( node );
+    //        // Check if the container symbol is classifiable. If so save it for inheritance processing.
+    //        let containerSymbol: ts.Symbol = (<any>node).symbol;
 
-        if ( containerFlags & ( Ast.ContainerFlags.IsContainer | Ast.ContainerFlags.IsBlockScopedContainer ) ) {
-            let nextContainer = new Container( node, containerFlags, this.currentContainer() )
+    //        if ( containerSymbol && ( containerSymbol.flags & ts.SymbolFlags.Class ) ) {
+    //            let containerSymbolUId: string = Ast.getIdentifierUID( containerSymbol );
+
+    //            // Save the class symbol into the current container ( its parent )
+    //            if ( !Utils.hasProperty( this.currentContainer().classifiableSymbols, containerSymbolUId ) ) {
+    //                this.currentContainer().classifiableSymbols[ containerSymbolUId ] = containerSymbol;
+    //            }
+
+    //            // Save to the all classifiable containers table. See NOTE Inheritance below.
+    //            if ( !Utils.hasProperty( this.classifiableContainers, containerSymbol.name ) ) {
+    //                this.classifiableContainers[ containerSymbol.name ] = nextContainer;
+    //            }
+
+    //            // Check for inheritance. We need to do this now because the checker cannot be used once names are shortened.
+    //            let extendsClause = Ast.getExtendsClause( node )
             
-            // Check if the container symbol is classifiable. If so save it for inheritance processing.
-            let containerSymbol: ts.Symbol = (<any>node).symbol;
-
-            if ( containerSymbol && ( containerSymbol.flags & ts.SymbolFlags.Class ) ) {
-                let containerSymbolUId: string = Ast.getIdentifierUID( containerSymbol );
-
-                // Save the class symbol into the current container ( its parent )
-                if ( !Utils.hasProperty( this.currentContainer().classifiableSymbols, containerSymbolUId ) ) {
-                    this.currentContainer().classifiableSymbols[ containerSymbolUId ] = containerSymbol;
-                }
-
-                // Save to the all classifiable containers table. See NOTE Inheritance below.
-                if ( !Utils.hasProperty( this.classifiableContainers, containerSymbol.name ) ) {
-                    this.classifiableContainers[ containerSymbol.name ] = nextContainer;
-                }
-
-                // Check for inheritance. We need to do this now because the checker cannot be used once names are shortened.
-                let extendsClause = Ast.getExtendsClause( node )
-            
-                if ( extendsClause ) {
-                    let baseClassSymbol = this.checker.getSymbolAtLocation( <ts.Identifier>extendsClause.types[0].expression );
+    //            if ( extendsClause ) {
+    //                let baseClassSymbol = this.checker.getSymbolAtLocation( <ts.Identifier>extendsClause.types[0].expression );
                      
-                    // NOTE Inheritance:
-                    // If this child class is declared before the parent base class then the base class symbol will have symbolFlags.Merged.
-                    // When the base class is declared it will have a different symbol id from the symbol id determined here.
-                    // We should be able to use the symbol name for lookups in the classifiable containers table.
-                    // let baseClassAlias = this.checker.getAliasedSymbol(baseClassSymbol);
+    //                // NOTE Inheritance:
+    //                // If this child class is declared before the parent base class then the base class symbol will have symbolFlags.Merged.
+    //                // When the base class is declared it will have a different symbol id from the symbol id determined here.
+    //                // We should be able to use the symbol name for lookups in the classifiable containers table.
+    //                // let baseClassAlias = this.checker.getAliasedSymbol(baseClassSymbol);
 
-                    nextContainer.setBaseClass( baseClassSymbol );
-                }
-            }
+    //                nextContainer.setBaseClass( baseClassSymbol );
+    //            }
+    //        }
 
-            // Before changing the current container we must first add the new container to the children of the current container.
-            let currentContainer = this.currentContainer();
+    //        // Before changing the current container we must first add the new container to the children of the current container.
+    //        let currentContainer = this.currentContainer();
                         
-            // If we don't have a container yet then it is the source file container ( the first ).
-            if ( !currentContainer ) {
-                this.sourceFileContainer = nextContainer;
-            }
-            else {
-                // Add new container context to the exising current container
-                currentContainer.addChildContainer( nextContainer );
-            }
+    //        // If we don't have a container yet then it is the source file container ( the first ).
+    //        if ( !currentContainer ) {
+    //            this.sourceFileContainer = nextContainer;
+    //        }
+    //        else {
+    //            // Add new container context to the exising current container
+    //            currentContainer.addChildContainer( nextContainer );
+    //        }
 
-            this.containerStack.push( nextContainer );
+    //        this.containerStack.push( nextContainer );
 
-            Logger.info( "Next container id: ", nextContainer.getId(), nextContainer.getParent().getId() );
+    //        Logger.info( "Next container id: ", nextContainer.getId(), nextContainer.getParent().getId() );
 
-            return true;
-        }
+    //        return true;
+    //    }
 
-        return false;
-    }
+    //    return false;
+    //}
 
-    private reportWhitespaceStatistics() {
-        let statisticsReporter = new StatisticsReporter();
-
-        statisticsReporter.reportTime( "Whitespace time", this.whiteSpaceTime );
-        statisticsReporter.reportPercentage( "Whitespace reduction", (( this.whiteSpaceBefore - this.whiteSpaceAfter )/this.whiteSpaceBefore) * 100.00 );
-    }
+    
 
     private reportMinifyStatistics() {
         let statisticsReporter = new StatisticsReporter();

@@ -98,7 +98,7 @@ export class DependencyBuilder {
                     const moduleDeclaration: ts.ModuleDeclaration = <ts.ModuleDeclaration>node;
 
                     if ( ( moduleDeclaration.name.kind === ts.SyntaxKind.StringLiteral ) &&
-                        ( Ast.getModifierFlags( moduleDeclaration ) & ts.ModifierFlags.Ambient || file.isDeclarationFile ) ) {
+                        ( Ast.getModifierFlagsNoCache( moduleDeclaration ) & ts.ModifierFlags.Ambient || file.isDeclarationFile ) ) {
                         // An AmbientExternalModuleDeclaration declares an external module.
                         Logger.info( "Scanning for dependencies within ambient module declaration: ", moduleDeclaration.name.text );
 

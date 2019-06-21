@@ -68,7 +68,6 @@ export class BundleBuilder {
 
         // Look for tsx source files in bundle name or bundle dependencies.
         // Output tsx for bundle extension if typescript react files found.
-
         var isBundleTsx = false;
 
         let allDependencies: ts.MapLike<ts.Node[]> = {};
@@ -78,7 +77,7 @@ export class BundleBuilder {
             Logger.info( ">>> Processing bundle file:", fileName );
 
             let bundleSourceFileName = this.compilerHost.getCanonicalFileName( TsCore.normalizeSlashes( fileName ) );
-            Logger.info( "BundleSourceFileName:", bundleSourceFileName );
+            Logger.info( "bundleSourceFileName:", bundleSourceFileName );
 
             let bundleSourceFile = this.program.getSourceFile( bundleSourceFileName );
 
@@ -365,7 +364,7 @@ export class BundleBuilder {
                         let module = <ts.ModuleDeclaration>node;
 
                         if ( module.name.getText() !== this.bundle.config.package.getPackageNamespace() ) {
-                            if ( Ast.getModifierFlags( module ) & ts.ModifierFlags.Export ) {
+                            if ( Ast.getModifierFlagsNoCache( module ) & ts.ModifierFlags.Export ) {
                                 Logger.info( "Component namespace not package namespace. Removing export modifier." );
                                 let nodeModifier = module.modifiers[0];
                                 editText = this.whiteOut( nodeModifier.pos, nodeModifier.end, editText );
@@ -373,7 +372,7 @@ export class BundleBuilder {
                         }
                     }
                     else {
-                        if ( Ast.getModifierFlags( node ) & ts.ModifierFlags.Export ) {
+                        if ( Ast.getModifierFlagsNoCache( node ) & ts.ModifierFlags.Export ) {
                             let exportModifier = node.modifiers[0];
 
                             editText = this.whiteOut( exportModifier.pos, exportModifier.end, editText );

@@ -5,7 +5,6 @@ export class CompilerResult {
     private status: ts.ExitStatus;
     private readonly errors: ReadonlyArray<ts.Diagnostic>
 
-
     constructor( status: ts.ExitStatus, errors?: ReadonlyArray<ts.Diagnostic> ) {
         this.status = status;
         this.errors = errors;

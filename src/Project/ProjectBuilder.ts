@@ -11,7 +11,6 @@ import { BundleCompiler } from "../Bundler/BundleCompiler";
 import { ProjectConfig } from "./ProjectConfig";
 import { StatisticsReporter } from "../Reporting/StatisticsReporter";
 import { Logger } from "../Reporting/Logger";
-//import { TsVinylFile } from "./TsVinylFile";
 import { BundleParser, Bundle } from "../Bundler/BundleParser";
 import { Glob } from "./Glob";
 import { TsCore } from "../Utils/TsCore";
@@ -24,7 +23,7 @@ import * as path from "path";
 import chalk from "chalk";
 import * as chokidar from "chokidar";
 
-export class Project {
+export class ProjectBuilder {
 
     private configFilePath: string;
     private settings: any;

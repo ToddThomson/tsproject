@@ -4,27 +4,27 @@
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
     <Name>TsProject</Name>
     <RootNamespace>TsProject</RootNamespace>
-    <ToolsVersionPromptShown>0.0</ToolsVersionPromptShown>
-    <TypeScriptToolsVersion>Latest</TypeScriptToolsVersion>
-    <NodeExeArguments> --inspect-brk</NodeExeArguments>
     <SaveNodeJsSettingsInProjectFile>True</SaveNodeJsSettingsInProjectFile>
+    <SccProjectName>SAK</SccProjectName>
+    <SccProvider>SAK</SccProvider>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccLocalPath>SAK</SccLocalPath>
   </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>fc6c285f-e50f-4984-a0ac-d5bddf64bc4e</ProjectGuid>
+    <ProjectGuid>ef9d926c-ed57-4a1e-9a8a-f02b1fb2009c</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>rundbg.ts</StartupFile>
+    <StartupFile>tests\rundbg.ts</StartupFile>
     <StartWebBrowser>False</StartWebBrowser>
     <SearchPath>
     </SearchPath>
-    <WorkingDirectory>.</WorkingDirectory>
+    <WorkingDirectory>
+    </WorkingDirectory>
     <OutputPath>.</OutputPath>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <ProjectTypeGuids>{3AF33F2E-1136-4D97-BBB7-1795711AC8B8};{9092AA53-FB77-4645-B42D-1CCCA6BD08BD}</ProjectTypeGuids>
-    <TypeScriptSourceMap>true</TypeScriptSourceMap>
-    <TypeScriptModuleKind>CommonJS</TypeScriptModuleKind>
     <EnableTypeScript>true</EnableTypeScript>
     <StartWebBrowser>False</StartWebBrowser>
   </PropertyGroup>
@@ -35,20 +35,27 @@
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
   <ItemGroup>
+    <Content Include=".gitattributes" />
     <Content Include=".gitignore" />
     <Content Include=".npmignore" />
     <Content Include=".travis.yml" />
+    <Content Include="build\paths.js" />
+    <Content Include="build\tasks\bundle.js" />
+    <Content Include="build\tasks\clean.js" />
+    <Content Include="gulpfile.js" />
     <Content Include="LICENSE" />
     <Content Include="package.json" />
     <Content Include="README.md" />
     <Content Include="src\tsconfig.json" />
-    <Content Include="tsconfig.json">
-      <SubType>Code</SubType>
-    </Content>
+    <Content Include="Tests\tsconfig.json" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="build\" />
     <Folder Include="build\tasks\" />
+    <Folder Include="dist\" />
+    <Folder Include="dist\src\" />
+    <Folder Include="dist\src\bundle\" />
+    <Folder Include="tests\" />
     <Folder Include="src\" />
     <Folder Include="src\Ast\" />
     <Folder Include="src\Bundler\" />
@@ -59,6 +66,11 @@
     <Folder Include="src\Utils\" />
   </ItemGroup>
   <ItemGroup>
+    <TypeScriptCompile Include="dist\src\bundle\tsproject.min.ts" />
+    <TypeScriptCompile Include="src\Minifier\WhitespaceTransform.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
+    <TypeScriptCompile Include="Tests\rundbg.ts" />
     <TypeScriptCompile Include="src\Ast\Ast.ts" />
     <TypeScriptCompile Include="src\Ast\AstTransform.ts" />
     <TypeScriptCompile Include="src\Ast\NodeWalker.ts" />
@@ -67,6 +79,7 @@
     <TypeScriptCompile Include="src\Bundler\BundlePackage.ts" />
     <TypeScriptCompile Include="src\Bundler\BundleParser.ts" />
     <TypeScriptCompile Include="src\Bundler\BundleResult.ts" />
+    <TypeScriptCompile Include="src\Bundler\BundlerTransform.ts" />
     <TypeScriptCompile Include="src\Bundler\DependencyBuilder.ts" />
     <TypeScriptCompile Include="src\Compiler\CachingCompilerHost.ts" />
     <TypeScriptCompile Include="src\Compiler\Compiler.ts" />
@@ -75,13 +88,14 @@
     <TypeScriptCompile Include="src\Compiler\CompileStream.ts" />
     <TypeScriptCompile Include="src\Compiler\TsCompilerOptions.ts" />
     <TypeScriptCompile Include="src\Compiler\WatchCompilerHost.ts" />
-    <TypeScriptCompile Include="src\Minifier\BundleMinifier.ts" />
+    <TypeScriptCompile Include="src\Minifier\Minifier.ts" />
     <TypeScriptCompile Include="src\Minifier\ContainerContext.ts" />
     <TypeScriptCompile Include="src\Minifier\IdentifierInfo.ts" />
+    <TypeScriptCompile Include="src\Minifier\MinifierTransform.ts" />
     <TypeScriptCompile Include="src\Minifier\NameGenerator.ts" />
     <TypeScriptCompile Include="src\Project\Glob.ts" />
-    <TypeScriptCompile Include="src\Project\Project.ts" />
     <TypeScriptCompile Include="src\Project\ProjectBuildContext.ts" />
+    <TypeScriptCompile Include="src\Project\ProjectBuilder.ts" />
     <TypeScriptCompile Include="src\Project\ProjectConfig.ts" />
     <TypeScriptCompile Include="src\Project\TsVinylFile.ts" />
     <TypeScriptCompile Include="src\Reporting\DiagnosticsReporter.ts" />
@@ -89,26 +103,13 @@
     <TypeScriptCompile Include="src\Reporting\StatisticsReporter.ts" />
     <TypeScriptCompile Include="src\TsProject.ts" />
     <TypeScriptCompile Include="src\Utils\Debug.ts" />
-    <TypeScriptCompile Include="src\Utils\EventEmitter.ts" />
+    <TypeScriptCompile Include="src\Utils\Formatter.ts" />
     <TypeScriptCompile Include="src\Utils\TsCore.ts" />
-    <TypeScriptCompile Include="src\Utils\Formatter.ts">
-      <SubType>Code</SubType>
-    </TypeScriptCompile>
     <TypeScriptCompile Include="src\Utils\Utilities.ts" />
+    <TypeScriptCompile Include="tests\tsproject.min.ts" />
+    <TypeScriptCompile Include="tsproject.min.ts" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Include="build\paths.js" />
-    <Compile Include="build\tasks\build.js" />
-    <Compile Include="build\tasks\clean.js" />
-    <Compile Include="build\tasks\local.js" />
-    <Compile Include="build\tasks\test.js" />
-    <Compile Include="build\tasks\watch.js" />
-    <Compile Include="gulpfile.js" />
-    <Compile Include="rundbg.ts" />
-  </ItemGroup>
-  <!-- Do not delete the following Import Project.  While this appears to do nothing it is a marker for setting TypeScript properties before our import that depends on them. -->
-  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets" Condition="False" />
-  <Import Project="$(VSToolsPath)\Node.js Tools\Microsoft.NodejsTools.targets" />
+  <Import Project="$(VSToolsPath)\Node.js Tools\Microsoft.NodejsToolsV2.targets" />
   <ProjectExtensions>
     <VisualStudio>
       <FlavorProperties GUID="{349c5851-65df-11da-9384-00065b846f21}">

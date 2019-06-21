@@ -62,7 +62,7 @@ export class CachingCompilerHost implements ts.CompilerHost {
 
     public readFile( fileName: string ): string {
         if ( Utils.hasProperty( this.fileReadCache, fileName ) ) {
-            Logger.trace( "readFile() cache hit: ", fileName );
+            //Logger.trace( "readFile() cache hit: ", fileName );
             return this.fileReadCache[fileName];
         }
 
@@ -97,7 +97,6 @@ export class CachingCompilerHost implements ts.CompilerHost {
     }
 
     public directoryExists( directoryPath: string ): boolean {
-
         if ( Utils.hasProperty( this.dirExistsCache, directoryPath ) ) {
             //Logger.trace( "dirExists() hit", directoryPath, this.dirExistsCache[ directoryPath ] );
             return this.dirExistsCache[directoryPath];

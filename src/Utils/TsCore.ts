@@ -26,6 +26,7 @@ export namespace TsCore {
                 return true;
             }
         }
+
         return false;
     }
 

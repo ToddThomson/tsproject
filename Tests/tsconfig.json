@@ -12,18 +12,18 @@
     "noImplicitReturns": true,
     "noImplicitUseStrict": false,
     "typeRoots": [
-      "./node_modules/@types",
-      "./node_modules"
+      "../node_modules/@types",
+      "../node_modules"
     ],
     "types": [
       "node"
     ]
   },
   "exclude": [
-    "node_modules",
-    "obj",
-    "dist",
-    "src"
+    "./../node_modules",
+    "./../obj",
+    "./../dist",
+    "./../src"
   ],
   "compileOnSave": true
 }

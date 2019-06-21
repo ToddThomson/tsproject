@@ -1,14 +1,12 @@
-﻿import { Project } from "./Project/Project";
+﻿import { ProjectBuilder } from "./Project/ProjectBuilder";
 import { CompileStream } from "./Compiler/CompileStream";
 import { Logger } from "./Reporting/Logger";
 
-import * as ts from "typescript";
 import * as stream from "stream";
 
 export namespace TsProject {
 
     export function src( configFilePath: string, settings?: any ): stream.Readable {
-
         if ( configFilePath === undefined && typeof configFilePath !== 'string' ) {
             throw new Error( "Provide a valid directory or file path to the Typescript project configuration json file." );
         }
@@ -21,7 +19,7 @@ export namespace TsProject {
 
         var outputStream = new CompileStream();
 
-        var project = new Project( configFilePath, settings );
+        var project = new ProjectBuilder( configFilePath, settings );
         project.build( outputStream );
 
         return outputStream;
