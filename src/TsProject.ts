@@ -5,7 +5,6 @@ import { Logger } from "./Reporting/Logger";
 import * as stream from "stream";
 
 export namespace TsProject {
-
     export function src( configFilePath: string, settings?: any ): stream.Readable {
         if ( configFilePath === undefined && typeof configFilePath !== 'string' ) {
             throw new Error( "Provide a valid directory or file path to the Typescript project configuration json file." );

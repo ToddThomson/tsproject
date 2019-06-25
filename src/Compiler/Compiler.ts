@@ -1,18 +1,14 @@
-﻿import { CompilerResult } from "./CompilerResult";
+﻿import * as ts from "typescript";
+import VinylFile = require( "vinyl" );
+import { CompilerResult } from "./CompilerResult";
 import { CachingCompilerHost }  from "./CachingCompilerHost";
 import { CompileStream }  from "./CompileStream";
 import { TsCompilerOptions } from "./TsCompilerOptions";
 import { StatisticsReporter } from "../Reporting/StatisticsReporter";
 import { Logger } from "../Reporting/Logger";
 import { Utils } from "../Utils/Utilities";
-import { TsCore } from "../Utils/TsCore";
-
-import * as ts from "typescript";
-import * as path from "path";
-import VinylFile = require( "vinyl" )
 
 export class Compiler {
-
     private compilerHost: CachingCompilerHost;
     private program: ts.Program;
     private compileStream: CompileStream;
@@ -68,7 +64,7 @@ export class Compiler {
                 var tsVinylFile = new VinylFile( {
                     path: fileName,
                     contents: Buffer.from( fileData )
-                });
+                } );
 
                 this.compileStream.push( tsVinylFile );
             }
@@ -106,7 +102,7 @@ export class Compiler {
             if ( !file.isDeclarationFile ) {
                 count += this.getLineStarts( file ).length;
             }
-        });
+        } );
 
         return count;
     }
@@ -114,4 +110,4 @@ export class Compiler {
     private getLineStarts( sourceFile: ts.SourceFile ): ReadonlyArray<number> {
         return sourceFile.getLineStarts();
     }
-} 
+}

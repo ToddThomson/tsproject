@@ -6,7 +6,7 @@ export interface BundleFile {
     text: string
 }
 
-export class BundleResult {
+export class BundleBuildResult {
 
     private status: ts.ExitStatus;
     private errors: ts.Diagnostic[];

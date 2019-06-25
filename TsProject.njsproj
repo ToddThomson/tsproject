@@ -42,6 +42,7 @@
     <Content Include="build\paths.js" />
     <Content Include="build\tasks\bundle.js" />
     <Content Include="build\tasks\clean.js" />
+    <Content Include="build\tasks\release.js" />
     <Content Include="gulpfile.js" />
     <Content Include="LICENSE" />
     <Content Include="package.json" />
@@ -52,9 +53,6 @@
   <ItemGroup>
     <Folder Include="build\" />
     <Folder Include="build\tasks\" />
-    <Folder Include="dist\" />
-    <Folder Include="dist\src\" />
-    <Folder Include="dist\src\bundle\" />
     <Folder Include="tests\" />
     <Folder Include="src\" />
     <Folder Include="src\Ast\" />
@@ -66,7 +64,10 @@
     <Folder Include="src\Utils\" />
   </ItemGroup>
   <ItemGroup>
-    <TypeScriptCompile Include="dist\src\bundle\tsproject.min.ts" />
+    <TypeScriptCompile Include="src\Bundler\Bundle.ts" />
+    <TypeScriptCompile Include="src\Bundler\BundleConfig.ts" />
+    <TypeScriptCompile Include="src\Bundler\ModuleContainer.ts" />
+    <TypeScriptCompile Include="src\Bundler\ModuleDescriptor.ts" />
     <TypeScriptCompile Include="src\Minifier\WhitespaceTransform.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
@@ -78,7 +79,7 @@
     <TypeScriptCompile Include="src\Bundler\BundleCompiler.ts" />
     <TypeScriptCompile Include="src\Bundler\BundlePackage.ts" />
     <TypeScriptCompile Include="src\Bundler\BundleParser.ts" />
-    <TypeScriptCompile Include="src\Bundler\BundleResult.ts" />
+    <TypeScriptCompile Include="src\Bundler\BundleBuildResult.ts" />
     <TypeScriptCompile Include="src\Bundler\BundlerTransform.ts" />
     <TypeScriptCompile Include="src\Bundler\DependencyBuilder.ts" />
     <TypeScriptCompile Include="src\Compiler\CachingCompilerHost.ts" />
@@ -97,7 +98,6 @@
     <TypeScriptCompile Include="src\Project\ProjectBuildContext.ts" />
     <TypeScriptCompile Include="src\Project\ProjectBuilder.ts" />
     <TypeScriptCompile Include="src\Project\ProjectConfig.ts" />
-    <TypeScriptCompile Include="src\Project\TsVinylFile.ts" />
     <TypeScriptCompile Include="src\Reporting\DiagnosticsReporter.ts" />
     <TypeScriptCompile Include="src\Reporting\Logger.ts" />
     <TypeScriptCompile Include="src\Reporting\StatisticsReporter.ts" />
@@ -107,7 +107,6 @@
     <TypeScriptCompile Include="src\Utils\TsCore.ts" />
     <TypeScriptCompile Include="src\Utils\Utilities.ts" />
     <TypeScriptCompile Include="tests\tsproject.min.ts" />
-    <TypeScriptCompile Include="tsproject.min.ts" />
   </ItemGroup>
   <Import Project="$(VSToolsPath)\Node.js Tools\Microsoft.NodejsToolsV2.targets" />
   <ProjectExtensions>

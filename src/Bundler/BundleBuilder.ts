@@ -1,6 +1,8 @@
-﻿import { CompilerResult } from "../Compiler/CompilerResult"
+﻿import * as ts from "typescript"
+import * as path from "path"
+import { CompilerResult } from "ts2js"
 import { WatchCompilerHost } from "../Compiler/WatchCompilerHost"
-import { CompileStream }  from "../Compiler/CompileStream"
+import { CompileStream }  from "ts2js"
 import { TsCompilerOptions } from "../Compiler/TsCompilerOptions"
 import { StatisticsReporter } from "../Reporting/StatisticsReporter"
 import { Logger } from "../Reporting/Logger"
@@ -13,12 +15,7 @@ import { Utils } from "../Utils/Utilities"
 import { TsCore } from "../Utils/TsCore"
 import { Ast } from "../Ast/Ast"
 
-import * as ts from "typescript"
-import * as fs from "fs"
-import * as path from "path"
-
 export class BundleBuilder {
-
     private bundle: Bundle;
 
     private compilerHost: WatchCompilerHost;
@@ -31,8 +28,6 @@ export class BundleBuilder {
 
     private bundleCodeText: string = "";
     private bundleImportText: string = "";
-
-    private tets: Map<string,ts.Node[]>;
 
     private bundleImportedFiles: ts.MapLike<string> = {};
     private bundleModuleImports: ts.MapLike<ts.MapLike<string>> = {};

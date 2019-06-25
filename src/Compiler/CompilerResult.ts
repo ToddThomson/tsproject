@@ -1,7 +1,6 @@
 ﻿import * as ts from "typescript";
 
 export class CompilerResult {
-
     private status: ts.ExitStatus;
     private readonly errors: ReadonlyArray<ts.Diagnostic>
 

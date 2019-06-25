@@ -1,11 +1,10 @@
-﻿import { Ast } from "../Ast/Ast"
+﻿import * as ts from "typescript"
+import { Ast } from "../Ast/Ast"
 import { Logger } from "../Reporting/Logger"
 import { Utils } from "../Utils/Utilities"
 import { TsCore } from "../Utils/TsCore"
-
-import * as ts from "typescript"
-import * as fs from "fs"
-import * as path from "path"
+import { ModuleDescriptor } from "./ModuleDescriptor"
+import { BundleContainer } from "./ModuleContainer"
 
 export class DependencyBuilder {
     private host: ts.CompilerHost;

@@ -1,11 +1,11 @@
 {
   "name": "tsproject",
-  "version": "3.0.0-rc1",
+  "version": "3.0.0-beta.1",
   "author": "Todd Thomson <todd.thomson@me.com>",
   "description": "Typescript minifier and modular typescript bundle optimizer for gulp (Ts Vinyl Adapter).",
   "license": "MIT",
-  "main": "./tsproject.min.js",
-  "typings": "./tsproject.d.ts",
+  "main": "./lib/tsproject.js",
+  "typings": "./lib/tsproject.d.ts",
   "dependencies": {
     "@types/glob": "^7.1.1",
     "@types/lodash": "^4.14.134",
@@ -18,6 +18,7 @@
     "lodash": "^4.17.11",
     "prettier": "^1.18.2",
     "readable-stream": "^2.3.6",
+    "ts2js": "~3.0.0-beta.4",
     "tsproject": "~2.1.2",
     "typescript": "~3.5.2",
     "vinyl": "^2.2.0"

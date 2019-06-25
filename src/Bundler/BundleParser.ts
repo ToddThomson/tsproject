@@ -1,26 +1,12 @@
-﻿import { BundlePackage, BundlePackageType } from "./BundlePackage";
+﻿import * as ts from "typescript";
+import * as path from "path";
+
+import { BundlePackage, BundlePackageType } from "./BundlePackage";
+import { Bundle } from "./Bundle";
+import { BundleConfig } from "./BundleConfig";
 import { Logger } from "../Reporting/Logger";
 import { Utils } from "../Utils/Utilities";
 import { TsCore } from "../Utils/TsCore";
-
-import * as ts from "typescript";
-import * as path from "path";
-
-
-
-export interface BundleConfig {
-    sourceMap?: boolean;
-    declaration?: boolean;
-    outDir?: string;
-    minify?: boolean;
-    package?: BundlePackage;
-}
-
-export interface Bundle {
-    name: string;
-    fileNames: string[];
-    config: BundleConfig;
-}
 
 export interface ParsedBundlesResult {
     bundles: Bundle[];

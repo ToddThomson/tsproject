@@ -1,9 +1,17 @@
-﻿import { Compiler } from "../Compiler/Compiler";
-import { CompilerResult } from "../Compiler/CompilerResult";
+﻿import * as ts from "typescript";
+import * as ts2js from "ts2js";
+import * as _ from "lodash";
+import * as fs from "fs";
+import * as path from "path";
+import chalk from "chalk";
+import * as chokidar from "chokidar";
+
 import { DiagnosticsReporter } from "../Reporting/DiagnosticsReporter";
 import { WatchCompilerHost }  from "../Compiler/WatchCompilerHost";
 import { ProjectBuildContext } from "./ProjectBuildContext";
 import { CompileStream }  from "../Compiler/CompileStream";
+import { Compiler } from "ts2js";
+import { CompilerResult } from "ts2js";
 import { TsCompilerOptions } from "../Compiler/TsCompilerOptions";
 import { BundleBuilder } from "../Bundler/BundleBuilder";
 import { BundleFile, BundleResult } from "../Bundler/BundleResult";
@@ -16,15 +24,7 @@ import { Glob } from "./Glob";
 import { TsCore } from "../Utils/TsCore";
 import { Utils } from "../Utils/Utilities";
 
-import * as ts from "typescript";
-import * as _ from "lodash";
-import * as fs from "fs";
-import * as path from "path";
-import chalk from "chalk";
-import * as chokidar from "chokidar";
-
 export class ProjectBuilder {
-
     private configFilePath: string;
     private settings: any;
 
@@ -146,11 +146,11 @@ export class ProjectBuilder {
         this.buildContext.setProgram( program );
 
         // Compile the project...
-        let compiler = new Compiler( this.buildContext.host, program, this.outputStream );
+        let compiler = new Compiler( compilerOptions, this.buildContext.host, program,  );//, this.outputStream );
 
         this.totalCompileTime = new Date().getTime();
 
-        var compileResult = compiler.compile();
+        var compileResult = compiler.compile( fileNames );
 
         this.totalCompileTime = new Date().getTime() - this.totalCompileTime;
 
@@ -170,7 +170,7 @@ export class ProjectBuilder {
 
         // Build bundles..
         var bundleBuilder = new BundleBuilder( this.buildContext.host, this.buildContext.getProgram() );
-        var bundleCompiler = new BundleCompiler( this.buildContext.host, this.buildContext.getProgram(), this.outputStream );
+        var bundleCompiler = new Compiler( compilerOptions, this.buildContext.host, program ); //, this.outputStream );
         var bundleResult: BundleResult;
 
         for ( var i = 0, len = bundles.length; i < len; i++ ) {

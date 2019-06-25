@@ -6,7 +6,6 @@ export function getMinifierTransform( program: ts.Program ): ts.TransformerFacto
 }
 
 function minifierTransform( program: ts.Program, context: ts.TransformationContext ): ts.Transformer<ts.SourceFile> {
-
     const compilerOptions = context.getCompilerOptions();
     let currentSourceFile: ts.SourceFile;
     let bundleConfig = null;

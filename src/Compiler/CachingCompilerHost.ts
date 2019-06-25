@@ -1,20 +1,14 @@
 ﻿import * as ts from "typescript";
 import * as path from "path";
-
-import { Logger } from "../Reporting/Logger";
-import { TsCore } from "../Utils/TsCore";
 import { Utils } from "../Utils/Utilities";
 
 /**
  * @description A typescript compiler host that supports incremental builds and optimizations for file reads and file exists functions. Emit output is saved to memory.
  */
 export class CachingCompilerHost implements ts.CompilerHost {
-
     private output: ts.MapLike<string> = {};
     private dirExistsCache: ts.MapLike<boolean> = {};
-    private dirExistsCacheSize: number = 0;
     private fileExistsCache: ts.MapLike<boolean> = {};
-    private fileExistsCacheSize: number = 0;
     private fileReadCache: ts.MapLike<string> = {};
 
     protected compilerOptions: ts.CompilerOptions;
@@ -30,9 +24,7 @@ export class CachingCompilerHost implements ts.CompilerHost {
     }
 
     public getSourceFileImpl( fileName: string, languageVersion: ts.ScriptTarget, onError?: ( message: string ) => void ): ts.SourceFile {
-
         // Use baseHost to get the source file
-        //Logger.trace( "getSourceFile() reading source file from fs: ", fileName );
         return this.baseHost.getSourceFile( fileName, languageVersion, onError );
     }
 
@@ -51,22 +43,17 @@ export class CachingCompilerHost implements ts.CompilerHost {
         }
 
         if ( Utils.hasProperty( this.fileExistsCache, fileName ) ) {
-            //Logger.trace( "fileExists() Cache hit: ", fileName, this.fileExistsCache[ fileName ] );
             return this.fileExistsCache[fileName];
         }
-        this.fileExistsCacheSize++;
 
-        //Logger.trace( "fileExists() Adding to cache: ", fileName, this.baseHost.fileExists( fileName ), this.fileExistsCacheSize );
         return this.fileExistsCache[fileName] = this.baseHost.fileExists( fileName );
     }
 
     public readFile( fileName: string ): string {
         if ( Utils.hasProperty( this.fileReadCache, fileName ) ) {
-            //Logger.trace( "readFile() cache hit: ", fileName );
             return this.fileReadCache[fileName];
         }
 
-        Logger.trace( "readFile() Adding to cache: ", fileName );
         return this.fileReadCache[fileName] = this.baseHost.readFile( fileName );
     }
 
@@ -82,7 +69,7 @@ export class CachingCompilerHost implements ts.CompilerHost {
 
     public getDirectories( path: string ): string[] {
         return this.baseHost.getDirectories( path );
-    } 
+    }
 
     public getCanonicalFileName( fileName: string ) {
         return this.baseHost.getCanonicalFileName( fileName );
@@ -98,13 +85,9 @@ export class CachingCompilerHost implements ts.CompilerHost {
 
     public directoryExists( directoryPath: string ): boolean {
         if ( Utils.hasProperty( this.dirExistsCache, directoryPath ) ) {
-            //Logger.trace( "dirExists() hit", directoryPath, this.dirExistsCache[ directoryPath ] );
             return this.dirExistsCache[directoryPath];
         }
-        
-        this.dirExistsCacheSize++;
 
-        //Logger.trace( "dirExists Adding: ", directoryPath, ts.sys.directoryExists( directoryPath ), this.dirExistsCacheSize );
         return this.dirExistsCache[directoryPath] = ts.sys.directoryExists( directoryPath );
     }
 }
