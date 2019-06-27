@@ -1,14 +1,17 @@
 {
+  "compileOnSave": true,
+
   "compilerOptions": {
     "target": "es5",
     "module": "commonjs",
     "moduleResolution": "node",
-    "declaration": false,
+    "declaration": true,
+    "sourceMap": false,
     "diagnostics": true,
     "listFiles": false,
     "pretty": true,
     "skipLibCheck": true,
-    "noEmitOnError": false,
+    "noEmitOnError": true,
     "noImplicitAny": true,
     "noImplicitReturns": true,
     "allowUnreachableCode": false,
@@ -16,50 +19,21 @@
     "noImplicitUseStrict": false,
     "preserveConstEnums": true,
     "removeComments": false,
-    "sourceMap": true,
-    "noEmit": false
+    "noEmit": false,
+    "baseUrl": ".",
+    "paths": {
+      "@TsToolsCommon/*": [ "../../TsToolsCommon/src/*" ]
+    }
   },
-  "compileOnSave": true,
-  "files": [
-    "./Ast/Ast.ts",
-    "./Ast/AstTransform.ts",
-    "./Ast/NodeWalker.ts",
 
-    "./Bundler/Bundle.ts",
-    "./Bundler/BundleBuilder.ts",
-    "./Bundler/BundleBuildResult.ts",
-    "./Bundler/BundleCompiler.ts",
-    "./Bundler/BundleConfig.ts",
-    "./Bundler/BundlePackage.ts",
-    "./Bundler/BundleParser.ts",
-    "./Bundler/BundlerTransform.ts",
-    "./Bundler/DependencyBuilder.ts",
-    "./Compiler/CachingCompilerHost.ts",
-    "./Compiler/Compiler.ts",
-    "./Compiler/CompilerError.ts",
-    "./Compiler/CompilerResult.ts",
-    "./Compiler/CompileStream.ts",
-    "./Compiler/TsCompilerOptions.ts",
-    "./Compiler/WatchCompilerHost.ts",
-    "./Minifier/Minifier.ts",
-    "./Minifier/ContainerContext.ts",
-    "./Minifier/IdentifierInfo.ts",
-    "./Minifier/MinifierTransform.ts",
-    "./Minifier/NameGenerator.ts",
-    "./Minifier/WhitespaceTransform.ts",
-    "./Project/Glob.ts",
-    "./Project/ProjectBuildContext.ts",
-    "./Project/ProjectConfig.ts",
-    "./Project/ProjectBuilder.ts",
-    "./Reporting/DiagnosticsReporter.ts",
-    "./Reporting/Logger.ts",
-    "./Reporting/StatisticsReporter.ts",
-    "./Utils/Debug.ts",
-    "./Utils/Formatter.ts",
-    "./Utils/TsCore.ts",
-    "./Utils/Utilities.ts",
-    "./TsProject.ts"
+  "include": [
+    "./**/*.ts"
   ],
+
+  "exclude": [
+    "../node_modules"
+  ],
+
   "bundles": {
     "tsproject": {
       "files": [ "./TsProject.ts" ],
@@ -67,7 +41,7 @@
         "package": "component",
         "packageNamespace": "TsProject",
         "outDir": "./bundle",
-        "minify": true
+        "minify": false
       }
     }
   }

@@ -6,8 +6,6 @@
 
 import * as _ from "lodash";
 import * as fileGlob from "glob";
-import * as fs from "fs";
-import * as path from "path";
 
 export class Glob {
 

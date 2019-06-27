@@ -1,12 +1,19 @@
 var path = require( 'path' );
 
-var appRoot = 'src/';
+var sourceRoot = 'src/';
+var buildRoot = './built/';
+var releaseRoot = './lib/';
+var bundleRoot = 'bundle/'
 var testRoot = 'tests/'
 
 module.exports = {
-    root: appRoot,
-    testDir: testRoot,
-    sourceTsConfig: appRoot + 'tsconfig.json',
-    source: appRoot + '**/*.ts',
-    output: 'dist/'
+    root: sourceRoot,
+    test: testRoot,
+    sourceTsConfig: sourceRoot + 'tsconfig.json',
+    source: sourceRoot + '**/*.ts',
+    output: buildRoot,
+    main: buildRoot + sourceRoot + bundleRoot + 'TsProject.js',
+    typings: buildRoot + sourceRoot + bundleRoot + 'TsProject.d.ts',
+    release: releaseRoot
 };
+

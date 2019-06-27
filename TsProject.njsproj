@@ -44,6 +44,7 @@
     <Content Include="build\tasks\clean.js" />
     <Content Include="build\tasks\release.js" />
     <Content Include="gulpfile.js" />
+    <Content Include="lib\TsProject.js" />
     <Content Include="LICENSE" />
     <Content Include="package.json" />
     <Content Include="README.md" />
@@ -53,60 +54,22 @@
   <ItemGroup>
     <Folder Include="build\" />
     <Folder Include="build\tasks\" />
+    <Folder Include="lib\" />
     <Folder Include="tests\" />
     <Folder Include="src\" />
-    <Folder Include="src\Ast\" />
-    <Folder Include="src\Bundler\" />
-    <Folder Include="src\Compiler\" />
-    <Folder Include="src\Minifier\" />
     <Folder Include="src\Project\" />
-    <Folder Include="src\Reporting\" />
-    <Folder Include="src\Utils\" />
   </ItemGroup>
   <ItemGroup>
-    <TypeScriptCompile Include="src\Bundler\Bundle.ts" />
-    <TypeScriptCompile Include="src\Bundler\BundleConfig.ts" />
-    <TypeScriptCompile Include="src\Bundler\ModuleContainer.ts" />
-    <TypeScriptCompile Include="src\Bundler\ModuleDescriptor.ts" />
-    <TypeScriptCompile Include="src\Minifier\WhitespaceTransform.ts">
+    <TypeScriptCompile Include="lib\TsProject.d.ts" />
+    <TypeScriptCompile Include="src\Project\Project.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
     <TypeScriptCompile Include="Tests\rundbg.ts" />
-    <TypeScriptCompile Include="src\Ast\Ast.ts" />
-    <TypeScriptCompile Include="src\Ast\AstTransform.ts" />
-    <TypeScriptCompile Include="src\Ast\NodeWalker.ts" />
-    <TypeScriptCompile Include="src\Bundler\BundleBuilder.ts" />
-    <TypeScriptCompile Include="src\Bundler\BundleCompiler.ts" />
-    <TypeScriptCompile Include="src\Bundler\BundlePackage.ts" />
-    <TypeScriptCompile Include="src\Bundler\BundleParser.ts" />
-    <TypeScriptCompile Include="src\Bundler\BundleBuildResult.ts" />
-    <TypeScriptCompile Include="src\Bundler\BundlerTransform.ts" />
-    <TypeScriptCompile Include="src\Bundler\DependencyBuilder.ts" />
-    <TypeScriptCompile Include="src\Compiler\CachingCompilerHost.ts" />
-    <TypeScriptCompile Include="src\Compiler\Compiler.ts" />
-    <TypeScriptCompile Include="src\Compiler\CompilerError.ts" />
-    <TypeScriptCompile Include="src\Compiler\CompilerResult.ts" />
-    <TypeScriptCompile Include="src\Compiler\CompileStream.ts" />
-    <TypeScriptCompile Include="src\Compiler\TsCompilerOptions.ts" />
-    <TypeScriptCompile Include="src\Compiler\WatchCompilerHost.ts" />
-    <TypeScriptCompile Include="src\Minifier\Minifier.ts" />
-    <TypeScriptCompile Include="src\Minifier\ContainerContext.ts" />
-    <TypeScriptCompile Include="src\Minifier\IdentifierInfo.ts" />
-    <TypeScriptCompile Include="src\Minifier\MinifierTransform.ts" />
-    <TypeScriptCompile Include="src\Minifier\NameGenerator.ts" />
     <TypeScriptCompile Include="src\Project\Glob.ts" />
     <TypeScriptCompile Include="src\Project\ProjectBuildContext.ts" />
     <TypeScriptCompile Include="src\Project\ProjectBuilder.ts" />
     <TypeScriptCompile Include="src\Project\ProjectConfig.ts" />
-    <TypeScriptCompile Include="src\Reporting\DiagnosticsReporter.ts" />
-    <TypeScriptCompile Include="src\Reporting\Logger.ts" />
-    <TypeScriptCompile Include="src\Reporting\StatisticsReporter.ts" />
     <TypeScriptCompile Include="src\TsProject.ts" />
-    <TypeScriptCompile Include="src\Utils\Debug.ts" />
-    <TypeScriptCompile Include="src\Utils\Formatter.ts" />
-    <TypeScriptCompile Include="src\Utils\TsCore.ts" />
-    <TypeScriptCompile Include="src\Utils\Utilities.ts" />
-    <TypeScriptCompile Include="tests\tsproject.min.ts" />
   </ItemGroup>
   <Import Project="$(VSToolsPath)\Node.js Tools\Microsoft.NodejsToolsV2.targets" />
   <ProjectExtensions>

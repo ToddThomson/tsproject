@@ -18,8 +18,9 @@
     "lodash": "^4.17.11",
     "prettier": "^1.18.2",
     "readable-stream": "^2.3.6",
-    "ts2js": "~3.0.0-beta.4",
-    "tsproject": "~2.1.2",
+    "ts2js": "~3.0.0-beta.5",
+    "tsbundler": "^3.0.0-beta.2",
+    "tsminifier": "^3.0.0-beta.2",
     "typescript": "~3.5.2",
     "vinyl": "^2.2.0"
   },
