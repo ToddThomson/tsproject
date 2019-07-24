@@ -9,6 +9,8 @@
     <SccProvider>SAK</SccProvider>
     <SccAuxPath>SAK</SccAuxPath>
     <SccLocalPath>SAK</SccLocalPath>
+    <JavaScriptTestFramework>mocha</JavaScriptTestFramework>
+    <JavaScriptTestRoot>tests\spec\</JavaScriptTestRoot>
   </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -16,7 +18,8 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>ef9d926c-ed57-4a1e-9a8a-f02b1fb2009c</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>tests\rundbg.ts</StartupFile>
+    <StartupFile>
+    </StartupFile>
     <StartWebBrowser>False</StartWebBrowser>
     <SearchPath>
     </SearchPath>
@@ -43,12 +46,15 @@
     <Content Include="build\tasks\bundle.js" />
     <Content Include="build\tasks\clean.js" />
     <Content Include="build\tasks\release.js" />
+    <Content Include="build\tasks\test.js" />
     <Content Include="gulpfile.js" />
     <Content Include="lib\TsProject.js" />
     <Content Include="LICENSE" />
+    <Content Include="package-lock.json" />
     <Content Include="package.json" />
     <Content Include="README.md" />
     <Content Include="src\tsconfig.json" />
+    <Content Include="tests\projects\simple\tsconfig.json" />
     <Content Include="Tests\tsconfig.json" />
   </ItemGroup>
   <ItemGroup>
@@ -58,18 +64,35 @@
     <Folder Include="tests\" />
     <Folder Include="src\" />
     <Folder Include="src\Project\" />
+    <Folder Include="tests\projects\" />
+    <Folder Include="tests\projects\simple\" />
+    <Folder Include="tests\spec\" />
+    <Folder Include="tests\spec\Project\" />
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="lib\TsProject.d.ts" />
+    <TypeScriptCompile Include="src\Project\BuildStream.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
     <TypeScriptCompile Include="src\Project\Project.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
-    <TypeScriptCompile Include="Tests\rundbg.ts" />
-    <TypeScriptCompile Include="src\Project\Glob.ts" />
     <TypeScriptCompile Include="src\Project\ProjectBuildContext.ts" />
     <TypeScriptCompile Include="src\Project\ProjectBuilder.ts" />
+    <TypeScriptCompile Include="src\Project\ProjectBuildResult.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
     <TypeScriptCompile Include="src\Project\ProjectConfig.ts" />
+    <TypeScriptCompile Include="src\Project\ProjectOptions.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
     <TypeScriptCompile Include="src\TsProject.ts" />
+    <TypeScriptCompile Include="tests\projects\simple\GreeterModule.ts" />
+    <TypeScriptCompile Include="tests\projects\simple\main.ts" />
+    <TypeScriptCompile Include="tests\spec\Project\UnitTest1.ts">
+      <SubType>Code</SubType>
+      <TestFramework>Mocha</TestFramework>
+    </TypeScriptCompile>
   </ItemGroup>
   <Import Project="$(VSToolsPath)\Node.js Tools\Microsoft.NodejsToolsV2.targets" />
   <ProjectExtensions>

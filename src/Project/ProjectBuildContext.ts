@@ -1,7 +1,7 @@
 ﻿import * as ts from "typescript";
 import { ProjectConfig } from "../Project/ProjectConfig";
 
-export class ProjectBuildContext {
+export class BuildContext {
     public host: ts.CompilerHost;
     private program: ts.Program;
     public config: ProjectConfig;

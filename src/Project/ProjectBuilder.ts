@@ -2,358 +2,288 @@
 import * as ts2js from "ts2js";
 import * as _ from "lodash";
 import * as fs from "fs";
+import File = require( "vinyl" )
+import * as stream from "stream"
 import * as path from "path";
+import * as gutil from "gulp-util"
 import chalk from "chalk";
-
-import { ProjectBuildContext } from "./ProjectBuildContext";
-import { CompileStream }  from "ts2js";
+import { CompileStream } from "ts2js";
 import { Compiler } from "ts2js";
-import { CompilerResult } from "ts2js";
-import { ConfigParser, Bundle } from "TsBundler";
-import { ProjectConfig } from "./ProjectConfig";
-import { Glob } from "./Glob";
-import { TsCore } from "@TsToolsCommon/Utils/TsCore";
-import { Utils } from "@TsToolsCommon/Utils/Utilities";
-import { StatisticsReporter } from "@TsToolsCommon/Reporting/StatisticsReporter";
-import { DiagnosticsReporter } from "@TsToolsCommon/Reporting/DiagnosticsReporter";
-import { Logger } from "@TsToolsCommon/Reporting/Logger";
+import { CompileResult } from "ts2js";
+//import { ConfigParser, Bundle } from "TsBundler";
+import { Project } from "./Project"
+import { ProjectConfig } from "./ProjectConfig"
+import { ProjectOptions } from "./ProjectOptions"
+import { ProjectBuildResult, BuildResult } from "./ProjectBuildResult"
+import { BuildStream } from "./BuildStream"
+import { BuildContext } from "./ProjectBuildContext"
+import { StatisticsReporter } from "../../../TsToolsCommon/src/Reporting/StatisticsReporter";
+import { DiagnosticsReporter } from "../../../TsToolsCommon/src/Reporting/DiagnosticsReporter";
+import { Logger } from "../../../TsToolsCommon/src/Reporting/Logger";
 
-export class ProjectBuilder {
-    private configFilePath: string;
-    private settings: any;
+export class ProjectBuilder
+{
+    private project: Project;
+    private config: ProjectConfig;
+    private options: ProjectOptions;
 
     private outputStream: CompileStream;
-
-    private configFileDir: string;
-    private configFileName: string;
 
     private totalBuildTime: number = 0;
     private totalCompileTime: number = 0;
     private totalPreBuildTime: number = 0;
     private totalBundleTime: number = 0;
 
-    private buildContext: ProjectBuildContext;
-
-    constructor( configFilePath: string, settings?: any  ) {
-        this.configFilePath = configFilePath;
-        this.settings = settings;
+    constructor( project: Project )
+    {
+        this.project = project;
+        this.config = project.getConfig();
+        this.options = project.getOptions();
     }
 
-    public build( outputStream: CompileStream ): ts.ExitStatus {
-        let config = this.parseProjectConfig();
-
-        if ( !config.success ) {
-            DiagnosticsReporter.reportDiagnostics( config.errors );
-
-            return ts.ExitStatus.DiagnosticsPresent_OutputsSkipped;
-        }
-
-        this.buildContext = this.createBuildContext( config );
-
-        Logger.log( "Building Project with: " + chalk.magenta( `${this.configFileName}` ) );
-        Logger.log( "TypeScript compiler version: ", ts.version );
-
-        this.outputStream = outputStream;
-
-        // Perform the build..
-        var buildStatus = this.buildWorker();
-
-        this.reportBuildStatus( buildStatus );
-
-        this.completeProjectBuild();
-
-        return buildStatus;
-    }
-
-    private createBuildContext( config: ProjectConfig ) : ProjectBuildContext {
-        return new ProjectBuildContext( config );
-    }
-
-    private completeProjectBuild(): void {
-        // End the build process by sending EOF to the compilation output stream.
-        this.outputStream.push( null );
-    }
-
-    private buildWorker(): ts.ExitStatus {
-        this.totalBuildTime = this.totalPreBuildTime = new Date().getTime();
-
-        if ( !this.buildContext ) {
-            let config = this.parseProjectConfig();
-
-            if ( !config.success ) {
-                DiagnosticsReporter.reportDiagnostics( config.errors );
-
-                return ts.ExitStatus.DiagnosticsPresent_OutputsSkipped;
+    public build( buildCompleted: ( result: BuildResult ) => void ): void
+    {
+        // Configuration errors?
+        if ( !this.config.success )
+        {
+            if ( this.options.verbose )
+            {
+                DiagnosticsReporter.reportDiagnostics( this.config.errors );
             }
 
-            this.buildContext = this.createBuildContext( config );
+            return buildCompleted( new ProjectBuildResult( this.config.errors ) );
         }
 
-        let allDiagnostics: ts.Diagnostic[] = [];
+        // Perform the build..
+        this.buildWorker( ( buildResult ) =>
+        {
+            // onBuildCompleted...
+            if ( this.options.outputToDisk )
+            {
+                if ( buildResult.succeeded() )
+                {
+                    buildResult.compileResults.forEach( ( compileResult: ts2js.CompileResult ) =>
+                    {
+                        if ( compileResult.getStatus() !== ts2js.CompileStatus.DiagnosticsPresent_OutputsSkipped )
+                        {
+                            compileResult.getOutput().forEach( ( emit ) =>
+                            {
+                                if ( !emit.emitSkipped )
+                                {
+                                    if ( emit.codeFile )
+                                    {
+                                        fs.writeFileSync( emit.codeFile.fileName, emit.codeFile.data );
+                                    }
+                                    if ( emit.dtsFile )
+                                    {
+                                        fs.writeFileSync( emit.dtsFile.fileName, emit.dtsFile.data );
+                                    }
+                                    if ( emit.mapFile )
+                                    {
+                                        fs.writeFileSync( emit.mapFile.fileName, emit.mapFile.data );
+                                    }
+                                }
+                            } );
+                        }
+                    } );
+                }
+            }
 
-        let fileNames = this.buildContext.config.fileNames;
-        let bundles = this.buildContext.config.bundles;
-        let compilerOptions = this.buildContext.config.compilerOptions;
+            this.reportBuildStatus( buildResult );
 
-        this.buildProject();
-
-        this.buildBundles();
-
-        this.totalBuildTime = new Date().getTime() - this.totalBuildTime;
-
-        if ( compilerOptions.diagnostics ) {
-            this.reportStatistics();
-        }
-
-        if ( allDiagnostics.length > 0 ) {
-            return ts.ExitStatus.DiagnosticsPresent_OutputsGenerated;
-        }
-
-        return ts.ExitStatus.Success;
+            return buildCompleted( buildResult );
+        } );
     }
 
-    private buildProject() {
-        let fileNames = this.buildContext.config.fileNames;
-        let compilerOptions = this.buildContext.config.compilerOptions;
+    public src(): stream.Readable
+    {
+        if ( !this.config.success )
+        {
+            if ( this.options.verbose )
+            {
+                DiagnosticsReporter.reportDiagnostics( this.config.errors );
+            }
 
-        // Create a new program to handle the incremental build. Pass the current build context program ( if it exists )
-        // to reuse the current program structure.
-        let program = ts.createProgram( fileNames, compilerOptions, this.buildContext.host, this.buildContext.getProgram() );
-
-        this.totalPreBuildTime = new Date().getTime() - this.totalPreBuildTime;
-
-        // Save the new program to the build context
-        this.buildContext.setProgram( program );
-
-        // Compile the project...
-        let compiler = new Compiler( compilerOptions, this.buildContext.host, program );//, this.outputStream );
-
-        this.totalCompileTime = new Date().getTime();
-
-        var compileResult = compiler.compile( fileNames );
-
-        this.totalCompileTime = new Date().getTime() - this.totalCompileTime;
-
-        if ( !compileResult.succeeded() ) {
-            DiagnosticsReporter.reportDiagnostics( compileResult.getErrors() );
-            //TJT: FIXME
-            //return compileResult.getStatus();
-            return ts.ExitStatus.DiagnosticsPresent_OutputsSkipped;
-        }
-
-        if ( compilerOptions.listFiles ) {
-            Utils.forEach( this.buildContext.getProgram().getSourceFiles(), file => {
-                Logger.log( file.fileName );
+             throw new gutil.PluginError( {
+                plugin: "TsBundler",
+                message: "Invalid typescript configuration file " + this.config.fileName
             } );
         }
 
-        return ts.ExitStatus.Success;
+        var outputStream = new BuildStream();
+        var vinylFile: File;
+
+        // Perform the build..
+        this.buildWorker( ( buildResult ) =>
+        {
+            // onBuildCompleted...
+
+            //if ( buildResult.compileResults )
+            //{
+            //    buildResult.compileResults.forEach( ( bundleBuildResult ) =>
+            //    {
+            //        var bundleSource = bundleBuildResult.getBundleSource();
+            //        vinylFile = new File( { path: bundleSource.path, contents: new Buffer( bundleSource.text ) } )
+            //        outputStream.push( vinylFile );
+            //    } );
+            //}
+
+            // Emit bundle compilation results...
+            if ( buildResult.succeeded() )
+            {
+                buildResult.compileResults.forEach( ( compileResult ) =>
+                {
+                    if ( compileResult.getStatus() !== ts2js.CompileStatus.DiagnosticsPresent_OutputsSkipped )
+                    {
+                        compileResult.getOutput().forEach( ( emit ) =>
+                        {
+                            if ( !emit.emitSkipped )
+                            {
+                                if ( emit.codeFile )
+                                {
+                                    vinylFile = new File( { path: emit.codeFile.fileName, contents: new Buffer( emit.codeFile.data ) } )
+
+                                    outputStream.push( vinylFile );
+                                }
+                                if ( emit.dtsFile )
+                                {
+                                    vinylFile = new File( { path: emit.dtsFile.fileName, contents: new Buffer( emit.dtsFile.data ) } )
+
+                                    outputStream.push( vinylFile );
+                                }
+
+                                if ( emit.mapFile )
+                                {
+                                    vinylFile = new File( { path: emit.mapFile.fileName, contents: new Buffer( emit.mapFile.data ) } )
+
+                                    outputStream.push( vinylFile );
+                                }
+                            }
+                        } );
+                    }
+                } );
+            }
+
+            this.reportBuildStatus( buildResult );
+
+            outputStream.push( null );
+        } );
+
+        return outputStream;
     }
 
-    private buildBundles() {
-        let bundles = this.buildContext.config.bundles;
-        let compilerOptions = this.buildContext.config.compilerOptions;
+    private buildWorker( buildCompleted: ( result: BuildResult ) => void ): void
+    {
+        if ( this.options.verbose )
+        {
+            Logger.log( "Building project with: " + chalk.magenta( `${this.config.fileName}` ) );
+            Logger.log( "TypeScript compiler version: ", ts.version );
+        }
+
+        let fileNames = this.config.files;
+        let bundles = this.config.bundles;
+        let compilerOptions = this.config.compilerOptions;
+
+        // Compile the project...
+        let compiler = new ts2js.Compiler( compilerOptions );
+
+        if ( this.options.verbose )
+        {
+            Logger.log( "Compiling project files..." );
+        }
+        this.totalBuildTime = new Date().getTime();
+        this.totalCompileTime = new Date().getTime();
+
+        var projectCompileResult = compiler.compile( fileNames );
+
+        this.totalCompileTime = new Date().getTime() - this.totalCompileTime;
+
+        var compileErrors = projectCompileResult.getErrors();
+        if ( compileErrors.length > 0 )
+        {
+            DiagnosticsReporter.reportDiagnostics( compileErrors );
+
+            return buildCompleted( new ProjectBuildResult( compileErrors ) );
+        }
+
+        var allDiagnostics: ts.Diagnostic[] = [];
+        var compileResults: ts2js.CompileResult[] = [];
+        //var bundleBuildResults: Bundler.BundleBuildResult[] = [];
 
         this.totalBundleTime = new Date().getTime();
 
-        // Build bundles..
-        //var bundleBuilder = new BundleBuilder( this.buildContext.host, this.buildContext.getProgram() );
-        var bundleCompiler = new Compiler( compilerOptions, this.buildContext.host ); //, this.outputStream );
-        //var bundleResult: BundleResult;
+        // Create a bundle builder to build bundles..
+        //var bundleBuilder = new Bundler.BundleBuilder( compiler.getHost(), compiler.getProgram(), this.config.bundlerOptions );
 
-        for ( var i = 0, len = bundles.length; i < len; i++ ) {
-            Logger.log( "Building bundle: ", chalk.cyan( bundles[i].name ) );
+        if ( this.options.verbose && ( bundles.length == 0 ) )
+        {
+            Logger.log( chalk.yellow( "No bundles found to build." ) );
+        }
 
-            //bundleResult = bundleBuilder.build( bundles[i] );
+        for ( var i = 0, len = bundles.length; i < len; i++ )
+        {
+            if ( this.options.verbose )
+            {
+                Logger.log( "Building bundle: ", chalk.cyan( bundles[i].name ) );
+            }
 
-            //if ( !bundleResult.succeeded() ) {
+            //var bundleResult = bundleBuilder.build( bundles[i] );
+
+            //bundleBuildResults.push( bundleResult );
+
+            //if ( !bundleResult.succeeded() )
+            //{
             //    DiagnosticsReporter.reportDiagnostics( bundleResult.getErrors() );
+            //    allDiagnostics.concat( bundleResult.getErrors() );
 
-            //    return ts.ExitStatus.DiagnosticsPresent_OutputsSkipped;
+            //    continue;
             //}
 
-            //compileResult = bundleCompiler.compile( bundleResult.getBundleSource(), bundles[i].config );
+            //var bundleSource = bundleResult.getBundleSource();
 
-            //if ( !compileResult.succeeded() ) {
+            //var compileResult: ts2js.CompileResult;
+
+            //if ( bundles[i].config.minify )
+            //{
+            //    //compileResult = tsMinifier.minifyModule( bundleSource.text, bundleSource.path, compilerOptions, { mangleIdentifiers: true, removeWhitespace: true } );
+            //} else
+            //{
+            //    compileResult = ts2js.TsCompiler.compileModule( bundleSource.text, bundleSource.path, compilerOptions );
+            //}
+
+            //bundleCompileResults.push( compileResult );
+
+            //if ( this.options.verbose && ( compileResult.getErrors().length > 0 ) )
+            //{
             //    DiagnosticsReporter.reportDiagnostics( compileResult.getErrors() );
-
-            //    // TJT: FIXME:
-            //    //return compileResult.getStatus();
-            //    return ts.ExitStatus.DiagnosticsPresent_OutputsSkipped;
+            //    allDiagnostics.concat( compileResult.getErrors() );
             //}
         }
 
         this.totalBundleTime = new Date().getTime() - this.totalBundleTime;
+        this.totalBuildTime = new Date().getTime() - this.totalBuildTime;
+
+        if ( this.options.verbose )
+        {
+            this.reportStatistics();
+        }
+
+        return buildCompleted( new ProjectBuildResult(
+            allDiagnostics, compileResults ) );
     }
 
-    private parseProjectConfig(): ProjectConfig {
-        try {
-            var isConfigDirectory = fs.lstatSync( this.configFilePath ).isDirectory();
-        }
-        catch ( e ) {
-            let diagnostic = TsCore.createDiagnostic( { code: 6064, category: ts.DiagnosticCategory.Error, key: "Cannot_read_project_path_0_6064", message: "Cannot read project path '{0}'." }, this.configFilePath );
-            return { success: false, errors: [diagnostic] };
-        }
-
-        if ( isConfigDirectory ) {
-            this.configFileDir = this.configFilePath;
-            this.configFileName = path.join( this.configFilePath, "tsconfig.json" );
-        }
-        else {
-            this.configFileDir = path.dirname( this.configFilePath );
-            this.configFileName = this.configFilePath;
-        }
-
-        Logger.info( "Reading config file:", this.configFileName );
-        let readConfigResult = ts.readConfigFile( this.configFileName, this.readFile );
-
-        if ( readConfigResult.error ) {
-            return { success: false, errors: [readConfigResult.error] };
-        }
-
-        let configObject = readConfigResult.config;
-
-        // Parse standard project configuration objects: compilerOptions, files.
-        Logger.info( "Parsing config file..." );
-        var configParseResult = ts.parseJsonConfigFileContent( configObject, ts.sys, this.configFileDir );
-
-        if ( configParseResult.errors.length > 0 ) {
-            return { success: false, errors: configParseResult.errors };
-        }
-
-        // The returned "Files" list may contain file glob patterns. 
-        configParseResult.fileNames = this.expandFileNames( configParseResult.fileNames, this.configFileDir );
-
-        // The glob file patterns in "Files" is an enhancement to the standard Typescript project file (tsconfig.json) spec.
-        // To convert the project file to use only a standard filename list, specify the setting: "convertFiles" : "true"
-        if ( this.settings.convertFiles === true ) {
-            this.convertProjectFileNames( configParseResult.fileNames, this.configFileDir );
-        }
-
-        // Parse "bundle" project configuration objects: compilerOptions, files.
-        var bundleParser = new ConfigParser();
-        var bundlesParseResult = bundleParser.parseConfigFile( configObject, this.configFileDir );
-
-        if ( bundlesParseResult.errors.length > 0 ) {
-            return { success: false, errors: bundlesParseResult.errors };
-        }
-
-        // The returned bundles "Files" list may contain file glob patterns. 
-        bundlesParseResult.bundles.forEach( bundle => {
-            bundle.fileNames = this.expandFileNames( bundle.fileNames, this.configFileDir );
-        });
-
-        // Parse the command line args to override project file compiler options
-        let settingsCompilerOptions = this.getSettingsCompilerOptions( this.settings, this.configFileDir );
-
-        // Check for any errors due to command line parsing
-        if ( settingsCompilerOptions.errors.length > 0 ) {
-            return { success: false, errors: settingsCompilerOptions.errors };
-        }
-
-        let compilerOptions = Utils.extend( settingsCompilerOptions.options, configParseResult.options );
-
-        Logger.info( "Compiler options: ", compilerOptions );
-
-        return {
-            success: true,
-            compilerOptions: compilerOptions,
-            fileNames: configParseResult.fileNames,
-            bundles: bundlesParseResult.bundles
-        }
-    }
-    
-    private readFile( fileName: string ): string {
-        return ts.sys.readFile( fileName );
-    }
-
-    private getSettingsCompilerOptions( jsonSettings: any, configDirPath: string ): ts.ParsedCommandLine {
-        // Parse the json settings from the TsProject src() API
-        let parsedResult = ts.parseJsonConfigFileContent( jsonSettings, ts.sys, configDirPath );
-
-        // Check for compiler options that are not relevent/supported.
-
-        // Not supported: --project, --init
-        // Ignored: --help, --version
-
-        if ( parsedResult.options.project ) {
-            let diagnostic = TsCore.createDiagnostic( { code: 5099, category: ts.DiagnosticCategory.Error, key: "The_compiler_option_0_is_not_supported_in_this_context_5099", message: "The compiler option '{0}' is not supported in this context." }, "--project" );
-            parsedResult.errors.push( diagnostic );
-        }
-
-        // FIXME: Perhaps no longer needed?
-
-        //if ( parsedResult.options.init ) {
-        //    let diagnostic = TsCore.createDiagnostic( { code: 5099, category: ts.DiagnosticCategory.Error, key: "The_compiler_option_0_is_not_supported_in_this_context_5099", message: "The compiler option '{0}' is not supported in this context." }, "--init" );
-        //    parsedResult.errors.push( diagnostic );
-        //}
-
-        return parsedResult;
-    }
-
-    private expandFileNames( files: string[], configDirPath: string ): string[] {
-        // The parameter files may contain a mix of glob patterns and filenames.
-        // glob.expand() will only return a list of all expanded "found" files. 
-        // For filenames without glob patterns, we add them to the list of files as we will want to know
-        // if any filenames are not found during bundle processing.
-
-        var glob = new Glob();
-        var nonglobFiles: string[] = [];
-
-        Utils.forEach( files, file => {
-            if ( !glob.hasPattern( file ) ) {
-                nonglobFiles.push( path.normalize( file ) );
+    private reportBuildStatus( buildResult: BuildResult )
+    {
+        if ( this.options.verbose )
+        {
+            if ( buildResult.succeeded() )
+            {
+                Logger.log( chalk.green( "Build completed successfully." ) );
             }
-        });
-                            
-        // Get the list of expanded glob files
-        var globFiles = glob.expand( files, configDirPath );
-        var normalizedGlobFiles: string[] = [];
-
-        // Normalize file paths for matching
-        Utils.forEach( globFiles, file => {
-            normalizedGlobFiles.push( path.normalize( file ) );
-        });
-
-        // The overall file list is the union of both non-glob and glob files
-        return _.union( normalizedGlobFiles, nonglobFiles );
-    }
-
-    private convertProjectFileNames( fileNames: string[], configDirPath: string ) {
-        let configFileText = "";
-
-        try {
-            configFileText = fs.readFileSync( this.configFileName, 'utf8' );
-
-            if ( configFileText !== undefined ) {
-                let jsonConfigObject = JSON.parse( configFileText );
-                let relativeFileNames: string[] = [];
-
-                fileNames.forEach( fileName => {
-                    relativeFileNames.push ( path.relative( configDirPath, fileName ).replace( /\\/g, "/" ) );
-                });
-
-                jsonConfigObject["files"] = relativeFileNames;
-
-                fs.writeFileSync( this.configFileName, JSON.stringify( jsonConfigObject, undefined, 4 ) );
-            }
-        }
-        catch( e ) {
-            Logger.log( chalk.yellow( "Converting project files failed." ) );
-        }
-    }
-
-    private reportBuildStatus( buildStatus: ts.ExitStatus ) {
-        switch ( buildStatus ) {
-            case ts.ExitStatus.Success:
-                Logger.log( chalk.green( "Project build completed successfully." ) );
-                break;
-            case ts.ExitStatus.DiagnosticsPresent_OutputsSkipped:
+            else
+            {
                 Logger.log( chalk.red( "Build completed with errors." ) );
-                break;
-            case ts.ExitStatus.DiagnosticsPresent_OutputsGenerated:
-                Logger.log( chalk.red( "Build completed with errors. " + chalk.italic( "Outputs generated." ) ) );
-                break;
+            }
         }
     }
 

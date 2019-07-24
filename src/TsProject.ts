@@ -1,35 +1,44 @@
 ﻿import * as stream from "stream"
-
-import { Project } from "Project/Project"
-import { ProjectConfig } from "Project/ProjectConfig"
-import { ProjectBuilder } from "Project/ProjectBuilder"
-import { CompileStream } from "ts2js"
-import { Logger } from "@TsToolsCommon/Reporting/Logger"
+import { Project } from "./Project/Project"
+import { ProjectConfig } from "./Project/ProjectConfig"
+import { ProjectBuilder } from "./Project/ProjectBuilder"
+import { ProjectOptions } from "./Project/ProjectOptions"
+import { BuildResult } from "./Project/ProjectBuildResult"
 
 export { ProjectConfig }
+export { ProjectOptions }
+export { BuildResult }
+export { Project }
+export { ProjectBuilder }
 
-export namespace TsProject {
+export namespace TsProject
+{
 
-    export function getProjectConfig( configFilePath: string ): ProjectConfig {
-            return Project.getProjectConfig( configFilePath );
+    export function getProjectConfig( configFilePath: string ): ProjectConfig
+    {
+        const project = new Project( configFilePath );
+            return project.getConfig();
+    }
+
+    export function builder( configFilePath: string, options?: ProjectOptions, buildCompleted?: ( result: BuildResult ) => void ): ProjectBuilder
+    {
+        var projectBuilder = new ProjectBuilder( new Project( configFilePath, options ) );
+
+        if ( buildCompleted )
+        {
+            projectBuilder.build( buildCompleted );
         }
 
-    export function src( configFilePath: string, settings?: any ): stream.Readable {
+        return projectBuilder;
+    }
+
+    export function src( configFilePath: string, options?: ProjectOptions ): stream.Readable {
         if ( configFilePath === undefined && typeof configFilePath !== 'string' ) {
             throw new Error( "Provide a valid directory or file path to the Typescript project configuration json file." );
         }
 
-        settings = settings || {};
-        settings.logLevel = settings.logLevel || 0;
+        let projectBuilder = new ProjectBuilder( new Project( configFilePath, options ) );
 
-        Logger.setLevel( settings.logLevel );
-        Logger.setName( "TsProject" );
-
-        var outputStream = new CompileStream();
-
-        var project = new ProjectBuilder( configFilePath, settings );
-        project.build( outputStream );
-
-        return outputStream;
+        return projectBuilder.src();
     }
 }

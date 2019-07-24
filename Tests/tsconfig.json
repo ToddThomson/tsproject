@@ -1,7 +1,10 @@
 {
+  "compileOnSave": true,
+
   "compilerOptions": {
     "target": "es5",
     "module": "commonjs",
+    "moduleResolution": "node",
     "declaration": false,
     "noLib": false,
     "sourceMap": true,
@@ -16,14 +19,8 @@
       "../node_modules"
     ],
     "types": [
-      "node"
+      "node",
+      "mocha"
     ]
-  },
-  "exclude": [
-    "./../node_modules",
-    "./../obj",
-    "./../dist",
-    "./../src"
-  ],
-  "compileOnSave": true
+  }
 }

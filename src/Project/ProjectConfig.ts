@@ -1,10 +1,12 @@
-﻿import * as ts from "typescript";
-import { Bundle } from "TsBundler";
+﻿import * as ts from "typescript"
+import { Bundle } from "TsBundler"
 
-export interface ProjectConfig {
+export interface ProjectConfig
+{
+    fileName: string;
     success: boolean;
     compilerOptions?: ts.CompilerOptions;
-    fileNames?: string[];
+    files?: string[];
     bundles?: Bundle[];
     errors?: ReadonlyArray<ts.Diagnostic>;
 }

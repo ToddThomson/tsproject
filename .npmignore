@@ -10,6 +10,7 @@ obj
 src
 tests
 typings
+.gitattributes
 .gitignore
 .npmignore
 .travis.yml
@@ -17,6 +18,7 @@ gulpfile.js
 rundbg.js
 TsProjectTodoMVC
 ReactTodoMVC
+*.sln
 *.dat
 *.njsproj
 *.njsproj.user
