@@ -1,22 +1,16 @@
 ﻿import * as ts from "typescript";
 import * as ts2js from "ts2js";
-import * as _ from "lodash";
 import * as fs from "fs";
 import File = require( "vinyl" )
 import * as stream from "stream"
-import * as path from "path";
-import * as gutil from "gulp-util"
+import * as PluginError from "plugin-error"
 import chalk from "chalk";
 import { CompileStream } from "ts2js";
-import { Compiler } from "ts2js";
-import { CompileResult } from "ts2js";
-//import { ConfigParser, Bundle } from "TsBundler";
 import { Project } from "./Project"
 import { ProjectConfig } from "./ProjectConfig"
 import { ProjectOptions } from "./ProjectOptions"
 import { ProjectBuildResult, BuildResult } from "./ProjectBuildResult"
 import { BuildStream } from "./BuildStream"
-import { BuildContext } from "./ProjectBuildContext"
 import { StatisticsReporter } from "../../../TsToolsCommon/src/Reporting/StatisticsReporter";
 import { DiagnosticsReporter } from "../../../TsToolsCommon/src/Reporting/DiagnosticsReporter";
 import { Logger } from "../../../TsToolsCommon/src/Reporting/Logger";
@@ -104,7 +98,7 @@ export class ProjectBuilder
                 DiagnosticsReporter.reportDiagnostics( this.config.errors );
             }
 
-             throw new gutil.PluginError( {
+             throw new PluginError( {
                 plugin: "TsBundler",
                 message: "Invalid typescript configuration file " + this.config.fileName
             } );
