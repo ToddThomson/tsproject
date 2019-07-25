@@ -56,28 +56,22 @@ export class ProjectBuilder
             {
                 if ( buildResult.succeeded() )
                 {
-                    buildResult.compileResults.forEach( ( compileResult: ts2js.CompileResult ) =>
+                    buildResult.compileResult.getOutput().forEach( ( emit: ts2js.CompileOutput ) =>
                     {
-                        if ( compileResult.getStatus() !== ts2js.CompileStatus.DiagnosticsPresent_OutputsSkipped )
+                        if ( !emit.emitSkipped )
                         {
-                            compileResult.getOutput().forEach( ( emit ) =>
+                            if ( emit.codeFile )
                             {
-                                if ( !emit.emitSkipped )
-                                {
-                                    if ( emit.codeFile )
-                                    {
-                                        fs.writeFileSync( emit.codeFile.fileName, emit.codeFile.data );
-                                    }
-                                    if ( emit.dtsFile )
-                                    {
-                                        fs.writeFileSync( emit.dtsFile.fileName, emit.dtsFile.data );
-                                    }
-                                    if ( emit.mapFile )
-                                    {
-                                        fs.writeFileSync( emit.mapFile.fileName, emit.mapFile.data );
-                                    }
-                                }
-                            } );
+                                fs.writeFileSync( emit.codeFile.fileName, emit.codeFile.data );
+                            }
+                            if ( emit.dtsFile )
+                            {
+                                fs.writeFileSync( emit.dtsFile.fileName, emit.dtsFile.data );
+                            }
+                            if ( emit.mapFile )
+                            {
+                                fs.writeFileSync( emit.mapFile.fileName, emit.mapFile.data );
+                            }
                         }
                     } );
                 }
@@ -98,7 +92,7 @@ export class ProjectBuilder
                 DiagnosticsReporter.reportDiagnostics( this.config.errors );
             }
 
-             throw new PluginError( {
+            throw new PluginError( {
                 plugin: "TsBundler",
                 message: "Invalid typescript configuration file " + this.config.fileName
             } );
@@ -125,35 +119,29 @@ export class ProjectBuilder
             // Emit bundle compilation results...
             if ( buildResult.succeeded() )
             {
-                buildResult.compileResults.forEach( ( compileResult ) =>
+                buildResult.compileResult.getOutput().forEach( ( emit ) =>
                 {
-                    if ( compileResult.getStatus() !== ts2js.CompileStatus.DiagnosticsPresent_OutputsSkipped )
+                    if ( !emit.emitSkipped )
                     {
-                        compileResult.getOutput().forEach( ( emit ) =>
+                        if ( emit.codeFile )
                         {
-                            if ( !emit.emitSkipped )
-                            {
-                                if ( emit.codeFile )
-                                {
-                                    vinylFile = new File( { path: emit.codeFile.fileName, contents: new Buffer( emit.codeFile.data ) } )
+                            vinylFile = new File( { path: emit.codeFile.fileName, contents: new Buffer( emit.codeFile.data ) } )
 
-                                    outputStream.push( vinylFile );
-                                }
-                                if ( emit.dtsFile )
-                                {
-                                    vinylFile = new File( { path: emit.dtsFile.fileName, contents: new Buffer( emit.dtsFile.data ) } )
+                            outputStream.push( vinylFile );
+                        }
+                        if ( emit.dtsFile )
+                        {
+                            vinylFile = new File( { path: emit.dtsFile.fileName, contents: new Buffer( emit.dtsFile.data ) } )
 
-                                    outputStream.push( vinylFile );
-                                }
+                            outputStream.push( vinylFile );
+                        }
 
-                                if ( emit.mapFile )
-                                {
-                                    vinylFile = new File( { path: emit.mapFile.fileName, contents: new Buffer( emit.mapFile.data ) } )
+                        if ( emit.mapFile )
+                        {
+                            vinylFile = new File( { path: emit.mapFile.fileName, contents: new Buffer( emit.mapFile.data ) } )
 
-                                    outputStream.push( vinylFile );
-                                }
-                            }
-                        } );
+                            outputStream.push( vinylFile );
+                        }
                     }
                 } );
             }
@@ -175,7 +163,6 @@ export class ProjectBuilder
         }
 
         let fileNames = this.config.files;
-        let bundles = this.config.bundles;
         let compilerOptions = this.config.compilerOptions;
 
         // Compile the project...
@@ -185,24 +172,43 @@ export class ProjectBuilder
         {
             Logger.log( "Compiling project files..." );
         }
+
         this.totalBuildTime = new Date().getTime();
         this.totalCompileTime = new Date().getTime();
 
-        var projectCompileResult = compiler.compile( fileNames );
+        var compileResult = compiler.compile( fileNames );
 
         this.totalCompileTime = new Date().getTime() - this.totalCompileTime;
 
-        var compileErrors = projectCompileResult.getErrors();
+        var compileErrors = compileResult.getErrors();
         if ( compileErrors.length > 0 )
         {
             DiagnosticsReporter.reportDiagnostics( compileErrors );
 
             return buildCompleted( new ProjectBuildResult( compileErrors ) );
         }
+ 
+        this.buildBundles();
 
-        var allDiagnostics: ts.Diagnostic[] = [];
-        var compileResults: ts2js.CompileResult[] = [];
-        //var bundleBuildResults: Bundler.BundleBuildResult[] = [];
+        this.totalBuildTime = new Date().getTime() - this.totalBuildTime;
+
+        if ( this.options.verbose )
+        {
+            this.reportStatistics();
+        }
+
+        return buildCompleted( new ProjectBuildResult(
+            compileResult.getErrors(), compileResult ) );
+    }
+
+    private buildBundles()
+    {
+        let bundles = this.config.bundles;
+
+        if ( !bundles )
+        {
+            return;
+        }
 
         this.totalBundleTime = new Date().getTime();
 
@@ -255,15 +261,6 @@ export class ProjectBuilder
         }
 
         this.totalBundleTime = new Date().getTime() - this.totalBundleTime;
-        this.totalBuildTime = new Date().getTime() - this.totalBuildTime;
-
-        if ( this.options.verbose )
-        {
-            this.reportStatistics();
-        }
-
-        return buildCompleted( new ProjectBuildResult(
-            allDiagnostics, compileResults ) );
     }
 
     private reportBuildStatus( buildResult: BuildResult )
@@ -281,7 +278,8 @@ export class ProjectBuilder
         }
     }
 
-    private reportStatistics() {
+    private reportStatistics()
+    {
         let statisticsReporter = new StatisticsReporter();
 
         statisticsReporter.reportTitle( "Total build times..." );

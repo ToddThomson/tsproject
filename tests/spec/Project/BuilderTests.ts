@@ -15,19 +15,13 @@ describe( "Build Project", () =>
             projectBuilder.build( ( result ) =>
             {
                 buildResult = result;
-
-                if ( !result.succeeded )
-                {
-                    console.log( "build failed" );
-                } else
-                {
-                    console.log( "build succeeded" );
-                }
             } );
 
             it( "Project build status is successful", () =>
             {
-                expect( buildResult.succeeded ).to.equal( CompileStatus.Success );
+                expect( buildResult.succeeded() ).to.be.true;
+                expect( buildResult.compileResult.succeeded() ).to.be.true;
+                expect( buildResult.compileResult.getOutput() ).to.have.length( 2 );
             } );
         } );
     }

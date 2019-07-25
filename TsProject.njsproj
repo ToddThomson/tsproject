@@ -89,7 +89,7 @@
     <TypeScriptCompile Include="src\TsProject.ts" />
     <TypeScriptCompile Include="tests\projects\simple\GreeterModule.ts" />
     <TypeScriptCompile Include="tests\projects\simple\main.ts" />
-    <TypeScriptCompile Include="tests\spec\Project\UnitTest1.ts">
+    <TypeScriptCompile Include="tests\spec\Project\BuilderTests.ts">
       <SubType>Code</SubType>
       <TestFramework>Mocha</TestFramework>
     </TypeScriptCompile>

@@ -27,7 +27,7 @@ declare class Project {
 }
 interface BuildResult {
     errors: ReadonlyArray<ts.Diagnostic>;
-    compileResults?: ts2js.CompileResult[];
+    compileResult?: ts2js.CompileResult;
     succeeded(): boolean;
 }
 declare class ProjectBuilder {
@@ -43,6 +43,7 @@ declare class ProjectBuilder {
     build(buildCompleted: (result: BuildResult) => void): void;
     src(): stream.Readable;
     private buildWorker(buildCompleted);
+    private buildBundles();
     private reportBuildStatus(buildResult);
     private reportStatistics();
 }
