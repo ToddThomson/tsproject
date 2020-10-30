@@ -50,6 +50,8 @@
     <Content Include="package.json" />
     <Content Include="README.md" />
     <Content Include="src\tsconfig.json" />
+    <Content Include="Tests\projects\simple\tsconfig.json" />
+    <Content Include="Tests\tsconfig.json" />
     <Content Include="tsconfig.json">
       <SubType>Code</SubType>
     </Content>
@@ -65,6 +67,11 @@
     <Folder Include="src\Project\" />
     <Folder Include="src\Reporting\" />
     <Folder Include="src\Utils\" />
+    <Folder Include="Tests\" />
+    <Folder Include="Tests\projects\" />
+    <Folder Include="Tests\projects\simple\" />
+    <Folder Include="Tests\spec\" />
+    <Folder Include="Tests\spec\Project\" />
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="src\Ast\Ast.ts" />
@@ -103,6 +110,9 @@
       <SubType>Code</SubType>
     </TypeScriptCompile>
     <TypeScriptCompile Include="src\Utils\Utilities.ts" />
+    <TypeScriptCompile Include="Tests\projects\simple\GreeterModule.ts" />
+    <TypeScriptCompile Include="Tests\projects\simple\main.ts" />
+    <TypeScriptCompile Include="Tests\spec\Project\BuilderTests.ts" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="build\paths.js" />
