@@ -1,11 +1,14 @@
-// Compile gulp task
 'use strict';
 
 const gulp = require( 'gulp' );
 const paths = require( '../paths' );
-const tsproject = require( 'tsproject' );
+// const tsproject = require( 'tsproject' );
+const tsproject = require( '../../src/tsproject' );
 
-gulp.task( 'bundle', function () {
+gulp.task( 'bundle', function ( cb )
+{
     return tsproject.src( paths.sourceTsConfig )
         .pipe( gulp.dest( paths.output ) );
+
+    cb();
 } );

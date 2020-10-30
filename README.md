@@ -15,7 +15,7 @@ TsProject produces a compiled output stream of vinyl files for further processin
  
 ## What's New
 
-TsProject 3.0.0 supports Typescript 3.5.x.
+TsProject 4.0.0 supports Typescript 4.0.x.
 
 ## Why TsProject?
 

@@ -1,10 +1,7 @@
 {
-  "compileOnSave": true,
-
   "compilerOptions": {
     "target": "es5",
     "module": "commonjs",
-    "moduleResolution": "node",
     "declaration": false,
     "noLib": false,
     "sourceMap": true,
@@ -13,14 +10,16 @@
     "allowUnusedLabels": false,
     "noImplicitAny": true,
     "noImplicitReturns": true,
-    "noImplicitUseStrict": false,
-    "typeRoots": [
-      "../node_modules/@types",
-      "../node_modules"
-    ],
-    "types": [
-      "node",
-      "mocha"
-    ]
-  }
+    "noImplicitUseStrict": false
+  },
+  "exclude": [
+    "MinifiedTypescript",
+    "node_modules",
+    "obj",
+    "dist",
+    "build",
+    "built",
+    "src"
+  ],
+  "compileOnSave": true
 }

@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "module": "es6",
+    "target": "es5",
+    "declaration": false,
+    "diagnostics": true,
+    "listFiles": false,
+    "noImplicitAny": true,
+    "preserveConstEnums": true,
+    "removeComments": false,
+    "sourceMap": false
+  },
+
+  "files": [
+        "./greeter.ts",
+        "./app.ts"
+    ],
+    "bundles": {
+        "app": {
+            "files": [ "./app.ts" ],
+            "config": {
+                "package": "component",
+                "packageNamespace": "MyApp",
+                "outDir": "./bundles",
+                "minify": true
+            }
+        }
+    }
+}

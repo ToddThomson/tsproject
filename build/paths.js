@@ -3,12 +3,12 @@ var path = require( 'path' );
 var sourceRoot = 'src/';
 var buildRoot = './built/';
 var releaseRoot = './lib/';
-var bundleRoot = 'bundle/'
-var testRoot = 'tests/'
+var testRoot = './tests/spec/';
+var bundleRoot = 'bundle/';
 
 module.exports = {
     root: sourceRoot,
-    test: testRoot,
+    tests: testRoot + '**/*.js',
     sourceTsConfig: sourceRoot + 'tsconfig.json',
     source: sourceRoot + '**/*.ts',
     output: buildRoot,
@@ -16,4 +16,3 @@ module.exports = {
     typings: buildRoot + sourceRoot + bundleRoot + 'TsProject.d.ts',
     release: releaseRoot
 };
-
