@@ -2,8 +2,7 @@
 
 const gulp = require( 'gulp' );
 const paths = require( '../paths' );
-// const tsproject = require( 'tsproject' );
-const tsproject = require( '../../src/tsproject' );
+const tsproject = require( 'tsproject' );
 
 gulp.task( 'bundle', function ( cb )
 {

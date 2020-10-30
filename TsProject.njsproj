@@ -46,6 +46,7 @@
     <Content Include="build\tasks\release.js">
       <SubType>Code</SubType>
     </Content>
+    <Content Include="lib\TsProject.js" />
     <Content Include="LICENSE" />
     <Content Include="package.json" />
     <Content Include="README.md" />
@@ -59,6 +60,7 @@
   <ItemGroup>
     <Folder Include="build\" />
     <Folder Include="build\tasks\" />
+    <Folder Include="lib\" />
     <Folder Include="src\" />
     <Folder Include="src\Ast\" />
     <Folder Include="src\Bundler\" />
@@ -74,6 +76,7 @@
     <Folder Include="Tests\spec\Project\" />
   </ItemGroup>
   <ItemGroup>
+    <TypeScriptCompile Include="lib\TsProject.d.ts" />
     <TypeScriptCompile Include="src\Ast\Ast.ts" />
     <TypeScriptCompile Include="src\Ast\AstTransform.ts" />
     <TypeScriptCompile Include="src\Ast\NodeWalker.ts" />

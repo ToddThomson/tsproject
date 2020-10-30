@@ -16,8 +16,11 @@ typings
 .travis.yml
 gulpfile.js
 rundbg.js
+MinifiedTypescript
 TsProjectTodoMVC
 ReactTodoMVC
+tsconfig.json
+rundbg.*
 *.sln
 *.dat
 *.njsproj
