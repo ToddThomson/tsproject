@@ -38,6 +38,8 @@
     <Content Include=".gitignore" />
     <Content Include=".npmignore" />
     <Content Include=".travis.yml" />
+    <Content Include="build\tasks\src.js" />
+    <Content Include="build\tasks\local.js" />
     <Content Include="build\tasks\bundle.js">
       <SubType>Code</SubType>
     </Content>
