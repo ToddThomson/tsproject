@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "target": "es5",
+    "module": "commonjs",
+    "declaration": false,
+    "noLib": false,
+    "sourceMap": true,
+    "pretty": true,
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noImplicitUseStrict": false
+  },
+  "exclude": [
+    "MinifiedTypescript",
+    "node_modules",
+    "obj",
+    "dist",
+    "build",
+    "built",
+    "src"
+  ],
+  "compileOnSave": true
+}

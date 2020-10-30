@@ -1,44 +1,32 @@
-﻿import * as stream from "stream"
-import { Project } from "./Project/Project"
-import { ProjectConfig } from "./Project/ProjectConfig"
-import { ProjectBuilder } from "./Project/ProjectBuilder"
-import { ProjectOptions } from "./Project/ProjectOptions"
-import { BuildResult } from "./Project/ProjectBuildResult"
+﻿import { Project } from "./Project/Project";
+import { CompileStream } from "./Compiler/CompileStream";
+import { Logger } from "./Reporting/Logger";
 
-export { ProjectConfig }
-export { ProjectOptions }
-export { BuildResult }
-export { Project }
-export { ProjectBuilder }
+import * as ts from "typescript";
+import * as stream from "stream";
 
-export namespace TsProject
-{
+export namespace TsProject {
 
-    export function getProjectConfig( configFilePath: string ): ProjectConfig
-    {
-        const project = new Project( configFilePath );
-            return project.getConfig();
-    }
+    export function src( configFilePath: string, settings?: any ): stream.Readable {
 
-    export function builder( configFilePath: string, options?: ProjectOptions, buildCompleted?: ( result: BuildResult ) => void ): ProjectBuilder
-    {
-        var projectBuilder = new ProjectBuilder( new Project( configFilePath, options ) );
-
-        if ( buildCompleted )
-        {
-            projectBuilder.build( buildCompleted );
-        }
-
-        return projectBuilder;
-    }
-
-    export function src( configFilePath: string, options?: ProjectOptions ): stream.Readable {
         if ( configFilePath === undefined && typeof configFilePath !== 'string' ) {
             throw new Error( "Provide a valid directory or file path to the Typescript project configuration json file." );
         }
 
-        let projectBuilder = new ProjectBuilder( new Project( configFilePath, options ) );
+        settings = settings || {};
+        settings.logLevel = settings.logLevel || 0;
 
-        return projectBuilder.src();
+        Logger.setLevel( settings.logLevel );
+        Logger.setName( "TsProject" );
+
+        var outputStream = new CompileStream();
+
+        var project = new Project( configFilePath, settings );
+        project.build( outputStream );
+
+        return outputStream;
     }
 }
+
+// Nodejs module exports
+module.exports = TsProject;
