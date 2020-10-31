@@ -46,6 +46,8 @@
     <Content Include="build\tasks\release.js">
       <SubType>Code</SubType>
     </Content>
+    <Content Include="built\src\bundle\tsproject.js" />
+    <Content Include="built\src\bundle\tsproject.js.map" />
     <Content Include="lib\TsProject.js" />
     <Content Include="LICENSE" />
     <Content Include="package.json" />
@@ -60,6 +62,9 @@
   <ItemGroup>
     <Folder Include="build\" />
     <Folder Include="build\tasks\" />
+    <Folder Include="built\" />
+    <Folder Include="built\src\" />
+    <Folder Include="built\src\bundle\" />
     <Folder Include="lib\" />
     <Folder Include="src\" />
     <Folder Include="src\Ast\" />
@@ -76,6 +81,7 @@
     <Folder Include="Tests\spec\Project\" />
   </ItemGroup>
   <ItemGroup>
+    <TypeScriptCompile Include="built\src\bundle\tsproject.ts" />
     <TypeScriptCompile Include="lib\TsProject.d.ts" />
     <TypeScriptCompile Include="src\Ast\Ast.ts" />
     <TypeScriptCompile Include="src\Ast\AstTransform.ts" />
@@ -115,7 +121,6 @@
     <TypeScriptCompile Include="src\Utils\Utilities.ts" />
     <TypeScriptCompile Include="Tests\projects\simple\GreeterModule.ts" />
     <TypeScriptCompile Include="Tests\projects\simple\main.ts" />
-    <TypeScriptCompile Include="Tests\spec\Project\BuilderTests.ts" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="build\paths.js" />

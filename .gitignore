@@ -10,5 +10,7 @@ src/**/*.d.ts
 TsToolsCommon/*
 tests/*
 *.dat
+rundbg.js
+rundbg.js.map
 *.njsproj.user
 *.njsproj.vspscc

@@ -1,6 +1,6 @@
 {
   "name": "tsproject",
-  "version": "4.0.0-beta.2",
+  "version": "4.0.0-beta.3",
   "author": "Todd Thomson <todd.thomson@me.com>",
   "description": "Typescript minifier and modular typescript bundle optimizer for gulp (Ts Vinyl Adapter).",
   "license": "MIT",
@@ -31,8 +31,7 @@
     "gulp-mocha": "^7.0.2",
     "mocha": "^8.2.0",
     "tsconfig-paths": "^3.9.0",
-    "tsproject": "4.0.0-beta.2",
-    "typescript": "4.0.5",
+    "tsproject": "~4.0.0-beta.3",
     "vinyl-paths": "~3.0.0"
   },
   "keywords": [
