@@ -2,16 +2,12 @@
 
 node_js:
   - 'node'
-  - '10'
+  - '14'
 
 install:
     - mkdir built
 
 before_script:
   - npm install -g gulp-cli
-  - export WORKING_DIR=`pwd`
-  - echo "> Working dir: $WORKING_DIR"
-  - echo "> Getting TsToolsCommon..."
-  - git clone git@github.com:toddthomson>/tstoolscommon.git
 
 script: gulp build
