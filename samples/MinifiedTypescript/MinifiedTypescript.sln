@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30621.155
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9092AA53-FB77-4645-B42D-1CCCA6BD08BD}") = "MinifiedTypescript", "MinifiedTypescript.njsproj", "{06B71FC6-FC61-469D-9FE4-CCE28824430D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{06B71FC6-FC61-469D-9FE4-CCE28824430D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{06B71FC6-FC61-469D-9FE4-CCE28824430D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{06B71FC6-FC61-469D-9FE4-CCE28824430D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{06B71FC6-FC61-469D-9FE4-CCE28824430D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {387E4E39-A5D5-4AC0-A2B3-19F2EAB54A0B}
+	EndGlobalSection
+EndGlobal

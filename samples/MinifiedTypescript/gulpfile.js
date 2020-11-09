@@ -1,26 +1,18 @@
 ﻿const chalk = require('chalk');
 const gulp = require( 'gulp' );
+const htmlreplace = require( 'gulp-html-replace' );
+const concat = require( 'gulp-concat' );
+const rimraf = require( 'gulp-rimraf' );
+const replace = require( 'gulp-replace' );
+const tsproject = require( 'tsproject' );
 const webpack = require( 'webpack-stream' );
 const webpackConfig = require( './webpack.config' );
 
-gulp.task( 'webpack', () => {
-    return gulp.src( webpackFiles )
-        .pipe( named() )
-        .pipe( webpackStream( webpackConfig ) )
-        .pipe( gulp.dest( 'build/' ) );
-} );
 gulp.task( 'webpack', function () {
     return gulp.src( 'src/app/app.ts' )
         .pipe( webpack( webpackConfig ) )
         .pipe( gulp.dest( 'dist/' ) );
 } );
-var concat = require('gulp-concat'),
-    rimraf = require('gulp-rimraf'),
-    replace = require('gulp-replace'),
-    htmlreplace = require('gulp-html-replace'),
-    rjs = require('gulp-requirejs'),
-    tsproject = require('tsproject');
-
 
 gulp.task( 'ts', function() {
     return tsproject.src('./src/app/tsconfig.json')

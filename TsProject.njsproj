@@ -15,7 +15,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>fc6c285f-e50f-4984-a0ac-d5bddf64bc4e</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>rundbg.ts</StartupFile>
+    <StartupFile>Tests\rundbg.ts</StartupFile>
     <StartWebBrowser>False</StartWebBrowser>
     <SearchPath>
     </SearchPath>
@@ -107,13 +107,11 @@
     <TypeScriptCompile Include="src\Project\Project.ts" />
     <TypeScriptCompile Include="src\Project\ProjectBuildContext.ts" />
     <TypeScriptCompile Include="src\Project\ProjectConfig.ts" />
-    <TypeScriptCompile Include="src\Project\TsVinylFile.ts" />
     <TypeScriptCompile Include="src\Reporting\DiagnosticsReporter.ts" />
     <TypeScriptCompile Include="src\Reporting\Logger.ts" />
     <TypeScriptCompile Include="src\Reporting\StatisticsReporter.ts" />
     <TypeScriptCompile Include="src\TsProject.ts" />
     <TypeScriptCompile Include="src\Utils\Debug.ts" />
-    <TypeScriptCompile Include="src\Utils\EventEmitter.ts" />
     <TypeScriptCompile Include="src\Utils\TsCore.ts" />
     <TypeScriptCompile Include="src\Utils\Formatter.ts">
       <SubType>Code</SubType>
@@ -126,11 +124,9 @@
     <Compile Include="build\paths.js" />
     <Compile Include="build\tasks\clean.js" />
     <Compile Include="gulpfile.js" />
-    <Compile Include="rundbg.ts" />
+    <Compile Include="Tests\rundbg.ts" />
   </ItemGroup>
-  <!-- Do not delete the following Import Project.  While this appears to do nothing it is a marker for setting TypeScript properties before our import that depends on them. -->
-  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\TypeScript\Microsoft.TypeScript.targets" Condition="False" />
-  <Import Project="$(VSToolsPath)\Node.js Tools\Microsoft.NodejsTools.targets" />
+  <Import Project="$(VSToolsPath)\Node.js Tools\Microsoft.NodejsToolsV2.targets" />
   <ProjectExtensions>
     <VisualStudio>
       <FlavorProperties GUID="{349c5851-65df-11da-9384-00065b846f21}">

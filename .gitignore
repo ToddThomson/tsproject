@@ -1,5 +1,6 @@
 .vs
 bin
+samples/**/node_modules/*
 node_modules/*
 obj
 built/*
@@ -8,8 +9,6 @@ src/**/*.js
 src/**/*.js.map
 src/**/*.d.ts
 TsToolsCommon/*
-tests/*
 *.dat
-rundbg.*
 *.njsproj.user
 *.njsproj.vspscc

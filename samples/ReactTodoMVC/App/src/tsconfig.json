@@ -1,0 +1,39 @@
+﻿{
+    "compilerOptions": {
+        "module": "amd",
+        "target": "es5",
+        "jsx": "react",
+        "noResolve": false,
+        "diagnostics": true,
+        "listFiles": false
+    },
+
+    "files": [
+        "references.d.ts",
+        "./actions/TodoActions.ts",
+        "./components/controller-view/todoapp.tsx",
+        "./components/footer.tsx",
+        "./components/header.tsx",
+        "./components/mainsection.tsx",
+        "./components/todo.tsx",
+        "./components/todotextinput.tsx",
+        "./constants/ActionTypes.ts",
+        "./dispatcher/TodoDispatcher.ts",
+        "./interfaces/itodostorage.ts",
+        "./models/todoitem.ts",
+        "./services/todostorage.ts",
+        "./stores/todostore.ts",
+        "app.tsx"
+    ],
+
+    "bundles": {
+        "app": {
+            "files": [
+                "app.tsx",
+                "references.d.ts" ],
+            "config": { 
+                "outDir": "./bundles"  
+            }
+        }
+    }
+}
