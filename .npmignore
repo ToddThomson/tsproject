@@ -7,6 +7,7 @@ built
 dist
 issues
 obj
+samples
 src
 tests
 typings
@@ -15,12 +16,7 @@ typings
 .npmignore
 .travis.yml
 gulpfile.js
-rundbg.js
-MinifiedTypescript
-TsProjectTodoMVC
-ReactTodoMVC
 tsconfig.json
-rundbg.*
 *.sln
 *.dat
 *.njsproj
