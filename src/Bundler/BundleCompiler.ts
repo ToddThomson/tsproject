@@ -1,6 +1,6 @@
 ﻿import { CompilerResult } from "../Compiler/CompilerResult"
 import { StatisticsReporter } from "../Reporting/StatisticsReporter"
-import { WatchCompilerHost }  from "../Compiler/WatchCompilerHost"
+import { CachingCompilerHost }  from "../Compiler/CachingCompilerHost"
 import { TsCompilerOptions } from "../Compiler/TsCompilerOptions"
 import { CompileStream }  from "../Compiler/CompileStream"
 import { Logger } from "../Reporting/Logger"
@@ -21,7 +21,7 @@ import VinylFile = require( "vinyl" )
 
 export class BundleCompiler {
 
-    private compilerHost: WatchCompilerHost;
+    private compilerHost: CachingCompilerHost;
     private program: ts.Program;
     private outputStream: CompileStream;
     private compilerOptions: TsCompilerOptions;
@@ -32,7 +32,7 @@ export class BundleCompiler {
 
     private bundleSourceFiles: ts.MapLike<string> = {};
 
-    constructor( compilerHost: WatchCompilerHost, program: ts.Program, outputStream: CompileStream ) {
+    constructor( compilerHost: CachingCompilerHost, program: ts.Program, outputStream: CompileStream ) {
         this.compilerHost = compilerHost
         this.program = program;
         this.outputStream = outputStream;
@@ -50,13 +50,8 @@ export class BundleCompiler {
         let bundleSourceFile: ts.SourceFile;
 
         // The list of bundle files to pass to program 
+        // TJT: Shouldn't there only be 1 module after bundling!
         let bundleFiles: string[] = [];
-
-        // TJT: Bug - How to resolve duplicate identifier error
-
-        Utils.forEach( this.program.getSourceFiles(), file => {
-            bundleFiles.push( file.fileName );
-        });
 
         let outputText: ts.MapLike<string> = {};
         let defaultGetSourceFile: ( fileName: string, languageVersion: ts.ScriptTarget, onError?: ( message: string ) => void ) => ts.SourceFile;
@@ -74,16 +69,12 @@ export class BundleCompiler {
             bundleFileName = bundleFile.path;
         }
 
+        bundleFiles.push( bundleFileName );
+
         bundleFileText = bundleFile.text;
         this.bundleSourceFiles[ bundleFileName ] = bundleFileText;
         bundleSourceFile = ts.createSourceFile( bundleFileName, bundleFile.text, this.compilerOptions.target );
-        bundleFiles.push( bundleFileName );        
-
-        // Reuse the project program source files
-        Utils.forEach( this.program.getSourceFiles(), file => {
-            this.bundleSourceFiles[ file.fileName ] = file.text;
-        });
-
+        
         function writeFile( fileName: string, data: string, writeByteOrderMark: boolean, onError?: ( message: string ) => void ) {
             outputText[ fileName ] = data;
         }
@@ -94,7 +85,7 @@ export class BundleCompiler {
             }
 
             // Use base class to get the all source files other than the bundle
-            let sourceFile: TsCore.WatchedSourceFile = defaultGetSourceFile( fileName, languageVersion, onError );
+            let sourceFile: ts.SourceFile = defaultGetSourceFile( fileName, languageVersion, onError );
 
             return sourceFile;
         }
@@ -117,11 +108,20 @@ export class BundleCompiler {
             compilerOptions.removeComments = true;
         }
 
-        // Pass the current project build program to reuse program structure
-        var bundlerProgram = ts.createProgram( bundleFiles, compilerOptions, this.compilerHost );
+        this.program = ts.createProgram( bundleFiles, compilerOptions, this.compilerHost );
+
+        if ( minifyBundle )
+        {
+            Logger.log( "Minifying bundle..." );
+
+            let minifier = new BundleMinifier( this.program, compilerOptions, bundleConfig );
+            bundleSourceFile = minifier.transform( bundleSourceFile );
+
+            this.program = ts.createProgram( bundleFiles, compilerOptions, this.compilerHost );
+        }
 
         // Check for preEmit diagnostics
-        var preEmitDiagnostics = ts.getPreEmitDiagnostics( bundlerProgram );
+        var preEmitDiagnostics = ts.getPreEmitDiagnostics( this.program );
 
         this.preEmitTime = new Date().getTime() - this.preEmitTime;
 
@@ -130,15 +130,9 @@ export class BundleCompiler {
             return new CompilerResult( ts.ExitStatus.DiagnosticsPresent_OutputsSkipped, preEmitDiagnostics );
         }
 
-        if ( minifyBundle ) {
-            Logger.log( "Minifying bundle..." );
-            let minifier = new BundleMinifier( bundlerProgram, compilerOptions, bundleConfig );
-            bundleSourceFile = minifier.transform( bundleSourceFile );
-        }
-
         this.emitTime = new Date().getTime();
 
-        var emitResult = bundlerProgram.emit( bundleSourceFile );
+        var emitResult = this.program.emit( bundleSourceFile );
 
         this.emitTime = new Date().getTime() - this.emitTime;
 
@@ -178,7 +172,7 @@ export class BundleCompiler {
             let jsContents = outputText[ jsBundlePath ];
             if ( minifyBundle ) {
                 // Whitespace removal cannot be performed in the AST minification transform, so we do it here for now
-                let minifier = new BundleMinifier( bundlerProgram, compilerOptions, bundleConfig );
+                let minifier = new BundleMinifier( this.program, compilerOptions, bundleConfig );
                 jsContents = minifier.removeWhitespace( jsContents );
                 
             }

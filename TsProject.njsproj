@@ -53,6 +53,7 @@
     <Content Include="package.json" />
     <Content Include="README.md" />
     <Content Include="src\tsconfig.json" />
+    <Content Include="Tests\projects\greeter\app\tsconfig.json" />
     <Content Include="Tests\projects\simple\tsconfig.json" />
     <Content Include="Tests\tsconfig.json" />
     <Content Include="tsconfig.json">
@@ -76,6 +77,9 @@
     <Folder Include="src\Utils\" />
     <Folder Include="Tests\" />
     <Folder Include="Tests\projects\" />
+    <Folder Include="Tests\projects\greeter\" />
+    <Folder Include="Tests\projects\greeter\app\" />
+    <Folder Include="Tests\projects\greeter\app\bundles\" />
     <Folder Include="Tests\projects\simple\" />
     <Folder Include="Tests\spec\" />
     <Folder Include="Tests\spec\Project\" />
@@ -92,13 +96,14 @@
     <TypeScriptCompile Include="src\Bundler\BundleParser.ts" />
     <TypeScriptCompile Include="src\Bundler\BundleResult.ts" />
     <TypeScriptCompile Include="src\Bundler\DependencyBuilder.ts" />
-    <TypeScriptCompile Include="src\Compiler\CachingCompilerHost.ts" />
+    <TypeScriptCompile Include="src\Compiler\CachingCompilerHost.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
     <TypeScriptCompile Include="src\Compiler\Compiler.ts" />
     <TypeScriptCompile Include="src\Compiler\CompilerError.ts" />
     <TypeScriptCompile Include="src\Compiler\CompilerResult.ts" />
     <TypeScriptCompile Include="src\Compiler\CompileStream.ts" />
     <TypeScriptCompile Include="src\Compiler\TsCompilerOptions.ts" />
-    <TypeScriptCompile Include="src\Compiler\WatchCompilerHost.ts" />
     <TypeScriptCompile Include="src\Minifier\BundleMinifier.ts" />
     <TypeScriptCompile Include="src\Minifier\ContainerContext.ts" />
     <TypeScriptCompile Include="src\Minifier\IdentifierInfo.ts" />
@@ -117,6 +122,8 @@
       <SubType>Code</SubType>
     </TypeScriptCompile>
     <TypeScriptCompile Include="src\Utils\Utilities.ts" />
+    <TypeScriptCompile Include="Tests\projects\greeter\app\app.ts" />
+    <TypeScriptCompile Include="Tests\projects\greeter\app\Greeter.ts" />
     <TypeScriptCompile Include="Tests\projects\simple\GreeterModule.ts" />
     <TypeScriptCompile Include="Tests\projects\simple\main.ts" />
   </ItemGroup>

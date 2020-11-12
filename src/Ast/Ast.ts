@@ -1,12 +1,18 @@
 ﻿import * as ts from "typescript"
 
-export namespace Ast {
-
-    export function getModifierFlags( node: ts.Node ): ts.ModifierFlags {
+/**
+ * Typescript AST helper functions.
+ */
+export namespace Ast
+{
+    export function modifiersToFlags( modifiers: ts.NodeArray<ts.Modifier> | undefined )
+    {
         let flags = ts.ModifierFlags.None;
 
-        if ( node.modifiers ) {
-            for ( const modifier of node.modifiers ) {
+        if ( modifiers )
+        {
+            for ( const modifier of modifiers )
+            {
                 flags |= modifierToFlag( modifier.kind );
             }
         }
@@ -29,6 +35,23 @@ export namespace Ast {
             case ts.SyntaxKind.ReadonlyKeyword: return ts.ModifierFlags.Readonly;
         }
         return ts.ModifierFlags.None;
+    }
+
+    /**
+     * Gets the ModifierFlags for syntactic modifiers on the provided node. The modifier flags cache on the node is ignored.
+     *
+     * NOTE: This function does not use `parent` pointers and will not include modifiers from JSDoc.
+     */
+    export function getSyntacticModifierFlagsNoCache( node: ts.Node ): ts.ModifierFlags
+    {
+        let flags = modifiersToFlags( node.modifiers );
+
+        if ( node.flags & ts.NodeFlags.NestedNamespace || ( node.kind === ts.SyntaxKind.Identifier && ( <ts.Identifier>node ).isInJSDocNamespace ) )
+        {
+            flags |= ts.ModifierFlags.Export;
+        }
+
+        return flags;
     }
 
     export const enum ContainerFlags {
@@ -119,29 +142,38 @@ export namespace Ast {
     }
 
     export function isInterfaceInternal( symbol: ts.Symbol ): boolean {
-        if ( symbol && ( symbol.flags & ts.SymbolFlags.Interface ) ) {
-            if ( symbol.valueDeclaration ) {
-                let flags = getModifierFlags( symbol.valueDeclaration );
+        //if ( symbol && ( symbol.flags & ts.SymbolFlags.Interface ) ) {
+        //    if ( symbol.valueDeclaration ) {
+        //        let flags = getModifierFlags( symbol.valueDeclaration );
 
-                //if ( !( flags & ts.ModifierFlags.Export ) ) {
-                //    return true;
-                //}
+        //        //if ( !( flags & ts.ModifierFlags.Export ) ) {
+        //        //    return true;
+        //        //}
 
-                // FUTURE: How to make interfaces internal by convention?
-                return false;
-            }
-        }
+        //        // FUTURE: How to make interfaces internal by convention?
+        //        return false;
+        //    }
+        //}
 
         return false;
     }
 
-    export function isClassInternal( symbol: ts.Symbol ): boolean {
-        if ( symbol && ( symbol.flags & ts.SymbolFlags.Class ) ) {
+    export function isClassInternal( symbol: ts.Symbol ): boolean
+    {
+        if ( symbol && ( symbol.flags & ts.SymbolFlags.Class ) )
+        {
+            // If the class is from an extern API or ambient then it cannot be considered internal.
+            if ( Ast.isExportContext( symbol ) || Ast.isAmbientContext( symbol ) )
+            {
+                return false;
+            }
+
             // A class always has a value declaration
-            let flags = getModifierFlags( symbol.valueDeclaration );
+            let flags = getSyntacticModifierFlagsNoCache( symbol.valueDeclaration );
 
             // By convention, "Internal" classes are ones that are not exported.
-            if ( !( flags & ts.ModifierFlags.Export ) ) {
+            if ( !( flags & ts.ModifierFlags.Export ) )
+            {
                 return true;
             }
         }
@@ -149,9 +181,12 @@ export namespace Ast {
         return false;
     }
 
-    export function isClassAbstract( classSymbol: ts.Symbol ): boolean {
-        if ( classSymbol && classSymbol.valueDeclaration ) {
-            if ( getModifierFlags( classSymbol.valueDeclaration ) & ts.ModifierFlags.Abstract ) {
+    export function isClassAbstract( classSymbol: ts.Symbol ): boolean
+    {
+        if ( classSymbol && classSymbol.valueDeclaration )
+        {
+            if ( getSyntacticModifierFlagsNoCache( classSymbol.valueDeclaration ) & ts.ModifierFlags.Abstract )
+            {
                 return true;
             }
         }
@@ -214,7 +249,7 @@ export namespace Ast {
             let abstractTypeSymbol = abstractType.getSymbol();
        
             if ( abstractTypeSymbol.valueDeclaration ) {
-                if ( getModifierFlags( abstractTypeSymbol.valueDeclaration ) & ts.ModifierFlags.Abstract ) {
+                if ( getSyntacticModifierFlagsNoCache( abstractTypeSymbol.valueDeclaration ) & ts.ModifierFlags.Abstract ) {
                     const props: ts.Symbol[] = abstractType.getProperties();
 
                     for ( const prop of props ) {
@@ -403,7 +438,7 @@ export namespace Ast {
     export function isAmbientContext( propertySymbol: ts.Symbol ): boolean {
         let node: ts.Node = propertySymbol.valueDeclaration;
         while ( node ) {
-            if ( getModifierFlags( node ) & ts.ModifierFlags.Ambient ) {
+            if ( getSyntacticModifierFlagsNoCache( node ) & ts.ModifierFlags.Ambient ) {
                 return true;
             }
             node = node.parent;

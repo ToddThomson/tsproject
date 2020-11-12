@@ -1,5 +1,5 @@
 ﻿import { CompilerResult } from "../Compiler/CompilerResult"
-import { WatchCompilerHost } from "../Compiler/WatchCompilerHost"
+import { CachingCompilerHost } from "../Compiler/CachingCompilerHost"
 import { CompileStream }  from "../Compiler/CompileStream"
 import { TsCompilerOptions } from "../Compiler/TsCompilerOptions"
 import { StatisticsReporter } from "../Reporting/StatisticsReporter"
@@ -21,7 +21,7 @@ export class BundleBuilder {
 
     private bundle: Bundle;
 
-    private compilerHost: WatchCompilerHost;
+    private compilerHost: CachingCompilerHost;
     private program: ts.Program;
 
     private dependencyTime = 0;
@@ -32,13 +32,13 @@ export class BundleBuilder {
     private bundleCodeText: string = "";
     private bundleImportText: string = "";
 
-    private tets: Map<string,ts.Node[]>;
+    //private tets: Map<string,ts.Node[]>;
 
     private bundleImportedFiles: ts.MapLike<string> = {};
     private bundleModuleImports: ts.MapLike<ts.MapLike<string>> = {};
     private bundleSourceFiles: ts.MapLike<string> = {};
 
-    constructor( compilerHost: WatchCompilerHost, program: ts.Program ) {
+    constructor( compilerHost: CachingCompilerHost, program: ts.Program ) {
         this.compilerHost = compilerHost
         this.program = program;
     }
@@ -365,7 +365,7 @@ export class BundleBuilder {
                         let module = <ts.ModuleDeclaration>node;
 
                         if ( module.name.getText() !== this.bundle.config.package.getPackageNamespace() ) {
-                            if ( Ast.getModifierFlags( module ) & ts.ModifierFlags.Export ) {
+                            if ( Ast.getSyntacticModifierFlagsNoCache( module ) & ts.ModifierFlags.Export ) {
                                 Logger.info( "Component namespace not package namespace. Removing export modifier." );
                                 let nodeModifier = module.modifiers[0];
                                 editText = this.whiteOut( nodeModifier.pos, nodeModifier.end, editText );
@@ -373,7 +373,7 @@ export class BundleBuilder {
                         }
                     }
                     else {
-                        if ( Ast.getModifierFlags( node ) & ts.ModifierFlags.Export ) {
+                        if ( Ast.getSyntacticModifierFlagsNoCache( node ) & ts.ModifierFlags.Export ) {
                             let exportModifier = node.modifiers[0];
 
                             editText = this.whiteOut( exportModifier.pos, exportModifier.end, editText );

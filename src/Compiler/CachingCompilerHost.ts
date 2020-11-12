@@ -1,111 +1,127 @@
-﻿import * as ts from "typescript";
-import * as path from "path";
+import * as ts from "typescript"
+import * as path from "path"
+import { TsCore } from "../Utils/TsCore"
+import { Utils } from "../Utils/Utilities"
 
-import { Logger } from "../Reporting/Logger";
-import { TsCore } from "../Utils/TsCore";
-import { Utils } from "../Utils/Utilities";
-
-/**
- * @description A typescript compiler host that supports incremental builds and optimizations for file reads and file exists functions. Emit output is saved to memory.
- */
-export class CachingCompilerHost implements ts.CompilerHost {
-
+export class CachingCompilerHost implements ts.CompilerHost
+{
+    protected system: ts.System = ts.sys;
     private output: ts.MapLike<string> = {};
+
     private dirExistsCache: ts.MapLike<boolean> = {};
-    private dirExistsCacheSize: number = 0;
     private fileExistsCache: ts.MapLike<boolean> = {};
-    private fileExistsCacheSize: number = 0;
     private fileReadCache: ts.MapLike<string> = {};
 
     protected compilerOptions: ts.CompilerOptions;
-    private baseHost: ts.CompilerHost;
+    protected baseHost: ts.CompilerHost;
 
-    constructor( compilerOptions: ts.CompilerOptions ) {
+    constructor( compilerOptions: ts.CompilerOptions )
+    {
         this.compilerOptions = compilerOptions;
-        this.baseHost = ts.createCompilerHost( this.compilerOptions );
+        this.baseHost = ts.createIncrementalCompilerHost( this.compilerOptions, this.system );
     }
 
-    public getOutput() {
+    public getOutput = () =>
+    {
         return this.output;
     }
 
-    public getSourceFileImpl( fileName: string, languageVersion: ts.ScriptTarget, onError?: ( message: string ) => void ): ts.SourceFile {
-
-        // Use baseHost to get the source file
-        //Logger.trace( "getSourceFile() reading source file from fs: ", fileName );
-        return this.baseHost.getSourceFile( fileName, languageVersion, onError );
-    }
-
-    public getSourceFile = this.getSourceFileImpl;
-
-    public writeFile( fileName: string, data: string, writeByteOrderMark: boolean, onError?: ( message: string ) => void ) {
-        this.output[fileName] = data;
-    }
-
-    public fileExists = ( fileName: string ): boolean => {
-        fileName = this.getCanonicalFileName( fileName );
-
-        // Prune off searches on directories that don't exist
-        if ( !this.directoryExists( path.dirname( fileName ) ) ) {
-            return false;
+    public readFile = ( fileName: string ): string =>
+    {
+        if ( this.isBuildInfoFile( fileName ) )
+        {
+            return this.baseHost.readFile( fileName );
         }
 
-        if ( Utils.hasProperty( this.fileExistsCache, fileName ) ) {
-            //Logger.trace( "fileExists() Cache hit: ", fileName, this.fileExistsCache[ fileName ] );
-            return this.fileExistsCache[fileName];
-        }
-        this.fileExistsCacheSize++;
-
-        //Logger.trace( "fileExists() Adding to cache: ", fileName, this.baseHost.fileExists( fileName ), this.fileExistsCacheSize );
-        return this.fileExistsCache[fileName] = this.baseHost.fileExists( fileName );
-    }
-
-    public readFile( fileName: string ): string {
-        if ( Utils.hasProperty( this.fileReadCache, fileName ) ) {
-            Logger.trace( "readFile() cache hit: ", fileName );
+        if ( Utils.hasProperty( this.fileReadCache, fileName ) )
+        {
             return this.fileReadCache[fileName];
         }
 
-        Logger.trace( "readFile() Adding to cache: ", fileName );
         return this.fileReadCache[fileName] = this.baseHost.readFile( fileName );
     }
 
-    // Use Typescript CompilerHost "base class" implementation..
+    public writeFile = ( fileName: string, data: string, writeByteOrderMark: boolean, onError?: ( message: string ) => void ) =>
+    {
+        if ( this.isBuildInfoFile( fileName ) )
+        {
+            return this.baseHost.writeFile( fileName, data, writeByteOrderMark );
+        }
+        this.baseHost.writeFile( fileName, data, writeByteOrderMark );
+        this.output[fileName] = data;
+    }
 
-    public getDefaultLibFileName( options: ts.CompilerOptions ) {
+    public directoryExists = ( directoryPath: string ): boolean =>
+    {
+        if ( Utils.hasProperty( this.dirExistsCache, directoryPath ) )
+        {
+            return this.dirExistsCache[directoryPath];
+        }
+
+        return this.dirExistsCache[directoryPath] = ts.sys.directoryExists( directoryPath );
+    }
+
+    public fileExists = ( fileName: string ): boolean =>
+    {
+        fileName = this.getCanonicalFileName( fileName );
+
+        // Prune off searches on directories that don't exist
+        if ( !this.directoryExists( path.dirname( fileName ) ) )
+        {
+            return false;
+        }
+
+        if ( Utils.hasProperty( this.fileExistsCache, fileName ) )
+        {
+            return this.fileExistsCache[fileName];
+        }
+
+        return this.fileExistsCache[fileName] = this.baseHost.fileExists( fileName );
+    }
+
+    // Use Typescript CompilerHost "base class" implementation..
+    public getSourceFile = ( fileName: string, languageVersion: ts.ScriptTarget, onError?: ( message: string ) => void ): ts.SourceFile =>
+    {
+        return this.baseHost.getSourceFile( fileName, languageVersion, onError );
+    }
+
+    public getDefaultLibFileName = ( options: ts.CompilerOptions ) =>
+    {
         return this.baseHost.getDefaultLibFileName( options );
     }
 
-    public getCurrentDirectory() {
+    public getCurrentDirectory = () =>
+    {
         return this.baseHost.getCurrentDirectory();
     }
 
-    public getDirectories( path: string ): string[] {
+    public getDirectories = ( path: string ): string[] =>
+    {
         return this.baseHost.getDirectories( path );
-    } 
+    }
 
-    public getCanonicalFileName( fileName: string ) {
+    public getCanonicalFileName = ( fileName: string ) =>
+    {
         return this.baseHost.getCanonicalFileName( fileName );
     }
 
-    public useCaseSensitiveFileNames() {
+    public useCaseSensitiveFileNames = () =>
+    {
         return this.baseHost.useCaseSensitiveFileNames();
     }
 
-    public getNewLine() {
+    public getNewLine = () =>
+    {
         return this.baseHost.getNewLine();
     }
 
-    public directoryExists( directoryPath: string ): boolean {
+    public readDirectory( rootDir: string, extensions?: ReadonlyArray<string>, exclude?: ReadonlyArray<string>, include?: ReadonlyArray<string>, depth?: number ): string[]
+    {
+        return this.baseHost.readDirectory( rootDir, extensions, exclude, include, depth );
+    }
 
-        if ( Utils.hasProperty( this.dirExistsCache, directoryPath ) ) {
-            //Logger.trace( "dirExists() hit", directoryPath, this.dirExistsCache[ directoryPath ] );
-            return this.dirExistsCache[directoryPath];
-        }
-        
-        this.dirExistsCacheSize++;
-
-        //Logger.trace( "dirExists Adding: ", directoryPath, ts.sys.directoryExists( directoryPath ), this.dirExistsCacheSize );
-        return this.dirExistsCache[directoryPath] = ts.sys.directoryExists( directoryPath );
+    protected isBuildInfoFile( file: string )
+    {
+        return TsCore.fileExtensionIs( file, ts.Extension.TsBuildInfo.toString() );
     }
 }

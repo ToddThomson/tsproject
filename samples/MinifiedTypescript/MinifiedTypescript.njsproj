@@ -13,8 +13,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>06b71fc6-fc61-469d-9fe4-cce28824430d</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>
-    </StartupFile>
+    <StartupFile>rundbg.ts</StartupFile>
     <StartWebBrowser>True</StartWebBrowser>
     <SearchPath>
     </SearchPath>
@@ -37,16 +36,13 @@
     <Content Include=".tfignore" />
     <Content Include="dist\css.css" />
     <Content Include="dist\index.html" />
-    <Content Include="dist\Page1.html">
-      <SubType>Code</SubType>
-    </Content>
     <Content Include="gulpfile.js" />
+    <Content Include="package-lock.json" />
     <Content Include="src\app\tsconfig.json" />
     <Content Include="src\css\app.css" />
     <Content Include="src\index.html" />
     <Content Include="package.json" />
     <Content Include="README.md" />
-    <Content Include="webpack.config.js" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="dist\" />
@@ -56,9 +52,8 @@
     <Folder Include="src\css\" />
   </ItemGroup>
   <ItemGroup>
+    <TypeScriptCompile Include="rundbg.ts" />
     <TypeScriptCompile Include="src\app\app.ts" />
-    <TypeScriptCompile Include="src\app\bundles\app.min.d.ts" />
-    <TypeScriptCompile Include="src\app\bundles\app.min.ts" />
     <TypeScriptCompile Include="src\app\Greeter.ts" />
   </ItemGroup>
   <Import Project="$(VSToolsPath)\Node.js Tools\Microsoft.NodejsToolsV2.targets" />

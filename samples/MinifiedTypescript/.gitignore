@@ -1,7 +1,5 @@
 .DS_Store
-src/app/bower_modules
 bin
-dist
 node_modules/
 obj
 properties

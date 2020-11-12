@@ -73,7 +73,17 @@ export class IdentifierInfo {
         if ( ( this.symbol.flags & ts.SymbolFlags.FunctionScopedVariable ) > 0 ) {
             let variableDeclaration = this.getVariableDeclaration();
 
-            if ( variableDeclaration ) {
+            if ( variableDeclaration )
+            {
+                // Determine if the declaration is exported
+                let flags = Ast.getSyntacticModifierFlagsNoCache( variableDeclaration.parent.parent );
+
+                if ( flags & ts.ModifierFlags.Export )
+                {
+                    return false;
+                }
+
+                // The var declaration is not exported.
                 return true;
             }
         }
@@ -121,7 +131,7 @@ export class IdentifierInfo {
 
             // A function has a value declaration
             if ( this.symbol.valueDeclaration.kind === ts.SyntaxKind.FunctionDeclaration ) {
-                let flags = Ast.getModifierFlags( this.symbol.valueDeclaration );
+                let flags = Ast.getSyntacticModifierFlagsNoCache( this.symbol.valueDeclaration );
 
                 // If the function is from an extern API or ambient then it cannot be considered internal.
                 if ( Ast.isExportContext( this.symbol ) || Ast.isAmbientContext( this.symbol ) ) {
@@ -160,7 +170,7 @@ export class IdentifierInfo {
                 return false;
             }
 
-            let flags = Ast.getModifierFlags( this.symbol.valueDeclaration );
+            let flags = Ast.getSyntacticModifierFlagsNoCache( this.symbol.valueDeclaration );
 
             if ( ( flags & ts.ModifierFlags.Private ) > 0 ) {
                 return true;
@@ -171,7 +181,7 @@ export class IdentifierInfo {
 
             if ( parent && Ast.isClassInternal( parent ) ) {
                 
-                // TJT: Review - public methods of abstact classes are not shortened.
+                // TJT: Review - public methods of abstract classes are not shortened.
                 if ( !Ast.isClassAbstract( parent ) ) {
                     return true;
                 }
@@ -194,7 +204,7 @@ export class IdentifierInfo {
                 return false;
             }
 
-            let flags = Ast.getModifierFlags( this.symbol.valueDeclaration );
+            let flags = Ast.getSyntacticModifierFlagsNoCache( this.symbol.valueDeclaration );
 
             if ( ( flags & ts.ModifierFlags.Private ) > 0 ) {
                 return true;

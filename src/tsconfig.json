@@ -35,7 +35,6 @@
     "./Compiler/CompilerResult.ts",
     "./Compiler/CompileStream.ts",
     "./Compiler/TsCompilerOptions.ts",
-    "./Compiler/WatchCompilerHost.ts",
     "./Minifier/BundleMinifier.ts",
     "./Minifier/ContainerContext.ts",
     "./Minifier/IdentifierInfo.ts",

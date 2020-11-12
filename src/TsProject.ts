@@ -5,7 +5,9 @@ import { Logger } from "./Reporting/Logger";
 import * as ts from "typescript";
 import * as stream from "stream";
 
-export namespace TsProject {
+export namespace TsProject
+{
+    export const version = Project.version;
 
     export function src( configFilePath: string, settings?: any ): stream.Readable {
 

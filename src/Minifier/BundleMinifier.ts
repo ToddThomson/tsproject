@@ -194,7 +194,9 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
         if ( this.compilerOptions.diagnostics )
             this.reportWhitespaceStatistics();
 
-        return jsContents; // output;
+        // FIXME:
+        return jsContents;
+        //return output;
     }
 
     protected visitNode( node: ts.Node ): void {
@@ -317,12 +319,14 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
 
         this.shortenIdentifiers();
 
+        var minifiedSourceFile = ts.createSourceFile( sourceFile.fileName, sourceFile.text, this.compilerOptions.target );
+
         this.transformTime = new Date().getTime() - this.transformTime;
 
         if ( this.compilerOptions.diagnostics )
             this.reportMinifyStatistics();
 
-        return sourceFile;
+        return minifiedSourceFile;
     }
 
     private shortenIdentifiers(): void {
@@ -533,7 +537,7 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
         }
 
         // Replace the identifier text within the bundle source file
-        // FIXME: identifier.end = identifierStart + text.length;
+        ( identifier as ts.TextRange ).end = identifierStart + text.length;
 
         for ( var i = 0; i < identifierLength; i++ ) {
             let replaceChar = " ";

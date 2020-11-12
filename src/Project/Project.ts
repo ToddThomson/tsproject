@@ -1,7 +1,7 @@
 ﻿import { Compiler } from "../Compiler/Compiler";
 import { CompilerResult } from "../Compiler/CompilerResult";
 import { DiagnosticsReporter } from "../Reporting/DiagnosticsReporter";
-import { WatchCompilerHost }  from "../Compiler/WatchCompilerHost";
+import { CachingCompilerHost }  from "../Compiler/CachingCompilerHost";
 import { ProjectBuildContext } from "./ProjectBuildContext";
 import { CompileStream }  from "../Compiler/CompileStream";
 import { TsCompilerOptions } from "../Compiler/TsCompilerOptions";
@@ -11,7 +11,6 @@ import { BundleCompiler } from "../Bundler/BundleCompiler";
 import { ProjectConfig } from "./ProjectConfig";
 import { StatisticsReporter } from "../Reporting/StatisticsReporter";
 import { Logger } from "../Reporting/Logger";
-//import { TsVinylFile } from "./TsVinylFile";
 import { BundleParser, Bundle } from "../Bundler/BundleParser";
 import { Glob } from "./Glob";
 import { TsCore } from "../Utils/TsCore";
@@ -22,7 +21,6 @@ import * as _ from "lodash";
 import * as fs from "fs";
 import * as path from "path";
 import * as chalk from "chalk";
-import * as chokidar from "chokidar";
 
 export class Project {
 
@@ -41,14 +39,12 @@ export class Project {
 
     private buildContext: ProjectBuildContext;
 
-    private configFileWatcher: chokidar.FSWatcher;
-
-    private rebuildTimer: NodeJS.Timer;
-
     constructor( configFilePath: string, settings?: any  ) {
         this.configFilePath = configFilePath;
         this.settings = settings;
     }
+
+    public static version = "4.0.0-rc.2";
 
     public build( outputStream: CompileStream ): ts.ExitStatus {
         let config = this.parseProjectConfig();
@@ -62,7 +58,8 @@ export class Project {
         this.buildContext = this.createBuildContext( config );
 
         Logger.log( "Building Project with: " + chalk.magenta( `${this.configFileName}` ) );
-        Logger.log( "TypeScript compiler version: ", ts.version );
+        Logger.log( "TsProject version: ", Project.version );
+        Logger.log( "TypeScript version: ", ts.version );
 
         this.outputStream = outputStream;
 
@@ -71,44 +68,16 @@ export class Project {
 
         this.reportBuildStatus( buildStatus );
 
-        if ( config.compilerOptions.watch ) {
-            Logger.log( "Watching for project changes..." );
-        }
-        else {
-            this.completeProjectBuild();
-        }
+        this.completeProjectBuild();
 
         return buildStatus;
     }
 
     private createBuildContext( config: ProjectConfig ) : ProjectBuildContext {
 
-        if ( config.compilerOptions.watch ) {
-            if ( !this.watchProject() ) {
-                config.compilerOptions.watch = false;
-            }
-        }
-
-        let compilerHost = new WatchCompilerHost( config.compilerOptions, this.onSourceFileChanged );
+        let compilerHost = new CachingCompilerHost( config.compilerOptions );
 
         return new ProjectBuildContext( compilerHost, config );
-    }
-
-    private watchProject() : boolean {
-        if ( !ts.sys.watchFile ) {
-            let diagnostic = TsCore.createDiagnostic( { code: 5001, category: ts.DiagnosticCategory.Warning, key: "The_current_node_host_does_not_support_the_0_option_5001", message: "The current node host does not support the '{0}' option." }, "-watch" );
-            DiagnosticsReporter.reportDiagnostic( diagnostic );
-
-            return false;
-        }
-
-        // Add a watcher to the project config file if we haven't already done so.
-        if ( !this.configFileWatcher ) {
-            this.configFileWatcher = chokidar.watch( this.configFileName );
-            this.configFileWatcher.on( "change", ( path: string, stats: any ) => this.onConfigFileChanged( path, stats ) );
-        }
-
-        return true;
     }
 
     private completeProjectBuild(): void {
@@ -285,40 +254,6 @@ export class Project {
         }
     }
     
-    private onConfigFileChanged = ( path: string, stats: any ) => {
-        // Throw away the build context and start a fresh rebuild
-        this.buildContext = undefined;
-
-        this.startRebuildTimer();
-    }
-
-    private onSourceFileChanged = ( sourceFile: TsCore.WatchedSourceFile, path: string, stats: any ) => {
-        sourceFile.fileWatcher.unwatch( sourceFile.fileName );
-        sourceFile.fileWatcher = undefined;
-
-        this.startRebuildTimer();
-    }
-
-    private startRebuildTimer() {
-        if ( this.rebuildTimer ) {
-            clearTimeout( this.rebuildTimer );
-        }
-
-        this.rebuildTimer = setTimeout( this.onRebuildTimeout, 250 );
-    }
-
-    private onRebuildTimeout = () => {
-        this.rebuildTimer = undefined;
-
-        let buildStatus = this.buildWorker();
-
-        this.reportBuildStatus( buildStatus );
-
-        if ( this.buildContext.config.compilerOptions.watch ) {
-            Logger.log( "Watching for project changes..." );
-        }
-    }
-
     private readFile( fileName: string ): string {
         return ts.sys.readFile( fileName );
     }
