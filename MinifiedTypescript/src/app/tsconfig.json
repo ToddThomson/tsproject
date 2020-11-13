@@ -1,0 +1,29 @@
+{
+    "compilerOptions": {
+        "target": "es5",
+        "module": "amd",
+        "declaration": false,
+        "diagnostics": true,
+        "listFiles": false,
+        "noImplicitAny": false,
+        "preserveConstEnums": true,
+        "removeComments": false,
+        "sourceMap": false,
+        "noEmit": true
+    },
+    "files": [
+        "./greeter.ts",
+        "./app.ts"
+    ],
+    "bundles": {
+        "app": {
+            "files": [ "./app.ts" ],
+            "config": {
+                "package": "component",
+                "packageNamespace": "MyApp",
+                "outDir": "./bundles",
+                "minify": true
+            }
+        }
+    }
+}

@@ -1,0 +1,15 @@
+{
+  "name": "TsProjectTodoMVC",
+  "version": "2.0.0",
+  "private": true,
+  "dependencies": {
+    "components-bootstrap": "~3.3.7",
+    "todomvc-app-css": "~2.0.6",
+    "requirejs": "~2.3.2",
+    "requirejs-text": "~2.0.15",
+    "angular": "~1.5.8"
+  },
+  "resolutions": {
+    "angular": "~1.5.8"
+  }
+}
