@@ -24,7 +24,6 @@
     "gulp-replace": "^1.0.0",
     "gulp-requirejs": "^1.4.0",
     "gulp-rimraf": "^1.0.0",
-    "ts-loader": "^8.0.11",
     "tsproject": "^4.0.0",
     "typescript": "^4.0.5"
   }

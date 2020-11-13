@@ -13,7 +13,8 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>06b71fc6-fc61-469d-9fe4-cce28824430d</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>rundbg.ts</StartupFile>
+    <StartupFile>
+    </StartupFile>
     <StartWebBrowser>True</StartWebBrowser>
     <SearchPath>
     </SearchPath>
@@ -38,7 +39,6 @@
     <Content Include="dist\css.css" />
     <Content Include="dist\index.html" />
     <Content Include="gulpfile.js" />
-    <Content Include="package-lock.json" />
     <Content Include="src\app\tsconfig.json" />
     <Content Include="src\css\app.css" />
     <Content Include="src\index.html" />
@@ -53,7 +53,6 @@
     <Folder Include="src\css\" />
   </ItemGroup>
   <ItemGroup>
-    <TypeScriptCompile Include="rundbg.ts" />
     <TypeScriptCompile Include="src\app\app.ts" />
     <TypeScriptCompile Include="src\app\Greeter.ts" />
   </ItemGroup>

@@ -34,7 +34,7 @@
     "gulp-mocha": "^7.0.2",
     "mocha": "^8.2.0",
     "tsconfig-paths": "^3.9.0",
-    "tsproject": "^4.0.0-rc.2",
+    "tsproject": "^4.0.0",
     "vinyl-paths": "^3.0.1"
   },
   "keywords": [

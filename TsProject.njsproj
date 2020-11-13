@@ -15,7 +15,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>fc6c285f-e50f-4984-a0ac-d5bddf64bc4e</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>Tests\rundbg.ts</StartupFile>
+    <StartupFile>tests\rundbg.ts</StartupFile>
     <StartWebBrowser>False</StartWebBrowser>
     <SearchPath>
     </SearchPath>
@@ -39,7 +39,6 @@
     <Content Include=".npmignore" />
     <Content Include=".travis.yml" />
     <Content Include="build\tasks\src.js" />
-    <Content Include="build\tasks\local.js" />
     <Content Include="build\tasks\bundle.js">
       <SubType>Code</SubType>
     </Content>
@@ -50,12 +49,13 @@
     <Content Include="built\src\bundle\tsproject.js.map" />
     <Content Include="lib\TsProject.js" />
     <Content Include="LICENSE" />
+    <Content Include="package-lock.json" />
     <Content Include="package.json" />
     <Content Include="README.md" />
     <Content Include="src\tsconfig.json" />
-    <Content Include="Tests\projects\greeter\app\tsconfig.json" />
-    <Content Include="Tests\projects\simple\tsconfig.json" />
-    <Content Include="Tests\tsconfig.json" />
+    <Content Include="tests\projects\greeter\app\tsconfig.json" />
+    <Content Include="tests\projects\simple\tsconfig.json" />
+    <Content Include="tests\tsconfig.json" />
     <Content Include="tsconfig.json">
       <SubType>Code</SubType>
     </Content>
@@ -75,14 +75,14 @@
     <Folder Include="src\Project\" />
     <Folder Include="src\Reporting\" />
     <Folder Include="src\Utils\" />
-    <Folder Include="Tests\" />
-    <Folder Include="Tests\projects\" />
-    <Folder Include="Tests\projects\greeter\" />
-    <Folder Include="Tests\projects\greeter\app\" />
-    <Folder Include="Tests\projects\greeter\app\bundles\" />
-    <Folder Include="Tests\projects\simple\" />
-    <Folder Include="Tests\spec\" />
-    <Folder Include="Tests\spec\Project\" />
+    <Folder Include="tests\" />
+    <Folder Include="tests\projects\" />
+    <Folder Include="tests\projects\greeter\" />
+    <Folder Include="tests\projects\greeter\app\" />
+    <Folder Include="tests\projects\greeter\app\bundles\" />
+    <Folder Include="tests\projects\simple\" />
+    <Folder Include="tests\spec\" />
+    <Folder Include="tests\spec\Project\" />
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="built\src\bundle\tsproject.ts" />
@@ -96,9 +96,7 @@
     <TypeScriptCompile Include="src\Bundler\BundleParser.ts" />
     <TypeScriptCompile Include="src\Bundler\BundleResult.ts" />
     <TypeScriptCompile Include="src\Bundler\DependencyBuilder.ts" />
-    <TypeScriptCompile Include="src\Compiler\CachingCompilerHost.ts">
-      <SubType>Code</SubType>
-    </TypeScriptCompile>
+    <TypeScriptCompile Include="src\Compiler\CachingCompilerHost.ts" />
     <TypeScriptCompile Include="src\Compiler\Compiler.ts" />
     <TypeScriptCompile Include="src\Compiler\CompilerError.ts" />
     <TypeScriptCompile Include="src\Compiler\CompilerResult.ts" />
@@ -118,20 +116,18 @@
     <TypeScriptCompile Include="src\TsProject.ts" />
     <TypeScriptCompile Include="src\Utils\Debug.ts" />
     <TypeScriptCompile Include="src\Utils\TsCore.ts" />
-    <TypeScriptCompile Include="src\Utils\Formatter.ts">
-      <SubType>Code</SubType>
-    </TypeScriptCompile>
+    <TypeScriptCompile Include="src\Utils\Formatter.ts" />
     <TypeScriptCompile Include="src\Utils\Utilities.ts" />
-    <TypeScriptCompile Include="Tests\projects\greeter\app\app.ts" />
-    <TypeScriptCompile Include="Tests\projects\greeter\app\Greeter.ts" />
-    <TypeScriptCompile Include="Tests\projects\simple\GreeterModule.ts" />
-    <TypeScriptCompile Include="Tests\projects\simple\main.ts" />
+    <TypeScriptCompile Include="tests\projects\greeter\app\app.ts" />
+    <TypeScriptCompile Include="tests\projects\greeter\app\Greeter.ts" />
+    <TypeScriptCompile Include="tests\projects\simple\GreeterModule.ts" />
+    <TypeScriptCompile Include="tests\projects\simple\main.ts" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="build\paths.js" />
     <Compile Include="build\tasks\clean.js" />
     <Compile Include="gulpfile.js" />
-    <Compile Include="Tests\rundbg.ts" />
+    <Compile Include="tests\rundbg.ts" />
   </ItemGroup>
   <Import Project="$(VSToolsPath)\Node.js Tools\Microsoft.NodejsToolsV2.targets" />
   <ProjectExtensions>
