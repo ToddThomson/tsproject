@@ -7,8 +7,6 @@ Project("{9092AA53-FB77-4645-B42D-1CCCA6BD08BD}") = "TsProject", "TsProject.njsp
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{BF9E3BB7-7EC3-45BA-A888-D5960348D015}"
 EndProject
-Project("{9092AA53-FB77-4645-B42D-1CCCA6BD08BD}") = "ToDoMVC", "samples\ToDoMVC\ToDoMVC.njsproj", "{D38A3B12-0CBE-4A7B-B08C-6DAA48684EB9}"
-EndProject
 Project("{9092AA53-FB77-4645-B42D-1CCCA6BD08BD}") = "MinifiedTypescript", "samples\MinifiedTypescript\MinifiedTypescript.njsproj", "{06B71FC6-FC61-469D-9FE4-CCE28824430D}"
 EndProject
 Global
@@ -21,10 +19,6 @@ Global
 		{FC6C285F-E50F-4984-A0AC-D5BDDF64BC4E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FC6C285F-E50F-4984-A0AC-D5BDDF64BC4E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FC6C285F-E50F-4984-A0AC-D5BDDF64BC4E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D38A3B12-0CBE-4A7B-B08C-6DAA48684EB9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D38A3B12-0CBE-4A7B-B08C-6DAA48684EB9}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D38A3B12-0CBE-4A7B-B08C-6DAA48684EB9}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D38A3B12-0CBE-4A7B-B08C-6DAA48684EB9}.Release|Any CPU.Build.0 = Release|Any CPU
 		{06B71FC6-FC61-469D-9FE4-CCE28824430D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{06B71FC6-FC61-469D-9FE4-CCE28824430D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{06B71FC6-FC61-469D-9FE4-CCE28824430D}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -34,7 +28,6 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{D38A3B12-0CBE-4A7B-B08C-6DAA48684EB9} = {BF9E3BB7-7EC3-45BA-A888-D5960348D015}
 		{06B71FC6-FC61-469D-9FE4-CCE28824430D} = {BF9E3BB7-7EC3-45BA-A888-D5960348D015}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution

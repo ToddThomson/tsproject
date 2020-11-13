@@ -1,9 +1,0 @@
-{
-  "name": "MinifiedTypescript",
-  "version": "1.0.0",
-  "private": true,
-  "dependencies": {
-    "requirejs": "^2.1.22",
-    "requirejs-text": "^2.0.14"
-  }
-}
