@@ -6,6 +6,7 @@
     "noLib": false,
     "sourceMap": true,
     "pretty": true,
+    "traceResolution": true,
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,
     "noImplicitAny": true,

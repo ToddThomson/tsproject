@@ -120,6 +120,11 @@ export class CachingCompilerHost implements ts.CompilerHost
         return this.baseHost.readDirectory( rootDir, extensions, exclude, include, depth );
     }
 
+    public trace( s: string )
+    {
+        console.log( s );
+    }
+
     protected isBuildInfoFile( file: string )
     {
         return TsCore.fileExtensionIs( file, ts.Extension.TsBuildInfo.toString() );

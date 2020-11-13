@@ -12,7 +12,7 @@ import { Container } from "./ContainerContext"
 import { IdentifierInfo } from "./IdentifierInfo"
 import { TsCompilerOptions } from "../Compiler/TsCompilerOptions"
 import { Debug } from "../Utils/Debug"
-import { format } from "../Utils/formatter"
+import { format } from "../Utils/Formatter"
 import { Utils } from "../Utils/Utilities"
 import { TsCore } from "../Utils/TsCore"
 
@@ -194,9 +194,7 @@ export class BundleMinifier extends NodeWalker implements AstTransform {
         if ( this.compilerOptions.diagnostics )
             this.reportWhitespaceStatistics();
 
-        // FIXME:
-        return jsContents;
-        //return output;
+        return output;
     }
 
     protected visitNode( node: ts.Node ): void {

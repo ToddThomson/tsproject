@@ -44,7 +44,7 @@ export class Project {
         this.settings = settings;
     }
 
-    public static version = "4.0.0-rc.2";
+    public static version = "4.0.0-rc.3";
 
     public build( outputStream: CompileStream ): ts.ExitStatus {
         let config = this.parseProjectConfig();

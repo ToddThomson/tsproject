@@ -8,13 +8,12 @@
     "email": "todd.thomson@me.com"
   },
   "license": "MIT",
-
   "scripts": {
     "build": "tsc --build ./src/app  && gulp default",
     "clean": "tsc --build ./src/app --clean && gulp clean"
   },
   "dependencies": {
-    "systemjs": "6.7.1"
+    "systemjs": "^6.7.1"
   },
   "devDependencies": {
     "chalk": "^4.1.0",
@@ -26,7 +25,7 @@
     "gulp-requirejs": "^1.4.0",
     "gulp-rimraf": "^1.0.0",
     "ts-loader": "^8.0.11",
-    "tsproject": "^4.0.0-rc.1",
+    "tsproject": "^4.0.0",
     "typescript": "^4.0.5"
   }
 }

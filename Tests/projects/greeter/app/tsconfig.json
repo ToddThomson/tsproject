@@ -3,6 +3,7 @@
     "target": "es5",
     "module": "System",
     "lib": [ "ES5", "DOM" ],
+    "traceResolution": true,
     "declaration": true,
     "diagnostics": true,
     "listFiles": false,
