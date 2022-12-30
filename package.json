@@ -31,7 +31,7 @@
     "del": "^6.0.0",
     "gulp": "^4.0.2",
     "gulp-hub": "^4.2.0",
-    "gulp-mocha": "^7.0.2",
+    "gulp-mocha": "^8.0.0",
     "mocha": "^8.2.0",
     "tsconfig-paths": "^3.9.0",
     "tsproject": "^4.0.0",
